@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Internet Archive Helper</string>
+    <string name="version_name">1.6.0</string>
+    
+    <!-- App description for Play Store -->
+    <string name="app_description">Internet Archive Helper - Your comprehensive companion for accessing the vast digital collection of the Internet Archive. Download books, movies, music, software, and historical documents with ease.</string>
+    
+    <!-- Permission explanations for users -->
+    <string name="permission_storage_title">Storage Access</string>
+    <string name="permission_storage_explanation">Internet Archive Helper needs storage access to save downloaded files to your device. Files are saved to your Downloads folder.</string>
+    
+    <string name="permission_notification_title">Notifications</string>
+    <string name="permission_notification_explanation">Internet Archive Helper uses notifications to keep you updated on download progress and completion.</string>
+    
+    <!-- Error messages -->
+    <string name="error_network_unavailable">Network connection unavailable. Please check your internet connection.</string>
+    <string name="error_download_failed">Download failed. Please try again.</string>
+    <string name="error_storage_permission">Storage permission is required to save files.</string>
+    
+    <!-- Download states -->
+    <string name="download_starting">Starting download…</string>
+    <string name="download_in_progress">Downloading: %1$d%%</string>
+    <string name="download_completed">Download completed</string>
+    <string name="download_paused">Download paused</string>
+    <string name="download_cancelled">Download cancelled</string>
+    
+    <!-- Internet Archive specifics -->
+    <string name="ia_collection">Collection</string>
+    <string name="ia_item">Item</string>
+    <string name="ia_file_count">%1$d files</string>
+    <string name="ia_total_size">Total size: %1$s</string>
+    
+    <!-- Download notifications -->
+    <string name="notification_channel_downloads">Downloads</string>
+    <string name="notification_channel_downloads_description">Internet Archive download progress</string>
+    <string name="notification_downloading">Downloading %s</string>
+    <string name="notification_download_complete">Download completed</string>
+    <string name="notification_download_failed">Download failed</string>
+    
+    <!-- Actions -->
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_share">Share</string>
+    <string name="action_open">Open</string>
+    
+    <!-- Additional errors -->
+    <string name="error_share_failed">Failed to share file</string>
+    <string name="error_open_failed">Failed to open file</string>
+    <string name="error_no_app_found">No app found to open this file type</string>
+    <string name="error_invalid_identifier">Invalid archive identifier</string>
+    <string name="error_unknown">Unknown error occurred</string>
+    
+    <!-- Progress messages -->
+    <string name="progress_initializing">Initializing download…</string>
+    <string name="progress_fetching_metadata">Fetching archive metadata…</string>
+    <string name="progress_validating_urls">Validating download URLs…</string>
+    <string name="progress_complete">Download completed</string>
+</resources>

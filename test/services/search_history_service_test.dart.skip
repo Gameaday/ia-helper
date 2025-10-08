@@ -1,0 +1,435 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:internet_archive_helper/services/search_history_service.dart';
+import 'package:internet_archive_helper/models/search_history_entry.dart';
+import 'package:internet_archive_helper/database/database_helper.dart';
+
+// NOTE: These tests require a device/emulator with SQLite support.
+// They are skipped in CI/VM environments and should be run on a physical device or emulator.
+// To run these tests: flutter test --tags=requires-device
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late SearchHistoryService service;
+  late DatabaseHelper dbHelper;
+
+  setUp(() async {
+    // Create test instance
+    dbHelper = DatabaseHelper.instance;
+    service = SearchHistoryService.test(dbHelper);
+    
+    // Clear any existing data
+    await service.clearHistory();
+  });
+
+  tearDown(() async {
+    // Clean up after each test
+    await service.clearHistory();
+  });
+
+  group('SearchHistoryService - Basic Operations', () {
+    test('should initialize successfully', () {
+      expect(service, isNotNull);
+    }, skip: 'Requires device with SQLite database');
+
+    test('should start with empty history', () async {
+      final history = await service.getHistory();
+      expect(history, isEmpty);
+    });
+
+    test('should add new search entry', () async {
+      final entry = SearchHistoryEntry(
+        query: 'test query',
+        timestamp: DateTime.now(),
+        resultCount: 100,
+      );
+
+      await service.addEntry(entry);
+      
+      final history = await service.getHistory();
+      expect(history.length, equals(1));
+      expect(history.first.query, equals('test query'));
+      expect(history.first.resultCount, equals(100));
+    });
+
+    test('should update timestamp for duplicate query', () async {
+      final entry1 = SearchHistoryEntry(
+        query: 'duplicate query',
+        timestamp: DateTime.now(),
+        resultCount: 50,
+      );
+      
+      await service.addEntry(entry1);
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      final entry2 = SearchHistoryEntry(
+        query: 'duplicate query',
+        timestamp: DateTime.now(),
+        resultCount: 75,
+      );
+      
+      await service.addEntry(entry2);
+      
+      final history = await service.getHistory();
+      expect(history.length, equals(1));
+      expect(history.first.resultCount, equals(75));
+      expect(history.first.timestamp.isAfter(entry1.timestamp), isTrue);
+    });
+
+    test('should add multiple different entries', () async {
+      final entries = [
+        SearchHistoryEntry(
+          query: 'query 1',
+          timestamp: DateTime.now(),
+          resultCount: 10,
+        ),
+        SearchHistoryEntry(
+          query: 'query 2',
+          timestamp: DateTime.now(),
+          resultCount: 20,
+        ),
+        SearchHistoryEntry(
+          query: 'query 3',
+          timestamp: DateTime.now(),
+          resultCount: 30,
+        ),
+      ];
+
+      for (final entry in entries) {
+        await service.addEntry(entry);
+      }
+
+      final history = await service.getHistory();
+      expect(history.length, equals(3));
+    });
+  });
+
+  group('SearchHistoryService - Get History', () {
+    test('should return entries in reverse chronological order', () async {
+      final entry1 = SearchHistoryEntry(
+        query: 'first query',
+        timestamp: DateTime.now(),
+        resultCount: 10,
+      );
+      await service.addEntry(entry1);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final entry2 = SearchHistoryEntry(
+        query: 'second query',
+        timestamp: DateTime.now(),
+        resultCount: 20,
+      );
+      await service.addEntry(entry2);
+
+      final history = await service.getHistory();
+      expect(history.first.query, equals('second query'));
+      expect(history.last.query, equals('first query'));
+    });
+
+    test('should cache history after first load', () async {
+      final entry = SearchHistoryEntry(
+        query: 'test',
+        timestamp: DateTime.now(),
+        resultCount: 5,
+      );
+      await service.addEntry(entry);
+
+      // First call loads from database
+      final history1 = await service.getHistory();
+      expect(history1.length, equals(1));
+
+      // Second call uses cached data
+      final history2 = await service.getHistory();
+      expect(history2.length, equals(1));
+      expect(identical(history1, history2), isFalse); // Different instances (unmodifiable)
+    });
+  });
+
+  group('SearchHistoryService - Suggestions', () {
+    setUp(() async {
+      // Add test data for suggestions
+      final queries = ['apple', 'application', 'apply', 'banana', 'band'];
+      for (final query in queries) {
+        final entry = SearchHistoryEntry(
+          query: query,
+          timestamp: DateTime.now(),
+          resultCount: 1,
+        );
+        await service.addEntry(entry);
+        await Future.delayed(const Duration(milliseconds: 10));
+      }
+    });
+
+    test('should return suggestions for matching prefix', () async {
+      final suggestions = await service.getSuggestions('app');
+      expect(suggestions.length, equals(3));
+      expect(suggestions.every((s) => s.query.startsWith('app')), isTrue);
+    });
+
+    test('should return empty list for no matches', () async {
+      final suggestions = await service.getSuggestions('xyz');
+      expect(suggestions, isEmpty);
+    });
+
+    test('should be case-insensitive', () async {
+      final suggestions = await service.getSuggestions('APP');
+      expect(suggestions.length, equals(3));
+    });
+
+    test('should return empty list for empty prefix', () async {
+      final suggestions = await service.getSuggestions('');
+      expect(suggestions, isEmpty);
+    });
+
+    test('should limit suggestions to 10 results', () async {
+      // Add many entries with same prefix
+      for (int i = 0; i < 20; i++) {
+        final entry = SearchHistoryEntry(
+          query: 'test$i',
+          timestamp: DateTime.now(),
+          resultCount: 1,
+        );
+        await service.addEntry(entry);
+      }
+
+      final suggestions = await service.getSuggestions('test');
+      expect(suggestions.length, equals(10));
+    });
+  });
+
+  group('SearchHistoryService - Search History', () {
+    setUp(() async {
+      final queries = [
+        'internet archive',
+        'archive.org downloads',
+        'old movies archive',
+        'music collection',
+        'book archives',
+      ];
+      for (final query in queries) {
+        final entry = SearchHistoryEntry(
+          query: query,
+          timestamp: DateTime.now(),
+          resultCount: 10,
+        );
+        await service.addEntry(entry);
+        await Future.delayed(const Duration(milliseconds: 10));
+      }
+    });
+
+    test('should search history by text', () async {
+      final results = await service.searchHistory('archive');
+      expect(results.length, equals(4));
+      expect(results.every((e) => e.query.toLowerCase().contains('archive')), isTrue);
+    });
+
+    test('should return all history for empty search', () async {
+      final results = await service.searchHistory('');
+      expect(results.length, equals(5));
+    });
+
+    test('should be case-insensitive', () async {
+      final results = await service.searchHistory('ARCHIVE');
+      expect(results.length, equals(4));
+    });
+  });
+
+  group('SearchHistoryService - Remove Operations', () {
+    test('should remove entry by ID', () async {
+      final entry = SearchHistoryEntry(
+        query: 'to be removed',
+        timestamp: DateTime.now(),
+        resultCount: 5,
+      );
+      await service.addEntry(entry);
+
+      final history = await service.getHistory();
+      final id = history.first.id!;
+
+      await service.removeEntry(id);
+
+      final afterRemove = await service.getHistory();
+      expect(afterRemove, isEmpty);
+    });
+
+    test('should remove entries by query', () async {
+      await service.addEntry(SearchHistoryEntry(
+        query: 'unique query',
+        timestamp: DateTime.now(),
+        resultCount: 5,
+      ));
+      await service.addEntry(SearchHistoryEntry(
+        query: 'other query',
+        timestamp: DateTime.now(),
+        resultCount: 10,
+      ));
+
+      await service.removeByQuery('unique query');
+
+      final history = await service.getHistory();
+      expect(history.length, equals(1));
+      expect(history.first.query, equals('other query'));
+    });
+
+    test('should clear all history', () async {
+      for (int i = 0; i < 5; i++) {
+        final entry = SearchHistoryEntry(
+          query: 'query $i',
+          timestamp: DateTime.now(),
+          resultCount: i,
+        );
+        await service.addEntry(entry);
+      }
+
+      await service.clearHistory();
+
+      final history = await service.getHistory();
+      expect(history, isEmpty);
+    });
+  });
+
+  group('SearchHistoryService - Cleanup', () {
+    test('should cleanup old entries', () async {
+      // Note: Actual old entry removal requires database-level timestamp manipulation
+      // This test verifies the method exists and runs without error
+      await service.cleanupOldEntries();
+      expect(true, isTrue);
+    });
+  });
+
+  group('SearchHistoryService - Edge Cases', () {
+    test('should handle empty query string', () async {
+      final entry = SearchHistoryEntry(
+        query: '',
+        timestamp: DateTime.now(),
+        resultCount: 0,
+      );
+
+      await service.addEntry(entry);
+
+      final history = await service.getHistory();
+      expect(history.length, equals(1));
+    });
+
+    test('should handle very long query string', () async {
+      final longQuery = 'a' * 500;
+      final entry = SearchHistoryEntry(
+        query: longQuery,
+        timestamp: DateTime.now(),
+        resultCount: 5,
+      );
+
+      await service.addEntry(entry);
+
+      final history = await service.getHistory();
+      expect(history.first.query.length, equals(500));
+    });
+
+    test('should handle zero result count', () async {
+      final entry = SearchHistoryEntry(
+        query: 'no results',
+        timestamp: DateTime.now(),
+        resultCount: 0,
+      );
+
+      await service.addEntry(entry);
+
+      final history = await service.getHistory();
+      expect(history.first.resultCount, equals(0));
+    });
+
+    test('should handle special characters in query', () async {
+      final entry = SearchHistoryEntry(
+        query: 'test & query: "special" <chars>',
+        timestamp: DateTime.now(),
+        resultCount: 10,
+      );
+
+      await service.addEntry(entry);
+
+      final history = await service.getHistory();
+      expect(history.first.query, contains('special'));
+    });
+
+    test('should handle mediatype field', () async {
+      final entry = SearchHistoryEntry(
+        query: 'test',
+        timestamp: DateTime.now(),
+        resultCount: 10,
+        mediatype: 'movies',
+      );
+
+      await service.addEntry(entry);
+
+      final history = await service.getHistory();
+      expect(history.first.mediatype, equals('movies'));
+    });
+  });
+
+  group('SearchHistoryService - Concurrency', () {
+    test('should handle concurrent add operations', () async {
+      final futures = <Future>[];
+      
+      for (int i = 0; i < 10; i++) {
+        final entry = SearchHistoryEntry(
+          query: 'concurrent query $i',
+          timestamp: DateTime.now(),
+          resultCount: i,
+        );
+        futures.add(service.addEntry(entry));
+      }
+
+      await Future.wait(futures);
+
+      final history = await service.getHistory();
+      expect(history.length, equals(10));
+    });
+  });
+
+  group('SearchHistoryService - ChangeNotifier', () {
+    test('should notify listeners on add', () async {
+      var notified = false;
+      service.addListener(() {
+        notified = true;
+      });
+
+      final entry = SearchHistoryEntry(
+        query: 'test',
+        timestamp: DateTime.now(),
+        resultCount: 5,
+      );
+      await service.addEntry(entry);
+
+      expect(notified, isTrue);
+    });
+
+    test('should notify listeners on remove', () async {
+      final entry = SearchHistoryEntry(
+        query: 'test',
+        timestamp: DateTime.now(),
+        resultCount: 5,
+      );
+      await service.addEntry(entry);
+
+      var notified = false;
+      service.addListener(() {
+        notified = true;
+      });
+
+      final history = await service.getHistory();
+      await service.removeEntry(history.first.id!);
+
+      expect(notified, isTrue);
+    });
+
+    test('should notify listeners on clear', () async {
+      var notified = false;
+      service.addListener(() {
+        notified = true;
+      });
+
+      await service.clearHistory();
+
+      expect(notified, isTrue);
+    });
+  });
+}

@@ -1,0 +1,175 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    
+    <!-- 
+        ============================================================================
+        REQUIRED PERMISSIONS - Internet Archive Helper
+        ============================================================================
+        This app downloads files from the Internet Archive and saves them locally.
+        Permissions are requested at runtime following Android best practices.
+    -->
+    
+    <!-- INTERNET: Required for downloading files from archive.org -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- 
+        STORAGE PERMISSIONS - Android Version-Specific Strategy:
+        
+        Android 5-9 (API 21-28): Uses WRITE_EXTERNAL_STORAGE
+        Android 10-12 (API 29-32): Uses READ_EXTERNAL_STORAGE + Scoped Storage
+        Android 13+ (API 33+): Uses granular media permissions (photos, videos, audio)
+    -->
+    
+    <!-- Legacy storage: Android 5-9 (API 21-28) only -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="28" />
+    
+    <!-- Scoped storage: Android 10-12 (API 29-32) only -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
+    
+    <!-- Modern storage: Android 13+ (API 33+) - Granular media access -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    
+    <!-- Partial access: Allows user to select specific media on Android 14+ (API 34+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    
+    <!-- 
+        OPTIONAL PERMISSIONS
+    -->
+    
+    <!-- Network state: Allows app to detect connection type and status -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Notifications: Android 13+ (API 33+) - For download progress notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    
+    <!-- 
+        All Files Access: Android 11+ (API 30+) - Optional full storage access
+        Requires special Google Play Store approval and strong justification.
+        User must grant manually in system settings.
+    -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" 
+        android:minSdkVersion="30"
+        tools:ignore="ScopedStorage" />
+
+    <!-- 
+        ============================================================================
+        HARDWARE FEATURES (Optional)
+        ============================================================================
+        Marking as not required allows installation on more device types
+    -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
+
+    <application
+        android:label="@string/app_name"
+        android:name="${applicationName}"
+        android:icon="${appIcon}"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:theme="@style/LaunchTheme"
+        android:networkSecurityConfig="${networkSecurityConfig}"
+        android:requestLegacyExternalStorage="true"
+        android:largeHeap="true"
+        android:hardwareAccelerated="true"
+        android:supportsRtl="true">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            
+            <!-- App launch intent -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            
+            <!-- Handle Internet Archive URLs - /details/ pattern -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="archive.org"
+                    android:pathPrefix="/details/" />
+            </intent-filter>
+            
+            <!-- Handle Internet Archive URLs - /download/ pattern -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="archive.org"
+                    android:pathPrefix="/download/" />
+            </intent-filter>
+            
+            <!-- Handle custom deep links (ia-get://identifier) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="iaget" />
+            </intent-filter>
+        </activity>
+        
+        <!-- File provider for sharing downloaded files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+            
+        <!-- App metadata for store listing -->
+        <meta-data
+            android:name="com.gameaday.internet_archive_helper.APP_VERSION"
+            android:value="@string/version_name" />
+            
+        <!-- Google Play Services metadata -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+            
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+    
+    <!-- Queries for Intent resolution (Android 11+) -->
+    <queries>
+        <!-- Web browsing -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="http" />
+        </intent>
+        
+        <!-- File sharing -->
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+</manifest>

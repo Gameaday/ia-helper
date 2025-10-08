@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Internet Archive icon - scaled to fit adaptive icon safe zone -->
+    <!-- Safe zone is 66dp diameter circle in center of 108dp canvas -->
+    <!-- Icon is scaled and centered to fit within safe zone -->
+    
+    <group
+        android:translateX="21"
+        android:translateY="21"
+        android:scaleX="0.129"
+        android:scaleY="0.129">
+        <!-- Internet Archive building (columns, pediment, steps) -->
+        <path
+            android:fillColor="#000000"
+            android:pathData="M 81,419 
+                         L 431,419 
+                         L 431,437 
+                         L 81,437 
+                         Z 
+                         M 95,385 
+                         L 418,385 
+                         L 418,410 
+                         L 95,410 
+                         Z 
+                         M 93,101 
+                         L 414,101 
+                         L 414,136 
+                         L 93,136 
+                         Z 
+                         M 412,91 
+                         L 422,80 
+                         L 253,41 
+                         L 85,80 
+                         L 95,91 
+                         L 253,91 
+                         Z 
+                         M 139,245 
+                         L 138,194 
+                         L 135,147 
+                         C 135,145 135,145 133,145 
+                         A 67,67 0 0 0 105,145 
+                         C 104,145 103,145 103,147 
+                         L 101,194 
+                         A 2223,2223 0 0 0 101,321 
+                         L 103,364 
+                         L 104,372 
+                         L 119,375 
+                         C 125,374 130,374 135,372 
+                         L 136,364 
+                         L 138,321 
+                         A 1616,1616 0 0 0 139,245 
+                         Z 
+                         M 227,245 
+                         L 225,194 
+                         L 223,147 
+                         C 223,145 222,145 221,145 
+                         A 67,67 0 0 0 193,145 
+                         C 191,145 191,145 191,147 
+                         L 188,194 
+                         A 2223,2223 0 0 0 188,321 
+                         L 190,364 
+                         L 191,372 
+                         C 196,374 202,374 207,375 
+                         L 223,372 
+                         L 223,364 
+                         L 225,321 
+                         A 1620,1620 0 0 0 227,245 
+                         Z 
+                         M 328,245 
+                         L 327,194 
+                         L 324,147 
+                         C 324,145 324,145 322,145 
+                         A 67,67 0 0 0 294,145 
+                         C 293,145 292,145 292,147 
+                         L 290,194 
+                         A 2223,2223 0 0 0 290,321 
+                         L 292,364 
+                         L 293,372 
+                         L 308,375 
+                         C 313,374 319,374 324,372 
+                         L 325,364 
+                         L 327,321 
+                         A 1624,1624 0 0 0 328,245 
+                         Z 
+                         M 413,245 
+                         L 412,194 
+                         L 410,147 
+                         C 410,145 409,145 408,145 
+                         A 67,67 0 0 0 379,145 
+                         L 378,147 
+                         L 375,194 
+                         A 2227,2227 0 0 0 375,321 
+                         L 377,364 
+                         L 378,372 
+                         C 383,374 388,374 394,375 
+                         L 409,372 
+                         L 410,364 
+                         L 412,321 
+                         A 1620,1620 0 0 0 413,245 
+                         Z" />
+    </group>
+</vector>

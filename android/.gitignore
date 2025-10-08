@@ -1,0 +1,24 @@
+# Android build outputs
+/build/
+/app/build/
+/.gradle/
+/captures/
+/local.properties
+
+# Keystore files (keep template and debug keystore)
+/key.properties
+*.keystore
+!debug.keystore
+*.jks
+
+# IDE files
+*.iml
+/.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log

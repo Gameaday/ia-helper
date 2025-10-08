@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Include app preferences -->
+        <include domain="sharedpref" path="."/>
+        
+        <!-- Include download metadata but not large files -->
+        <include domain="file" path="downloads/metadata/"/>
+        
+        <!-- Exclude sensitive data -->
+        <exclude domain="sharedpref" path="auth_tokens.xml"/>
+    </cloud-backup>
+    
+    <device-transfer>
+        <!-- More permissive for device-to-device transfer -->
+        <include domain="sharedpref" path="."/>
+        <include domain="file" path="downloads/"/>
+        
+        <!-- Still exclude cache and temporary files -->
+        <exclude domain="file" path="downloads/cache/"/>
+        <exclude domain="file" path="downloads/temp/"/>
+    </device-transfer>
+</data-extraction-rules>
