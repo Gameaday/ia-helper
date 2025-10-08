@@ -1,0 +1,10 @@
+{
+  "kotlin.languageServer.enabled": false,
+  "files.watcherExclude": {
+    "**/.dart_tool/**": true,
+    "**/build/**": true,
+    "**/.gradle/**": true,
+    "**/android/.gradle/**": true,
+    "**/android/build/**": true
+  }
+}
