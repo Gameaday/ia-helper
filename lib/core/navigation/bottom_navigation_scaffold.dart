@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../screens/home_screen.dart';
+import '../../screens/library_screen.dart';
 import '../../screens/favorites_screen.dart';
 import '../../screens/settings_screen.dart';
 import '../../utils/animation_constants.dart';
@@ -63,7 +64,7 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
         ),
         _TabNavigator(
           navigatorKey: navigationState.getNavigatorKey(1),
-          rootScreen: _buildLibraryPlaceholder(),
+          rootScreen: const LibraryScreen(),
         ),
         _TabNavigator(
           navigatorKey: navigationState.getNavigatorKey(2),
@@ -127,31 +128,7 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
     );
   }
 
-  // Temporary placeholders until we create the actual screens
-  Widget _buildLibraryPlaceholder() {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Library')),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.library_books, size: 80, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'Library Screen',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Coming soon in Phase 2',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // Temporary placeholder until we create the Transfers screen
   Widget _buildTransfersPlaceholder() {
     return Scaffold(
       appBar: AppBar(title: const Text('Transfers')),

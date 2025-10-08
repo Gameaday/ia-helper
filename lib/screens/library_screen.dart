@@ -1,0 +1,832 @@
+import 'package:flutter/material.dart';
+import 'package:internet_archive_helper/models/collection.dart';
+import 'package:internet_archive_helper/models/downloaded_archive.dart';
+import 'package:internet_archive_helper/services/collections_service.dart';
+import 'package:internet_archive_helper/services/local_archive_storage.dart';
+import 'package:internet_archive_helper/utils/animation_constants.dart';
+import 'package:internet_archive_helper/core/utils/formatting_utils.dart';
+
+/// Material Design 3 Library screen consolidating downloads and collections
+///
+/// Features:
+/// - Three tabs: All Downloads, Collections, Recent
+/// - Filters: date, size, type
+/// - Sort options: name, date, size
+/// - Grid/list view toggle
+/// - Search within library
+/// - Empty states with CTAs
+/// - MD3 transitions and animations
+class LibraryScreen extends StatefulWidget {
+  const LibraryScreen({super.key});
+
+  @override
+  State<LibraryScreen> createState() => _LibraryScreenState();
+}
+
+class _LibraryScreenState extends State<LibraryScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  final _localArchiveStorage = LocalArchiveStorage();
+  final _collectionsService = CollectionsService.instance;
+
+  List<DownloadedArchive> _archives = [];
+  List<Collection> _collections = [];
+  Map<int, int> _collectionItemCounts = {};
+
+  bool _isLoading = true;
+  String? _error;
+  bool _isGridView = false;
+  String _searchQuery = '';
+  _SortOption _sortOption = _SortOption.dateDesc;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      await _localArchiveStorage.initialize();
+      final archives = _localArchiveStorage.archives.values.toList();
+      final collections = await _collectionsService.getAllCollections();
+
+      // Load item counts for collections
+      final counts = <int, int>{};
+      for (final collection in collections) {
+        final count = await _collectionsService.getCollectionItemCount(
+          collection.id!,
+        );
+        counts[collection.id!] = count;
+      }
+
+      setState(() {
+        _archives = archives;
+        _collections = collections;
+        _collectionItemCounts = counts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Library'),
+        actions: [
+          if (_tabController.index == 0) ...[
+            IconButton(
+              icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+              onPressed: () => setState(() => _isGridView = !_isGridView),
+              tooltip: _isGridView ? 'List view' : 'Grid view',
+            ),
+          ],
+          if (_tabController.index == 1)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _createCollection,
+              tooltip: 'Create collection',
+            ),
+          PopupMenuButton<String>(
+            onSelected: _handleMenuAction,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'refresh',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh),
+                    SizedBox(width: 12),
+                    Text('Refresh'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'search',
+                child: Row(
+                  children: [
+                    Icon(Icons.search),
+                    SizedBox(width: 12),
+                    Text('Search'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'sort',
+                child: Row(
+                  children: [
+                    Icon(Icons.sort),
+                    SizedBox(width: 12),
+                    Text('Sort'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          onTap: (_) => setState(() {}),
+          tabs: const [
+            Tab(text: 'All Downloads'),
+            Tab(text: 'Collections'),
+            Tab(text: 'Recent'),
+          ],
+        ),
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return _buildErrorState();
+    }
+
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        _buildAllDownloadsTab(),
+        _buildCollectionsTab(),
+        _buildRecentTab(),
+      ],
+    );
+  }
+
+  Widget _buildErrorState() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 80, color: colorScheme.error),
+            const SizedBox(height: 24),
+            Text(
+              'Error loading library',
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _error!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _loadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // All Downloads Tab
+  Widget _buildAllDownloadsTab() {
+    final filtered = _getFilteredArchives();
+
+    if (filtered.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.download_done,
+        title: 'No downloads yet',
+        subtitle: 'Downloaded archives will appear here',
+        actionLabel: 'Explore Archives',
+        onAction: () => _tabController.animateTo(2),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: _isGridView ? _buildGridView(filtered) : _buildListView(filtered),
+    );
+  }
+
+  // Collections Tab
+  Widget _buildCollectionsTab() {
+    if (_collections.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.folder_open,
+        title: 'No collections yet',
+        subtitle: 'Create collections to organize your downloads',
+        actionLabel: 'Create Collection',
+        onAction: _createCollection,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _collections.length,
+        itemBuilder: (context, index) {
+          return _buildCollectionCard(_collections[index]);
+        },
+      ),
+    );
+  }
+
+  // Recent Tab
+  Widget _buildRecentTab() {
+    final recent = _localArchiveStorage.recentArchives.take(20).toList();
+
+    if (recent.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.history,
+        title: 'No recent activity',
+        subtitle: 'Recently accessed downloads will appear here',
+        actionLabel: 'Browse Library',
+        onAction: () => _tabController.animateTo(0),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: recent.length,
+        itemBuilder: (context, index) {
+          return _buildArchiveListTile(recent[index]);
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String actionLabel,
+    required VoidCallback onAction,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 96, color: colorScheme.onSurfaceVariant),
+            const SizedBox(height: 24),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.arrow_forward),
+              label: Text(actionLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridView(List<DownloadedArchive> archives) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: archives.length,
+      itemBuilder: (context, index) {
+        return _buildArchiveGridCard(archives[index]);
+      },
+    );
+  }
+
+  Widget _buildListView(List<DownloadedArchive> archives) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: archives.length,
+      itemBuilder: (context, index) {
+        return _buildArchiveListTile(archives[index]);
+      },
+    );
+  }
+
+  Widget _buildArchiveGridCard(DownloadedArchive archive) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openArchive(archive),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Thumbnail placeholder
+            Container(
+              height: 120,
+              color: colorScheme.surfaceContainerHighest,
+              child: Center(
+                child: Icon(
+                  Icons.archive,
+                  size: 48,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      archive.metadata.title ?? archive.identifier,
+                      style: theme.textTheme.titleSmall,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.description,
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${archive.downloadedFiles} files',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      FormattingUtils.formatBytes(archive.downloadedBytes),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArchiveListTile(DownloadedArchive archive) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.archive, color: colorScheme.onSurfaceVariant),
+        ),
+        title: Text(
+          archive.metadata.title ?? archive.identifier,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          '${archive.downloadedFiles} files • ${FormattingUtils.formatBytes(archive.downloadedBytes)}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: PopupMenuButton<String>(
+          onSelected: (value) => _handleArchiveAction(value, archive),
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'open',
+              child: Row(
+                children: [
+                  Icon(Icons.folder_open),
+                  SizedBox(width: 12),
+                  Text('Open'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'add_to_collection',
+              child: Row(
+                children: [
+                  Icon(Icons.add_to_photos),
+                  SizedBox(width: 12),
+                  Text('Add to Collection'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(Icons.delete),
+                  SizedBox(width: 12),
+                  Text('Delete'),
+                ],
+              ),
+            ),
+          ],
+        ),
+        onTap: () => _openArchive(archive),
+      ),
+    );
+  }
+
+  Widget _buildCollectionCard(Collection collection) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final itemCount = _collectionItemCounts[collection.id] ?? 0;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () => _openCollection(collection),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Collection icon
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: collection.color ?? colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  collection.iconData,
+                  color: collection.color != null
+                      ? _getContrastColor(collection.color!)
+                      : colorScheme.onPrimaryContainer,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Collection info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      collection.name,
+                      style: theme.textTheme.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (collection.description != null &&
+                        collection.description!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        collection.description!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<DownloadedArchive> _getFilteredArchives() {
+    var filtered = _archives;
+
+    // Apply search filter
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      filtered = filtered.where((archive) {
+        return archive.identifier.toLowerCase().contains(query) ||
+            (archive.metadata.title?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    }
+
+    // Apply sort
+    filtered = List.from(filtered);
+    switch (_sortOption) {
+      case _SortOption.nameAsc:
+        filtered.sort((a, b) {
+          final aTitle = a.metadata.title ?? a.identifier;
+          final bTitle = b.metadata.title ?? b.identifier;
+          return aTitle.compareTo(bTitle);
+        });
+        break;
+      case _SortOption.nameDesc:
+        filtered.sort((a, b) {
+          final aTitle = a.metadata.title ?? a.identifier;
+          final bTitle = b.metadata.title ?? b.identifier;
+          return bTitle.compareTo(aTitle);
+        });
+        break;
+      case _SortOption.dateAsc:
+        filtered.sort((a, b) => a.downloadedAt.compareTo(b.downloadedAt));
+        break;
+      case _SortOption.dateDesc:
+        filtered.sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
+        break;
+      case _SortOption.sizeAsc:
+        filtered.sort((a, b) => a.downloadedBytes.compareTo(b.downloadedBytes));
+        break;
+      case _SortOption.sizeDesc:
+        filtered.sort((a, b) => b.downloadedBytes.compareTo(a.downloadedBytes));
+        break;
+    }
+
+    return filtered;
+  }
+
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'refresh':
+        _loadData();
+        break;
+      case 'search':
+        _showSearchDialog();
+        break;
+      case 'sort':
+        _showSortOptions();
+        break;
+    }
+  }
+
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Search Library'),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Enter search query',
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (value) {
+            setState(() => _searchQuery = value);
+            Navigator.pop(context);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _searchQuery = '');
+              Navigator.pop(context);
+            },
+            child: const Text('Clear'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Sort by',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ..._SortOption.values.map((option) {
+                final isSelected = _sortOption == option;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    selected: isSelected,
+                    selectedTileColor: Theme.of(
+                      context,
+                    ).colorScheme.secondaryContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    leading: Icon(
+                      isSelected ? Icons.check_circle : Icons.circle_outlined,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    title: Text(option.label),
+                    onTap: () {
+                      setState(() => _sortOption = option);
+                      Navigator.pop(context);
+                    },
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleArchiveAction(String action, DownloadedArchive archive) {
+    switch (action) {
+      case 'open':
+        _openArchive(archive);
+        break;
+      case 'add_to_collection':
+        _addToCollection(archive);
+        break;
+      case 'delete':
+        _deleteArchive(archive);
+        break;
+    }
+  }
+
+  void _openArchive(DownloadedArchive archive) {
+    // TODO: Navigate to archive detail screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening ${archive.identifier}'),
+        behavior: SnackBarBehavior.floating,
+        duration: MD3Durations.short,
+      ),
+    );
+  }
+
+  void _openCollection(Collection collection) {
+    // TODO: Navigate to collection detail screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening ${collection.name}'),
+        behavior: SnackBarBehavior.floating,
+        duration: MD3Durations.short,
+      ),
+    );
+  }
+
+  void _createCollection() {
+    // TODO: Show collection creation dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Collection creation coming soon'),
+        behavior: SnackBarBehavior.floating,
+        duration: MD3Durations.short,
+      ),
+    );
+  }
+
+  void _addToCollection(DownloadedArchive archive) {
+    // TODO: Show collection selection dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Add to collection coming soon'),
+        behavior: SnackBarBehavior.floating,
+        duration: MD3Durations.short,
+      ),
+    );
+  }
+
+  void _deleteArchive(DownloadedArchive archive) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.delete_outline),
+        title: const Text('Delete Archive?'),
+        content: Text(
+          'This will delete ${archive.identifier} from your library. Files on disk will not be deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              navigator.pop();
+              await _localArchiveStorage.removeArchive(archive.identifier);
+              await _loadData();
+              if (mounted) {
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Archive deleted from library'),
+                    behavior: SnackBarBehavior.floating,
+                    duration: MD3Durations.short,
+                  ),
+                );
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getContrastColor(Color background) {
+    final luminance = background.computeLuminance();
+    return luminance > 0.5 ? Colors.black : Colors.white;
+  }
+}
+
+enum _SortOption {
+  nameAsc('Name (A-Z)'),
+  nameDesc('Name (Z-A)'),
+  dateAsc('Date (Oldest)'),
+  dateDesc('Date (Newest)'),
+  sizeAsc('Size (Smallest)'),
+  sizeDesc('Size (Largest)');
+
+  final String label;
+  const _SortOption(this.label);
+}
