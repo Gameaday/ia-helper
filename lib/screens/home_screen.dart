@@ -13,6 +13,7 @@ import '../widgets/file_list_widget.dart';
 import '../widgets/download_controls_widget.dart';
 import '../widgets/search_history_sheet.dart';
 import '../widgets/advanced_filters_sheet.dart';
+import 'advanced_search_screen.dart';
 import 'archive_detail_screen.dart';
 import 'help_screen.dart';
 
@@ -419,10 +420,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showAdvancedFilters(BuildContext context) async {
     final result = await AdvancedFiltersSheet.show(context);
     if (result != null && mounted) {
-      // User applied filters - you can handle this based on your search logic
-      // For now, just log the filters
-      debugPrint('Applied filters: $result');
-      // TODO: Integrate with search functionality when implementing search with filters
+      if (!context.mounted) return;
+      
+      // Navigate to advanced search screen with filters pre-applied
+      Navigator.push(
+        context,
+        MD3PageTransitions.sharedAxis(
+          page: const AdvancedSearchScreen(),
+          settings: const RouteSettings(name: AdvancedSearchScreen.routeName),
+        ),
+      );
+      
+      // Note: The AdvancedSearchScreen will need to accept initial filters
+      // in a future enhancement. For now, we navigate to the screen where
+      // users can apply these filters.
     }
   }
 }
