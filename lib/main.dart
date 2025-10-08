@@ -10,7 +10,8 @@ import 'services/download_scheduler.dart';
 import 'providers/download_provider.dart';
 import 'providers/bandwidth_manager_provider.dart';
 import 'models/bandwidth_preset.dart';
-import 'screens/home_screen.dart';
+import 'core/navigation/navigation_state.dart';
+import 'core/navigation/bottom_navigation_scaffold.dart';
 import 'screens/archive_detail_screen.dart';
 import 'screens/download_screen.dart';
 import 'screens/download_queue_screen.dart';
@@ -56,6 +57,11 @@ class IAGetMobileApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // Navigation state - for bottom navigation
+        ChangeNotifierProvider<NavigationState>(
+          create: (_) => NavigationState(),
+          lazy: false, // Initialize eagerly for navigation
+        ),
         // Bandwidth Manager - needs to be created first for global access
         ChangeNotifierProvider<BandwidthManagerProvider>(
           create: (_) =>
@@ -154,7 +160,7 @@ class IAGetMobileApp extends StatelessWidget {
               );
             case '/home':
               return MD3PageTransitions.fadeThrough(
-                page: const HomeScreen(),
+                page: const BottomNavigationScaffold(),
                 settings: settings,
               );
             case ArchiveDetailScreen.routeName:
@@ -497,6 +503,6 @@ class _AppInitializerState extends State<AppInitializer> {
       return OnboardingWidget(onComplete: _completeOnboarding);
     }
 
-    return const HomeScreen();
+    return const BottomNavigationScaffold();
   }
 }
