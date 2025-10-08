@@ -13,8 +13,6 @@ import 'models/bandwidth_preset.dart';
 import 'core/navigation/navigation_state.dart';
 import 'core/navigation/bottom_navigation_scaffold.dart';
 import 'screens/archive_detail_screen.dart';
-import 'screens/download_screen.dart';
-import 'screens/download_queue_screen.dart';
 import 'screens/advanced_search_screen.dart';
 import 'screens/saved_searches_screen.dart';
 import 'screens/search_results_screen.dart';
@@ -166,16 +164,6 @@ class IAGetMobileApp extends StatelessWidget {
             case ArchiveDetailScreen.routeName:
               return MD3PageTransitions.fadeThrough(
                 page: const ArchiveDetailScreen(),
-                settings: settings,
-              );
-            case DownloadScreen.routeName:
-              return MD3PageTransitions.fadeThrough(
-                page: const DownloadScreen(),
-                settings: settings,
-              );
-            case DownloadQueueScreen.routeName:
-              return MD3PageTransitions.fadeThrough(
-                page: const DownloadQueueScreen(),
                 settings: settings,
               );
             case AdvancedSearchScreen.routeName:

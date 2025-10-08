@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/archive_service.dart';
 import '../services/background_download_service.dart';
-import '../screens/download_screen.dart';
+import '../core/navigation/navigation_state.dart';
 import '../screens/settings_screen.dart';
 import '../utils/file_utils.dart';
 import '../utils/permission_utils.dart';
-import '../utils/animation_constants.dart';
 
 class DownloadControlsWidget extends StatefulWidget {
   const DownloadControlsWidget({super.key});
@@ -457,13 +456,11 @@ class _DownloadControlsWidgetState extends State<DownloadControlsWidget> {
             action: SnackBarAction(
               label: 'View',
               onPressed: () {
-                // Navigate to downloads screen with background service flag
-                Navigator.push(
-                  context,
-                  MD3PageTransitions.fadeThrough(
-                    page: const DownloadScreen(useBackground: true),
-                  ),
-                );
+                // Navigate to Transfers tab in bottom navigation
+                final navState = context.read<NavigationState>();
+                navState.changeTab(3); // Switch to Transfers tab (index 3)
+                
+                Navigator.popUntil(context, (route) => route.isFirst); // Return to main screen
               },
             ),
             duration: const Duration(seconds: 3),
