@@ -50,7 +50,7 @@ jobs:
     
     - name: Build Web (no icon tree-shaking)
       run: |
-        flutter build web --release --no-tree-shake-icons --base-href /ia-helper/
+        flutter build web --release --no-tree-shake-icons --base-href /ia-helper/app/
     
     - name: Get build info
       id: build-info
@@ -82,16 +82,16 @@ jobs:
     - name: Prepare GitHub Pages content
       run: |
         mkdir -p _site/artifacts/android/development
-        mkdir -p _site/artifacts/web
+        mkdir -p _site/app
         
         # Copy Android APK
         cp build/app/outputs/flutter-apk/app-development-debug.apk _site/artifacts/android/development/
         cp build/app/outputs/flutter-apk/app-development-debug.apk.sha256 _site/artifacts/android/development/
         
-        # Copy web build
-        cp -r build/web/* _site/artifacts/web/
+        # Copy web build to /app/ for clean URL (https://gameaday.github.io/ia-helper/app/)
+        cp -r build/web/* _site/app/
         
-        # Copy static pages
+        # Copy static pages (landing page at root)
         cp -r docs/github-pages/* _site/
     
     - name: Generate build manifest
@@ -114,8 +114,8 @@ jobs:
               }
             },
             "web": {
-              "path": "artifacts/web",
-              "url": "https://${{ github.repository_owner }}.github.io/ia-helper/"
+              "path": "app",
+              "url": "https://${{ github.repository_owner }}.github.io/ia-helper/app/"
             }
           },
           "repository": "${{ github.repository }}",

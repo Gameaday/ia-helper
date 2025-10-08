@@ -365,16 +365,20 @@
                         <span class="build-icon">🌐</span>
                         <span>Web Application</span>
                     </div>
-                    <span class="build-badge badge-prod">Production</span>
+                    <span class="build-badge badge-prod">Live</span>
                 </div>
                 <div class="build-info">
                     <div class="info-row">
                         <span class="info-label">Platform</span>
-                        <span class="info-value">Progressive Web App</span>
+                        <span class="info-value">Progressive Web App (PWA)</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Status</span>
-                        <span class="info-value">Live</span>
+                        <span class="info-value">✅ Running</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Access</span>
+                        <span class="info-value">No installation required - runs in browser</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Last Updated</span>
@@ -382,8 +386,11 @@
                     </div>
                 </div>
                 <div class="download-buttons">
-                    <a href="#" id="webLaunch" class="btn btn-primary" target="_blank">
+                    <a href="app/" id="webLaunch" class="btn btn-primary" target="_blank" rel="noopener">
                         🚀 Launch Web App
+                    </a>
+                    <a href="https://github.com/Gameaday/ia-helper" class="btn btn-secondary" target="_blank" rel="noopener">
+                        📖 View Source
                     </a>
                 </div>
             </div>
@@ -429,9 +436,8 @@
                 document.getElementById('androidDownload').href = androidArtifact.path;
                 document.getElementById('androidChecksum').href = androidArtifact.checksumFile;
                 
-                // Update web info
+                // Update web info (keep the static link to /app/)
                 document.getElementById('webUpdated').textContent = manifest.buildTime;
-                document.getElementById('webLaunch').href = manifest.artifacts.web.url;
                 
                 // Show builds section
                 document.getElementById('loading').style.display = 'none';
