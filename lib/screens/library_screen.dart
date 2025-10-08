@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:internet_archive_helper/models/collection.dart';
 import 'package:internet_archive_helper/models/downloaded_archive.dart';
+import 'package:internet_archive_helper/models/search_query.dart';
+import 'package:internet_archive_helper/screens/archive_detail_screen.dart';
+import 'package:internet_archive_helper/screens/search_results_screen.dart';
 import 'package:internet_archive_helper/services/collections_service.dart';
 import 'package:internet_archive_helper/services/local_archive_storage.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
@@ -732,45 +735,169 @@ class _LibraryScreenState extends State<LibraryScreen>
   }
 
   void _openArchive(DownloadedArchive archive) {
-    // TODO: Navigate to archive detail screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${archive.identifier}'),
-        behavior: SnackBarBehavior.floating,
-        duration: MD3Durations.short,
-      ),
+    // Navigate to archive detail screen
+    Navigator.pushNamed(
+      context,
+      ArchiveDetailScreen.routeName,
+      arguments: archive.identifier,
     );
   }
 
   void _openCollection(Collection collection) {
-    // TODO: Navigate to collection detail screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${collection.name}'),
-        behavior: SnackBarBehavior.floating,
-        duration: MD3Durations.short,
-      ),
+    // Navigate to collection detail/search screen showing collection items
+    // Use the collection name as a query to find related archives
+    Navigator.pushNamed(
+      context,
+      SearchResultsScreen.routeName,
+      arguments: {
+        'query': SearchQuery(
+          query: collection.name,
+          collection: collection.name,
+        ),
+        'title': collection.name,
+      },
     );
   }
 
   void _createCollection() {
-    // TODO: Show collection creation dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Collection creation coming soon'),
-        behavior: SnackBarBehavior.floating,
-        duration: MD3Durations.short,
+    // Show collection creation dialog
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create Collection'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Collection Name',
+            hintText: 'Enter a name for your collection',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (controller.text.trim().isNotEmpty) {
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                final collectionName = controller.text.trim();
+                
+                try {
+                  await _collectionsService.createCollection(
+                    name: collectionName,
+                    description: null,
+                  );
+                  if (mounted) {
+                    navigator.pop();
+                    _loadData(); // Reload to show new collection
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Created "$collectionName"'),
+                        behavior: SnackBarBehavior.floating,
+                        duration: MD3Durations.short,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        behavior: SnackBarBehavior.floating,
+                        duration: MD3Durations.medium,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
       ),
     );
   }
 
   void _addToCollection(DownloadedArchive archive) {
-    // TODO: Show collection selection dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Add to collection coming soon'),
-        behavior: SnackBarBehavior.floating,
-        duration: MD3Durations.short,
+    // Show collection selection dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add to Collection'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: _collections.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('No collections yet. Create one first!'),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _collections.length,
+                  itemBuilder: (context, index) {
+                    final collection = _collections[index];
+                    return ListTile(
+                      leading: Icon(
+                        collection.icon != null
+                            ? IconData(
+                                int.parse(collection.icon!),
+                                fontFamily: 'MaterialIcons',
+                              )
+                            : Icons.folder,
+                      ),
+                      title: Text(collection.name),
+                      subtitle: collection.description != null
+                          ? Text(collection.description!)
+                          : null,
+                      onTap: () async {
+                        final navigator = Navigator.of(context);
+                        final messenger = ScaffoldMessenger.of(context);
+                        final archiveId = archive.identifier;
+                        final collName = collection.name;
+                        
+                        try {
+                          await _collectionsService.addItemToCollection(
+                            collectionId: collection.id!,
+                            identifier: archiveId,
+                          );
+                          if (mounted) {
+                            navigator.pop();
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Added "$archiveId" to $collName',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                duration: MD3Durations.short,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                behavior: SnackBarBehavior.floating,
+                                duration: MD3Durations.medium,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
       ),
     );
   }
