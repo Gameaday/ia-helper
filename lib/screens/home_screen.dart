@@ -11,13 +11,10 @@ import '../widgets/download_manager_widget.dart';
 import '../widgets/archive_info_widget.dart';
 import '../widgets/file_list_widget.dart';
 import '../widgets/download_controls_widget.dart';
+import '../widgets/search_history_sheet.dart';
+import '../widgets/advanced_filters_sheet.dart';
 import 'archive_detail_screen.dart';
-import 'download_screen.dart';
 import 'help_screen.dart';
-import 'history_screen.dart';
-import 'settings_screen.dart';
-import 'favorites_screen.dart';
-import 'collections_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -102,72 +99,19 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Search'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.download_outlined),
-            onPressed: () {
-              Navigator.pushNamed(context, '/download-queue');
-            },
-            tooltip: 'Download Queue',
-          ),
-          IconButton(
-            icon: const Icon(Icons.manage_search),
-            onPressed: () {
-              Navigator.pushNamed(context, '/advanced-search');
-            },
-            tooltip: 'Advanced Search',
-          ),
-          IconButton(
-            icon: const Icon(Icons.favorite),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MD3PageTransitions.sharedAxis(
-                  page: const FavoritesScreen(),
-                  settings: const RouteSettings(name: '/favorites'),
-                ),
-              );
-            },
-            tooltip: 'Favorites',
-          ),
-          IconButton(
-            icon: const Icon(Icons.collections_bookmark),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MD3PageTransitions.sharedAxis(
-                  page: const CollectionsScreen(),
-                  settings: const RouteSettings(name: '/collections'),
-                ),
-              );
-            },
-            tooltip: 'Collections',
-          ),
+          // Search History modal
           IconButton(
             icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MD3PageTransitions.sharedAxis(
-                  page: const HistoryScreen(),
-                  settings: const RouteSettings(name: HistoryScreen.routeName),
-                ),
-              );
-            },
-            tooltip: 'History',
+            onPressed: () => _showSearchHistory(context),
+            tooltip: 'Search History',
           ),
+          // Advanced Filters modal
           IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MD3PageTransitions.sharedAxis(
-                  page: const SettingsScreen(),
-                  settings: const RouteSettings(name: '/settings'),
-                ),
-              );
-            },
-            tooltip: 'Settings',
+            icon: const Icon(Icons.tune),
+            onPressed: () => _showAdvancedFilters(context),
+            tooltip: 'Filters',
           ),
+          // Help screen
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () {
@@ -180,19 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             tooltip: 'Help',
-          ),
-          IconButton(
-            icon: const Icon(Icons.download_rounded),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MD3PageTransitions.fadeThrough(
-                  page: const DownloadScreen(useBackground: true),
-                  settings: const RouteSettings(name: DownloadScreen.routeName),
-                ),
-              );
-            },
-            tooltip: 'Downloads',
           ),
         ],
       ),
@@ -471,5 +402,27 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     );
+  }
+
+  /// Show search history modal
+  Future<void> _showSearchHistory(BuildContext context) async {
+    final query = await SearchHistorySheet.show(context);
+    if (query != null && mounted) {
+      // User selected a search from history - perform the search
+      if (!context.mounted) return;
+      final archiveService = context.read<ArchiveService>();
+      archiveService.fetchMetadata(query);
+    }
+  }
+
+  /// Show advanced filters modal
+  Future<void> _showAdvancedFilters(BuildContext context) async {
+    final result = await AdvancedFiltersSheet.show(context);
+    if (result != null && mounted) {
+      // User applied filters - you can handle this based on your search logic
+      // For now, just log the filters
+      debugPrint('Applied filters: $result');
+      // TODO: Integrate with search functionality when implementing search with filters
+    }
   }
 }
