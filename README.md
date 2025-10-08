@@ -24,6 +24,17 @@ IA Helper is a powerful mobile app for accessing the Internet Archive (archive.o
 
 ## 📥 Download
 
+### 🌐 Try It Now
+
+**[📦 Download Latest Builds](https://gameaday.github.io/ia-helper/)** - Get development APKs and access the web app
+
+The builds page automatically updates with every commit to `main`:
+- 🤖 **Android Development APK** - Latest debug build with all features
+- 🌐 **Web Application** - Try it in your browser (no installation required)
+- 📊 **Build Info** - Version, commit details, and checksums
+
+### 📱 App Stores
+
 [<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=com.gameaday.iahelper)
 
 *Coming soon to Google Play Store*

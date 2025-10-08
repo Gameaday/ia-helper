@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Internet Archive Helper - Download builds and artifacts">
+    <title>Internet Archive Helper - Builds & Downloads</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1976d2;
+            --primary-dark: #1565c0;
+            --secondary: #424242;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --error: #f44336;
+            --background: #fafafa;
+            --surface: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #64b5f6;
+                --primary-dark: #42a5f5;
+                --secondary: #bdbdbd;
+                --success: #81c784;
+                --warning: #ffb74d;
+                --error: #e57373;
+                --background: #121212;
+                --surface: #1e1e1e;
+                --text-primary: #e0e0e0;
+                --text-secondary: #9e9e9e;
+                --border: #424242;
+                --shadow: rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .status-bar {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .builds-section {
+            display: grid;
+            gap: 20px;
+        }
+
+        .build-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .build-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px var(--shadow);
+        }
+
+        .build-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .build-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .build-icon {
+            font-size: 2rem;
+        }
+
+        .build-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-dev {
+            background: var(--warning);
+            color: white;
+        }
+
+        .badge-prod {
+            background: var(--success);
+            color: white;
+        }
+
+        .build-info {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            opacity: 0.9;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            background: var(--error);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .commit-message {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            padding: 8px;
+            background: var(--background);
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 Internet Archive Helper</h1>
+            <p class="subtitle">Download the latest builds and access artifacts</p>
+        </header>
+
+        <div class="status-bar" id="statusBar">
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Latest Build</div>
+                    <div class="status-value" id="buildTime">Loading...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Version</div>
+                    <div class="status-value" id="version">-</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Commit</div>
+                    <div class="status-value" id="commit">-</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Build Number</div>
+                    <div class="status-value" id="buildNumber">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <p>Loading build information...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <strong>Error:</strong> <span id="errorMessage"></span>
+        </div>
+
+        <div class="builds-section" id="buildsSection" style="display: none;">
+            <!-- Android Development Build -->
+            <div class="build-card">
+                <div class="build-header">
+                    <div class="build-title">
+                        <span class="build-icon">🤖</span>
+                        <span>Android Development</span>
+                    </div>
+                    <span class="build-badge badge-dev">Development</span>
+                </div>
+                <div class="build-info">
+                    <div class="info-row">
+                        <span class="info-label">File Name</span>
+                        <span class="info-value" id="androidFileName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Size</span>
+                        <span class="info-value" id="androidSize">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Updated</span>
+                        <span class="info-value" id="androidUpdated">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Commit Message</span>
+                        <div class="commit-message" id="commitMessage">-</div>
+                    </div>
+                </div>
+                <div class="download-buttons">
+                    <a href="#" id="androidDownload" class="btn btn-primary">
+                        ⬇️ Download APK
+                    </a>
+                    <a href="#" id="androidChecksum" class="btn btn-secondary">
+                        🔐 View Checksum
+                    </a>
+                </div>
+            </div>
+
+            <!-- Web Build -->
+            <div class="build-card">
+                <div class="build-header">
+                    <div class="build-title">
+                        <span class="build-icon">🌐</span>
+                        <span>Web Application</span>
+                    </div>
+                    <span class="build-badge badge-prod">Production</span>
+                </div>
+                <div class="build-info">
+                    <div class="info-row">
+                        <span class="info-label">Platform</span>
+                        <span class="info-value">Progressive Web App</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status</span>
+                        <span class="info-value">Live</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Updated</span>
+                        <span class="info-value" id="webUpdated">-</span>
+                    </div>
+                </div>
+                <div class="download-buttons">
+                    <a href="#" id="webLaunch" class="btn btn-primary" target="_blank">
+                        🚀 Launch Web App
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>
+                <a href="https://github.com/Gameaday/ia-helper" target="_blank">View on GitHub</a> |
+                <a href="https://github.com/Gameaday/ia-helper/issues" target="_blank">Report Issues</a> |
+                <a href="../PRIVACY_POLICY.md" target="_blank">Privacy Policy</a>
+            </p>
+            <p style="margin-top: 10px;">
+                Built with Flutter • Automatically deployed from main branch
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Load build manifest and update UI
+        async function loadBuildInfo() {
+            try {
+                const response = await fetch('artifacts/manifest.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const manifest = await response.json();
+                
+                // Update status bar
+                document.getElementById('buildTime').textContent = manifest.buildTime;
+                document.getElementById('version').textContent = manifest.version;
+                document.getElementById('commit').textContent = manifest.commitSha;
+                document.getElementById('buildNumber').textContent = `#${manifest.runNumber}`;
+                
+                // Update Android build info
+                const androidArtifact = manifest.artifacts.android.development;
+                document.getElementById('androidFileName').textContent = androidArtifact.fileName;
+                document.getElementById('androidSize').textContent = androidArtifact.size;
+                document.getElementById('androidUpdated').textContent = manifest.buildTime;
+                document.getElementById('commitMessage').textContent = manifest.commitMessage;
+                
+                // Update download links
+                document.getElementById('androidDownload').href = androidArtifact.path;
+                document.getElementById('androidChecksum').href = androidArtifact.checksumFile;
+                
+                // Update web info
+                document.getElementById('webUpdated').textContent = manifest.buildTime;
+                document.getElementById('webLaunch').href = manifest.artifacts.web.url;
+                
+                // Show builds section
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('buildsSection').style.display = 'grid';
+                
+            } catch (error) {
+                console.error('Failed to load build info:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 
+                    `Failed to load build information: ${error.message}. The builds may not be ready yet or there was a deployment issue.`;
+            }
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadBuildInfo);
+    </script>
+</body>
+</html>
