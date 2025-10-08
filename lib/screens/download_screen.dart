@@ -80,29 +80,46 @@ class _DownloadScreenState extends State<DownloadScreen> {
             ),
             body: downloads.isEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.download_done,
-                          size: 64,
-                          color: SemanticColors.disabled(context),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No downloads yet',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: SemanticColors.subtitle(context),
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Start downloading files from the main screen',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: SemanticColors.hint(context)),
-                        ),
-                      ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.download_outlined,
+                            size: 80,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'No downloads yet',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                                  color: SemanticColors.subtitle(context),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Start exploring and downloading files\nfrom the Internet Archive',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: SemanticColors.hint(context)),
+                          ),
+                          const SizedBox(height: 32),
+                          FilledButton.icon(
+                            onPressed: () {
+                              Navigator.of(
+                                context,
+                              ).popUntil((route) => route.isFirst);
+                            },
+                            icon: const Icon(Icons.search),
+                            label: const Text('Start Exploring'),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : ResponsiveUtils.isTabletOrLarger(context)

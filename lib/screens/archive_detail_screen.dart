@@ -77,6 +77,11 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
         ),
         body: Consumer<ArchiveService>(
           builder: (context, service, child) {
+            // Show error state if there's an error
+            if (service.error != null) {
+              return _buildErrorState(context, service);
+            }
+
             // If no metadata and not already popping, go back to search
             if (service.currentMetadata == null && !_isPopping) {
               _isPopping = true;
@@ -114,6 +119,57 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, ArchiveService service) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 80, color: colorScheme.error),
+            const SizedBox(height: 24),
+            Text(
+              'Failed to Load Archive',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              service.error ?? 'An unknown error occurred',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            FilledButton.icon(
+              onPressed: () {
+                final identifier = service.currentMetadata?.identifier;
+                if (identifier != null) {
+                  service.fetchMetadata(identifier);
+                } else {
+                  Navigator.of(context).pop();
+                }
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Go Back'),
+            ),
+          ],
         ),
       ),
     );
