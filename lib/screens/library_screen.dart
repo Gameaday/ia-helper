@@ -840,15 +840,23 @@ class _LibraryScreenState extends State<LibraryScreen>
                   itemCount: _collections.length,
                   itemBuilder: (context, index) {
                     final collection = _collections[index];
+                    // Parse icon at build time to avoid non-const IconData in web builds
+                    IconData collectionIcon = Icons.folder;
+                    if (collection.icon != null) {
+                      try {
+                        final codePoint = int.parse(collection.icon!);
+                        collectionIcon = IconData(
+                          codePoint,
+                          fontFamily: 'MaterialIcons',
+                        );
+                      } catch (e) {
+                        // If parsing fails, use default folder icon
+                        collectionIcon = Icons.folder;
+                      }
+                    }
+                    
                     return ListTile(
-                      leading: Icon(
-                        collection.icon != null
-                            ? IconData(
-                                int.parse(collection.icon!),
-                                fontFamily: 'MaterialIcons',
-                              )
-                            : Icons.folder,
-                      ),
+                      leading: Icon(collectionIcon),
                       title: Text(collection.name),
                       subtitle: collection.description != null
                           ? Text(collection.description!)

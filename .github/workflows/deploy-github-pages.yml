@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-artifacts:
-    name: Build Development Artifacts
+  build-and-deploy:
+    name: Build & Deploy to GitHub Pages
     runs-on: ubuntu-latest
     
     steps:
@@ -48,9 +48,9 @@ jobs:
       env:
         GRADLE_OPTS: -Xmx4g -Dorg.gradle.daemon=false
     
-    - name: Build Web
+    - name: Build Web (no icon tree-shaking)
       run: |
-        flutter build web --release --base-href /ia-helper/
+        flutter build web --release --no-tree-shake-icons --base-href /ia-helper/
     
     - name: Get build info
       id: build-info
@@ -79,21 +79,24 @@ jobs:
         cd build/app/outputs/flutter-apk
         sha256sum app-development-debug.apk > app-development-debug.apk.sha256
     
-    - name: Create artifacts directory
+    - name: Prepare GitHub Pages content
       run: |
-        mkdir -p github-pages/artifacts/android/development
-        mkdir -p github-pages/artifacts/web
+        mkdir -p _site/artifacts/android/development
+        mkdir -p _site/artifacts/web
         
         # Copy Android APK
-        cp build/app/outputs/flutter-apk/app-development-debug.apk github-pages/artifacts/android/development/
-        cp build/app/outputs/flutter-apk/app-development-debug.apk.sha256 github-pages/artifacts/android/development/
+        cp build/app/outputs/flutter-apk/app-development-debug.apk _site/artifacts/android/development/
+        cp build/app/outputs/flutter-apk/app-development-debug.apk.sha256 _site/artifacts/android/development/
         
         # Copy web build
-        cp -r build/web/* github-pages/artifacts/web/
+        cp -r build/web/* _site/artifacts/web/
+        
+        # Copy static pages
+        cp -r docs/github-pages/* _site/
     
     - name: Generate build manifest
       run: |
-        cat > github-pages/artifacts/manifest.json << EOF
+        cat > _site/artifacts/manifest.json << EOF
         {
           "version": "${{ steps.build-info.outputs.version }}",
           "buildTime": "${{ steps.build-info.outputs.build_time }}",
@@ -120,32 +123,6 @@ jobs:
           "runNumber": "${{ github.run_number }}"
         }
         EOF
-    
-    - name: Upload artifact for pages
-      uses: actions/upload-artifact@v4
-      with:
-        name: github-pages-content
-        path: github-pages/
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build-artifacts
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v5
-    
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: github-pages-content
-        path: _site
-    
-    - name: Copy static pages
-      run: |
-        # Copy the index.html and other static files
-        cp -r docs/github-pages/* _site/ || true
     
     - name: Setup Pages
       uses: actions/configure-pages@v4

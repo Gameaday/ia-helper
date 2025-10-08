@@ -143,87 +143,14 @@ jobs:
           build/app/outputs/**/*.aab.sha256
         retention-days: 30
 
-  build-web:
-    name: Build Web
-    runs-on: ubuntu-latest
-    needs: analyze
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.35.0'
-        channel: 'stable'
-        cache: true
-    
-    - name: Cache Flutter build
-      uses: actions/cache@v4
-      with:
-        path: |
-          .dart_tool
-          build
-        key: flutter-web-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
-        restore-keys: |
-          flutter-web-${{ runner.os }}-
-    
-    - name: Get dependencies
-      run: flutter pub get
-    
-    - name: Build Web (optimized)
-      run: |
-        # Build with optimizations:
-        # --release: Production build with optimizations
-        # --no-tree-shake-icons: Skip font tree-shaking to save build time
-        # --base-href: Set base path for GitHub Pages
-        flutter build web --release --no-tree-shake-icons --base-href /ia-helper/
-    
-    - name: Create web archive
-      working-directory: build
-      run: |
-        tar czf web-bundle.tar.gz web/
-        sha256sum web-bundle.tar.gz > web-bundle.tar.gz.sha256
-    
-    - name: Upload Web
-      uses: actions/upload-artifact@v4
-      with:
-        name: ia-helper-web
-        path: |
-          build/web-bundle.tar.gz
-          build/web-bundle.tar.gz.sha256
-        retention-days: 30
 
-  deploy-web:
-    name: Deploy to GitHub Pages
-    runs-on: ubuntu-latest
-    needs: build-web
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      contents: write
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Download web artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ia-helper-web
-    
-    - name: Extract web build
-      run: tar xzf web-bundle.tar.gz
-    
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./web
-        cname: ${{ github.repository_owner }}.github.io
+  # Note: Web build and GitHub Pages deployment is now handled by deploy-github-pages.yml
+  # This avoids duplication and ensures a single, streamlined deployment process
 
   release:
     name: Upload to Release
     runs-on: ubuntu-latest
-    needs: [build-android, build-web]
+    needs: [build-android]
     if: github.event_name == 'release'
     
     steps:
@@ -237,6 +164,6 @@ jobs:
       with:
         files: |
           artifacts/ia-helper-android/*
-          artifacts/ia-helper-web/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
