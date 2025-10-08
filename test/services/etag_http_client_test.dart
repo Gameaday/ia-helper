@@ -85,7 +85,7 @@ void main() {
     test('304 Not Modified response handled correctly', () async {
       final mockClient = MockClient((request) async {
         final ifNoneMatch = request.headers['If-None-Match'];
-        
+
         if (ifNoneMatch == null) {
           // First request without ETag - return fresh data
           return http.Response(
@@ -109,9 +109,7 @@ void main() {
       final client = IAHttpClient(innerClient: mockClient);
 
       // First request - no cache
-      final response1 = await client.get(
-        Uri.parse('https://archive.org/test'),
-      );
+      final response1 = await client.get(Uri.parse('https://archive.org/test'));
       expect(response1.statusCode, equals(200));
       final etag1 = IAHttpClient.extractETag(response1);
       expect(etag1, equals('"fresh-etag"'));
@@ -197,11 +195,11 @@ void main() {
 
       final mockClient = MockClient((request) async {
         callCount++;
-        
+
         if (request.headers['If-None-Match'] == '"static-etag"') {
           return http.Response('', 304, headers: {'etag': '"static-etag"'});
         }
-        
+
         return http.Response(
           '{"data": "value"}',
           200,

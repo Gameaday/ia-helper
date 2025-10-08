@@ -112,7 +112,9 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
                       decoration: BoxDecoration(
                         color: index <= _currentPage
                             ? Theme.of(context).primaryColor
-                            : Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                            : Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

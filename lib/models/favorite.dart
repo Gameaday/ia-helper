@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 /// Represents a favorited Internet Archive item
-/// 
+///
 /// Favorites allow users to quickly access archives they want to revisit.
 /// Each favorite stores minimal metadata for quick display, with full metadata
 /// available via the identifier.
@@ -81,13 +81,7 @@ class Favorite {
 
   @override
   int get hashCode {
-    return Object.hash(
-      id,
-      identifier,
-      title,
-      mediatype,
-      addedAt,
-    );
+    return Object.hash(id, identifier, title, mediatype, addedAt);
   }
 
   @override

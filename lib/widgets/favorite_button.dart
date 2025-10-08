@@ -5,10 +5,10 @@ import '../services/favorites_service.dart';
 import '../utils/animation_constants.dart';
 
 /// Material Design 3 compliant favorite button widget
-/// 
+///
 /// Displays a star icon that toggles between outlined and filled states.
 /// Uses MD3 emphasized animations for visual feedback.
-/// 
+///
 /// Features:
 /// - Smooth scale and rotation animations on toggle
 /// - Proper theme-based coloring (primary color for favorited)
@@ -79,25 +79,32 @@ class _FavoriteButtonState extends State<FavoriteButton>
     // Scale animation: slightly overshoot then settle
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.3)
-            .chain(CurveTween(curve: MD3Curves.emphasized)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.3,
+        ).chain(CurveTween(curve: MD3Curves.emphasized)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.3, end: 1.0)
-            .chain(CurveTween(curve: MD3Curves.emphasized)),
+        tween: Tween<double>(
+          begin: 1.3,
+          end: 1.0,
+        ).chain(CurveTween(curve: MD3Curves.emphasized)),
         weight: 50,
       ),
     ]).animate(_animationController);
 
     // Subtle rotation for added expressiveness (15 degrees)
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 0.26, // ~15 degrees in radians
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: MD3Curves.emphasized,
-    ));
+    _rotationAnimation =
+        Tween<double>(
+          begin: 0.0,
+          end: 0.26, // ~15 degrees in radians
+        ).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: MD3Curves.emphasized,
+          ),
+        );
   }
 
   Future<void> _checkFavoriteStatus() async {
@@ -147,9 +154,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                newStatus
-                    ? 'Added to favorites'
-                    : 'Removed from favorites',
+                newStatus ? 'Added to favorites' : 'Removed from favorites',
               ),
               duration: const Duration(seconds: 2),
               behavior: SnackBarBehavior.floating,
@@ -197,9 +202,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
         : colorScheme.onSurfaceVariant;
 
     return Semantics(
-      label: _isFavorited
-          ? 'Remove from favorites'
-          : 'Add to favorites',
+      label: _isFavorited ? 'Remove from favorites' : 'Add to favorites',
       button: true,
       child: AnimatedBuilder(
         animation: _animationController,

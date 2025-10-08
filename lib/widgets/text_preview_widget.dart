@@ -7,7 +7,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/file_preview.dart';
 
 /// Widget for displaying text file previews
-/// 
+///
 /// Supports:
 /// - Markdown rendering for .md files
 /// - Syntax highlighting for code files
@@ -26,9 +26,7 @@ class TextPreviewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (preview.textContent == null || preview.textContent!.isEmpty) {
-      return const Center(
-        child: Text('No preview available'),
-      );
+      return const Center(child: Text('No preview available'));
     }
 
     return Column(
@@ -37,9 +35,7 @@ class TextPreviewWidget extends StatelessWidget {
         _buildActionBar(context),
         const Divider(height: 1),
         // Content area
-        Expanded(
-          child: _buildContent(context),
-        ),
+        Expanded(child: _buildContent(context)),
       ],
     );
   }
@@ -99,7 +95,7 @@ class TextPreviewWidget extends StatelessWidget {
   /// Build syntax-highlighted content using flutter_highlight
   Widget _buildHighlightedContent(BuildContext context) {
     final language = _detectLanguage(preview.fileName);
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: HighlightView(
@@ -107,10 +103,7 @@ class TextPreviewWidget extends StatelessWidget {
         language: language,
         theme: isDarkMode ? monokaiSublimeTheme : githubTheme,
         padding: const EdgeInsets.all(12),
-        textStyle: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 14,
-        ),
+        textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
       ),
     );
   }
@@ -121,10 +114,7 @@ class TextPreviewWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: SelectableText(
         preview.textContent!,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 14,
-        ),
+        style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
       ),
     );
   }
@@ -132,7 +122,7 @@ class TextPreviewWidget extends StatelessWidget {
   /// Copy content to clipboard
   Future<void> _copyToClipboard(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: preview.textContent!));
-    
+
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -149,16 +139,16 @@ class TextPreviewWidget extends StatelessWidget {
       // Programming languages
       '.dart', '.py', '.js', '.ts', '.java', '.c', '.cpp', '.h', '.hpp',
       '.cs', '.go', '.rs', '.rb', '.php', '.swift', '.kt', '.m', '.mm',
-      
+
       // Web
       '.html', '.htm', '.css', '.scss', '.sass', '.less',
-      
+
       // Data/Config
       '.json', '.xml', '.yaml', '.yml', '.toml', '.ini', '.conf',
-      
+
       // Shell
       '.sh', '.bash', '.zsh', '.fish', '.bat', '.cmd', '.ps1',
-      
+
       // Other
       '.sql', '.r', '.lua', '.vim', '.tex',
     };
@@ -169,7 +159,7 @@ class TextPreviewWidget extends StatelessWidget {
   /// Detect programming language from file extension
   String _detectLanguage(String fileName) {
     final lower = fileName.toLowerCase();
-    
+
     // Map extensions to highlight.js language names
     if (lower.endsWith('.dart')) return 'dart';
     if (lower.endsWith('.py')) return 'python';
@@ -194,7 +184,7 @@ class TextPreviewWidget extends StatelessWidget {
     if (lower.endsWith('.sh') || lower.endsWith('.bash')) return 'bash';
     if (lower.endsWith('.sql')) return 'sql';
     if (lower.endsWith('.r')) return 'r';
-    
+
     // Default to plaintext
     return 'plaintext';
   }

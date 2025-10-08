@@ -5,7 +5,7 @@ import '../models/download_progress.dart';
 import '../database/database_helper.dart';
 
 /// Service for handling resumable downloads with HTTP Range request support
-/// 
+///
 /// Features:
 /// - Resume interrupted downloads
 /// - ETag verification to detect file changes
@@ -15,11 +15,11 @@ import '../database/database_helper.dart';
 class ResumableDownloadService {
   final Dio _dio;
   final DatabaseHelper _db;
-  
+
   // Active download tracking
   final Map<String, CancelToken> _cancelTokens = {};
   final Map<String, DownloadProgress> _progressMap = {};
-  
+
   // Callbacks
   final void Function(String taskId, DownloadProgress progress)? onProgress;
   final void Function(String taskId, DownloadTask task)? onComplete;
@@ -31,11 +31,11 @@ class ResumableDownloadService {
     this.onProgress,
     this.onComplete,
     this.onError,
-  })  : _dio = dio ?? Dio(),
-        _db = db ?? DatabaseHelper.instance;
+  }) : _dio = dio ?? Dio(),
+       _db = db ?? DatabaseHelper.instance;
 
   /// Start or resume a download task
-  /// 
+  ///
   /// Returns the final DownloadTask on completion or throws on error
   Future<DownloadTask> downloadTask(DownloadTask task) async {
     try {
@@ -57,11 +57,11 @@ class ResumableDownloadService {
 
       if (await file.exists()) {
         startByte = await file.length();
-        
+
         // Verify file hasn't changed on server
         if (task.etag != null) {
           etag = await _verifyETag(task.url, task.etag!);
-          
+
           if (etag != task.etag) {
             // File changed on server, start fresh
             await file.delete();
@@ -95,7 +95,7 @@ class ResumableDownloadService {
         ),
         onReceiveProgress: (received, total) {
           receivedBytes = startByte + received;
-          
+
           // Calculate progress
           final totalBytes = total > 0 ? total : task.totalBytes;
           final progress = DownloadProgress(
@@ -126,7 +126,7 @@ class ResumableDownloadService {
       if (response.statusCode == 200 || response.statusCode == 206) {
         // Get ETag from response for future resume
         final responseETag = response.headers.value('etag');
-        
+
         // Verify file size if known
         if (task.totalBytes > 0) {
           final fileSize = await file.length();
@@ -160,7 +160,7 @@ class ResumableDownloadService {
     } catch (e) {
       // Handle errors
       String errorMessage = e.toString();
-      
+
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) {
           errorMessage = 'Download cancelled';
@@ -176,7 +176,7 @@ class ResumableDownloadService {
       // Update task status
       final file = File(task.savePath);
       final partialBytes = await file.exists() ? await file.length() : 0;
-      
+
       task = task.copyWith(
         status: DownloadStatus.error,
         errorMessage: errorMessage,
@@ -208,7 +208,7 @@ class ResumableDownloadService {
     if (task != null) {
       final file = File(task.savePath);
       final partialBytes = await file.exists() ? await file.length() : 0;
-      
+
       await _db.updateDownloadTask(
         task.copyWith(
           status: DownloadStatus.paused,
@@ -233,7 +233,10 @@ class ResumableDownloadService {
   }
 
   /// Cancel a download and optionally delete the partial file
-  Future<void> cancelDownload(String taskId, {bool deletePartialFile = false}) async {
+  Future<void> cancelDownload(
+    String taskId, {
+    bool deletePartialFile = false,
+  }) async {
     final cancelToken = _cancelTokens[taskId];
     if (cancelToken != null && !cancelToken.isCancelled) {
       cancelToken.cancel('Cancelled by user');
@@ -251,9 +254,7 @@ class ResumableDownloadService {
 
       // Update task status
       await _db.updateDownloadTask(
-        task.copyWith(
-          status: DownloadStatus.cancelled,
-        ),
+        task.copyWith(status: DownloadStatus.cancelled),
       );
     }
 
@@ -271,9 +272,7 @@ class ResumableDownloadService {
     try {
       final response = await _dio.head(
         url,
-        options: Options(
-          receiveTimeout: const Duration(seconds: 30),
-        ),
+        options: Options(receiveTimeout: const Duration(seconds: 30)),
       );
 
       return response.headers.value('etag');

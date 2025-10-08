@@ -20,7 +20,7 @@ import 'package:internet_archive_helper/services/search_history_service.dart';
 /// - MD3 animations and transitions
 class AdvancedSearchScreen extends StatefulWidget {
   static const String routeName = '/advanced-search';
-  
+
   const AdvancedSearchScreen({super.key});
 
   @override
@@ -140,8 +140,8 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
 
     setState(() {
       _currentQuery = SearchQuery(
-        query: _searchController.text.trim().isEmpty 
-            ? null 
+        query: _searchController.text.trim().isEmpty
+            ? null
             : _searchController.text.trim(),
         fieldQueries: fieldQueries,
         mediatypes: _selectedMediatypes,
@@ -178,7 +178,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
 
     // Navigate to search results screen
     if (!mounted) return;
-    
+
     await Navigator.pushNamed(
       context,
       '/search-results',
@@ -190,10 +190,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   }
 
   Future<void> _navigateToSavedSearches() async {
-    final result = await Navigator.pushNamed(
-      context,
-      '/saved-searches',
-    );
+    final result = await Navigator.pushNamed(context, '/saved-searches');
 
     // If a saved search was returned, load it
     if (result is SavedSearch && mounted) {
@@ -317,10 +314,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -440,8 +434,8 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
               Text(
                 'Field-Specific Search',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               const Spacer(),
               if (_titleController.text.isNotEmpty ||
@@ -498,10 +492,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Media Types',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text('Media Types', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -535,10 +526,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Date Range',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Date Range', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             if (_selectedDateRange != null) ...[
               Text(
@@ -643,8 +631,8 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                   Text(
                     'Select start and end dates',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   // Start date
@@ -705,7 +693,9 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -748,13 +738,11 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
 
     if (result == true && startDate != null && endDate != null && mounted) {
       setState(() {
-        _selectedDateRange = DateRange(
-          start: startDate!,
-          end: endDate!,
-        );
+        _selectedDateRange = DateRange(start: startDate!, end: endDate!);
       });
-      
-      final label = 'Custom: ${startDate!.year}-${startDate!.month.toString().padLeft(2, '0')}-${startDate!.day.toString().padLeft(2, '0')} to ${endDate!.year}-${endDate!.month.toString().padLeft(2, '0')}-${endDate!.day.toString().padLeft(2, '0')}';
+
+      final label =
+          'Custom: ${startDate!.year}-${startDate!.month.toString().padLeft(2, '0')}-${startDate!.day.toString().padLeft(2, '0')} to ${endDate!.year}-${endDate!.month.toString().padLeft(2, '0')}-${endDate!.day.toString().padLeft(2, '0')}';
       _showSnackBar(label);
     }
   }
@@ -766,10 +754,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Sort By',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Sort By', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,

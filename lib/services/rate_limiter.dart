@@ -20,7 +20,7 @@ import 'dart:async';
 class RateLimiter {
   final int maxConcurrent;
   final Duration? minDelay;
-  
+
   int _active = 0;
   final List<Completer<void>> _queue = [];
   DateTime? _lastReleaseTime;
@@ -73,7 +73,7 @@ class RateLimiter {
   /// Must be called after [acquire], typically in a finally block.
   void release() {
     assert(_active > 0, 'Cannot release when no active permits');
-    
+
     _active--;
     _lastReleaseTime = DateTime.now();
 
@@ -111,7 +111,7 @@ class RateLimiter {
   void reset() {
     _active = 0;
     _lastReleaseTime = null;
-    
+
     // Cancel all queued requests
     for (final completer in _queue) {
       if (!completer.isCompleted) {

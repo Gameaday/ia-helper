@@ -4,11 +4,11 @@ import '../database/database_helper.dart';
 import '../models/collection.dart';
 
 /// Service for managing collections of archives
-/// 
+///
 /// Provides CRUD operations for creating and managing collections.
 /// Collections can be regular (manually curated) or smart (auto-populated).
 /// Uses SQLite for persistent storage with proper relationship management.
-/// 
+///
 /// Features:
 /// - Create/rename/delete collections
 /// - Add/remove items to/from collections
@@ -20,12 +20,13 @@ class CollectionsService {
 
   /// Singleton pattern
   CollectionsService._privateConstructor();
-  static final CollectionsService instance = CollectionsService._privateConstructor();
+  static final CollectionsService instance =
+      CollectionsService._privateConstructor();
 
   // MARK: - Collection CRUD Operations
 
   /// Create a new collection
-  /// 
+  ///
   /// Returns the ID of the created collection, or null if creation failed
   Future<int?> createCollection({
     required String name,
@@ -65,7 +66,7 @@ class CollectionsService {
   }
 
   /// Update an existing collection
-  /// 
+  ///
   /// Returns true if updated successfully
   Future<bool> updateCollection({
     required int id,
@@ -79,7 +80,7 @@ class CollectionsService {
     try {
       final db = await _dbHelper.database;
       final existing = await getCollection(id);
-      
+
       if (existing == null) {
         debugPrint('Collection $id not found');
         return false;
@@ -111,7 +112,7 @@ class CollectionsService {
   }
 
   /// Rename a collection
-  /// 
+  ///
   /// Convenience method for updating just the name
   Future<bool> renameCollection({
     required int id,
@@ -121,7 +122,7 @@ class CollectionsService {
   }
 
   /// Delete a collection
-  /// 
+  ///
   /// Also deletes all items in the collection (CASCADE)
   /// Returns true if deleted successfully
   Future<bool> deleteCollection(int id) async {
@@ -164,7 +165,7 @@ class CollectionsService {
   }
 
   /// Get all collections
-  /// 
+  ///
   /// [orderBy] - Sort order: 'created_at DESC' (default), 'created_at ASC', 'name ASC', 'name DESC', 'updated_at DESC'
   /// [includeItemCount] - If true, adds 'item_count' to each collection map
   Future<List<Collection>> getAllCollections({
@@ -225,7 +226,7 @@ class CollectionsService {
   // MARK: - Collection Items Management
 
   /// Add an item to a collection
-  /// 
+  ///
   /// Returns true if added successfully, false if already in collection
   Future<bool> addItemToCollection({
     required int collectionId,
@@ -272,14 +273,14 @@ class CollectionsService {
   }
 
   /// Add multiple items to a collection
-  /// 
+  ///
   /// Returns the number of items successfully added
   Future<int> addItemsToCollection({
     required int collectionId,
     required List<String> identifiers,
   }) async {
     int addedCount = 0;
-    
+
     for (final identifier in identifiers) {
       final success = await addItemToCollection(
         collectionId: collectionId,
@@ -292,7 +293,7 @@ class CollectionsService {
   }
 
   /// Remove an item from a collection
-  /// 
+  ///
   /// Returns true if removed successfully
   Future<bool> removeItemFromCollection({
     required int collectionId,
@@ -317,7 +318,9 @@ class CollectionsService {
         );
       }
 
-      debugPrint('Removed item $identifier from collection $collectionId (rows: $count)');
+      debugPrint(
+        'Removed item $identifier from collection $collectionId (rows: $count)',
+      );
       return count > 0;
     } catch (e) {
       debugPrint('Error removing item from collection: $e');
@@ -334,11 +337,14 @@ class CollectionsService {
       final db = await _dbHelper.database;
 
       final count = Sqflite.firstIntValue(
-        await db.rawQuery('''
+        await db.rawQuery(
+          '''
           SELECT COUNT(*) 
           FROM ${DatabaseHelper.tableCollectionItems}
           WHERE collection_id = ? AND identifier = ?
-        ''', [collectionId, identifier]),
+        ''',
+          [collectionId, identifier],
+        ),
       );
 
       return (count ?? 0) > 0;
@@ -349,7 +355,7 @@ class CollectionsService {
   }
 
   /// Get all items in a collection
-  /// 
+  ///
   /// Returns a list of identifiers
   Future<List<String>> getCollectionItems({
     required int collectionId,
@@ -400,13 +406,16 @@ class CollectionsService {
     try {
       final db = await _dbHelper.database;
 
-      final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      final List<Map<String, dynamic>> maps = await db.rawQuery(
+        '''
         SELECT c.* 
         FROM ${DatabaseHelper.tableCollections} c
         INNER JOIN ${DatabaseHelper.tableCollectionItems} ci ON c.id = ci.collection_id
         WHERE ci.identifier = ?
         ORDER BY c.name ASC
-      ''', [identifier]);
+      ''',
+        [identifier],
+      );
 
       return maps.map((map) => Collection.fromMap(map)).toList();
     } catch (e) {
@@ -421,11 +430,14 @@ class CollectionsService {
       final db = await _dbHelper.database;
 
       final count = Sqflite.firstIntValue(
-        await db.rawQuery('''
+        await db.rawQuery(
+          '''
           SELECT COUNT(*) 
           FROM ${DatabaseHelper.tableCollectionItems}
           WHERE collection_id = ?
-        ''', [collectionId]),
+        ''',
+          [collectionId],
+        ),
       );
 
       return count ?? 0;
@@ -436,7 +448,7 @@ class CollectionsService {
   }
 
   /// Clear all items from a collection
-  /// 
+  ///
   /// Returns the number of items deleted
   Future<int> clearCollection(int collectionId) async {
     try {
@@ -474,7 +486,9 @@ class CollectionsService {
       final db = await _dbHelper.database;
 
       final count = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM ${DatabaseHelper.tableCollections}'),
+        await db.rawQuery(
+          'SELECT COUNT(*) FROM ${DatabaseHelper.tableCollections}',
+        ),
       );
 
       return count ?? 0;
@@ -490,11 +504,15 @@ class CollectionsService {
       final db = await _dbHelper.database;
 
       final totalCollections = await getCollectionsCount();
-      
+
       // Get total items across all collections
-      final totalItems = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM ${DatabaseHelper.tableCollectionItems}'),
-      ) ?? 0;
+      final totalItems =
+          Sqflite.firstIntValue(
+            await db.rawQuery(
+              'SELECT COUNT(*) FROM ${DatabaseHelper.tableCollectionItems}',
+            ),
+          ) ??
+          0;
 
       // Get largest collection
       final largest = await db.rawQuery('''
@@ -514,19 +532,19 @@ class CollectionsService {
       return {
         'total_collections': totalCollections,
         'total_items': totalItems,
-        'average_items_per_collection': totalCollections > 0 
-          ? (totalItems / totalCollections).toStringAsFixed(1)
-          : '0',
-        'largest_collection': largest.isNotEmpty 
-          ? {
-              'id': largest.first['id'],
-              'name': largest.first['name'],
-              'item_count': largest.first['item_count'],
-            }
-          : null,
+        'average_items_per_collection': totalCollections > 0
+            ? (totalItems / totalCollections).toStringAsFixed(1)
+            : '0',
+        'largest_collection': largest.isNotEmpty
+            ? {
+                'id': largest.first['id'],
+                'name': largest.first['name'],
+                'item_count': largest.first['item_count'],
+              }
+            : null,
         'most_recent_collection': recentCollections.isNotEmpty
-          ? recentCollections.first.name
-          : null,
+            ? recentCollections.first.name
+            : null,
       };
     } catch (e) {
       debugPrint('Error getting collections stats: $e');
@@ -535,7 +553,7 @@ class CollectionsService {
   }
 
   /// Duplicate a collection
-  /// 
+  ///
   /// Creates a copy of the collection with all its items
   /// Returns the ID of the new collection, or null if duplication failed
   Future<int?> duplicateCollection({
@@ -565,7 +583,9 @@ class CollectionsService {
         identifiers: items,
       );
 
-      debugPrint('Duplicated collection $sourceCollectionId to $newCollectionId');
+      debugPrint(
+        'Duplicated collection $sourceCollectionId to $newCollectionId',
+      );
       return newCollectionId;
     } catch (e) {
       debugPrint('Error duplicating collection: $e');
@@ -578,19 +598,26 @@ class CollectionsService {
   /// Sanitize orderBy clause to prevent SQL injection
   String _sanitizeOrderBy(String orderBy) {
     // Only allow specific column names and directions
-    final allowedColumns = ['id', 'name', 'created_at', 'updated_at', 'added_at'];
+    final allowedColumns = [
+      'id',
+      'name',
+      'created_at',
+      'updated_at',
+      'added_at',
+    ];
     final allowedDirections = ['ASC', 'DESC'];
-    
+
     final parts = orderBy.trim().split(' ');
     if (parts.isEmpty || parts.length > 2) return 'created_at DESC';
-    
+
     final column = parts[0].toLowerCase();
     final direction = parts.length > 1 ? parts[1].toUpperCase() : 'DESC';
-    
-    if (!allowedColumns.contains(column) || !allowedDirections.contains(direction)) {
+
+    if (!allowedColumns.contains(column) ||
+        !allowedDirections.contains(direction)) {
       return 'created_at DESC';
     }
-    
+
     return '$column $direction';
   }
 }

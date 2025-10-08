@@ -24,11 +24,8 @@ class DateRange {
   /// Field to search (date, year, publicdate, addeddate, etc.)
   final String field;
 
-  const DateRange({
-    required this.start,
-    required this.end,
-    this.field = 'date',
-  }) : assert(field != '');
+  const DateRange({required this.start, required this.end, this.field = 'date'})
+    : assert(field != '');
 
   /// Create a date range from year values
   factory DateRange.fromYears(int startYear, int endYear) {
@@ -148,11 +145,7 @@ class DateRange {
   }
 
   /// Create a copy with modified fields
-  DateRange copyWith({
-    DateTime? start,
-    DateTime? end,
-    String? field,
-  }) {
+  DateRange copyWith({DateTime? start, DateTime? end, String? field}) {
     return DateRange(
       start: start ?? this.start,
       end: end ?? this.end,
@@ -230,18 +223,18 @@ class DateRangePresets {
 
   /// Get all preset options
   static List<DateRangePreset> get all => [
-        DateRangePreset('Today', today),
-        DateRangePreset('Yesterday', yesterday),
-        DateRangePreset('Last 7 days', last7Days),
-        DateRangePreset('Last 30 days', last30Days),
-        DateRangePreset('Last 90 days', last90Days),
-        DateRangePreset('Last 6 months', last6Months),
-        DateRangePreset('Last year', lastYear),
-        DateRangePreset('Last 5 years', last5Years),
-        DateRangePreset('This week', thisWeek),
-        DateRangePreset('This month', thisMonth),
-        DateRangePreset('This year', thisYear),
-      ];
+    DateRangePreset('Today', today),
+    DateRangePreset('Yesterday', yesterday),
+    DateRangePreset('Last 7 days', last7Days),
+    DateRangePreset('Last 30 days', last30Days),
+    DateRangePreset('Last 90 days', last90Days),
+    DateRangePreset('Last 6 months', last6Months),
+    DateRangePreset('Last year', lastYear),
+    DateRangePreset('Last 5 years', last5Years),
+    DateRangePreset('This week', thisWeek),
+    DateRangePreset('This month', thisMonth),
+    DateRangePreset('This year', thisYear),
+  ];
 }
 
 /// A named date range preset

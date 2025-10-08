@@ -43,11 +43,11 @@ class ArchiveMetadata {
 
     // Try multiple strategies to extract identifier
     String identifier = 'unknown';
-    
+
     // Strategy 1: Check metadata.identifier
     if (json['metadata'] != null && json['metadata']['identifier'] != null) {
       identifier = json['metadata']['identifier'];
-    } 
+    }
     // Strategy 2: Check top-level identifier
     else if (json['identifier'] != null) {
       identifier = json['identifier'];
@@ -74,7 +74,7 @@ class ArchiveMetadata {
       files: files,
     );
   }
-  
+
   /// Parse a field that could be either a String or an int
   static int? _parseIntField(dynamic value) {
     if (value == null) return null;
@@ -136,35 +136,35 @@ class ArchiveFile {
     this.original,
     this.selected = false,
   });
-  
+
   /// Get the directory path of this file (everything before the last /)
   String get directory {
     final lastSlash = name.lastIndexOf('/');
     if (lastSlash == -1) return '';
     return name.substring(0, lastSlash);
   }
-  
+
   /// Get just the filename (after the last /)
   String get filename {
     final lastSlash = name.lastIndexOf('/');
     if (lastSlash == -1) return name;
     return name.substring(lastSlash + 1);
   }
-  
+
   /// Check if file is in a specific subfolder (supports wildcards)
   bool isInSubfolder(String pattern) {
     if (pattern.isEmpty) return true;
-    
+
     final dir = directory;
     final patternLower = pattern.toLowerCase();
     final dirLower = dir.toLowerCase();
-    
+
     // Exact match
     if (dirLower == patternLower) return true;
-    
+
     // Starts with pattern (subfolder matching)
     if (dirLower.startsWith(patternLower)) return true;
-    
+
     // Wildcard pattern matching
     if (patternLower.contains('*')) {
       final regexPattern = patternLower
@@ -179,7 +179,7 @@ class ArchiveFile {
         return false;
       }
     }
-    
+
     return false;
   }
 
@@ -201,7 +201,7 @@ class ArchiveFile {
       selected: json['selected'] ?? false,
     );
   }
-  
+
   /// Parse a field that could be either a String or an int
   static int? _parseIntField(dynamic value) {
     if (value == null) return null;

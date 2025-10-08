@@ -101,13 +101,13 @@ void main() {
       test('Empty protected list allows purge', () {
         final protectedIdentifiers = <String>[];
         final archiveId = 'test-archive';
-        
+
         expect(protectedIdentifiers.contains(archiveId), isFalse);
       });
 
       test('Protected list prevents purge', () {
         final protectedIdentifiers = ['archive-1', 'archive-2', 'archive-3'];
-        
+
         expect(protectedIdentifiers.contains('archive-1'), isTrue);
         expect(protectedIdentifiers.contains('archive-2'), isTrue);
         expect(protectedIdentifiers.contains('archive-4'), isFalse);
@@ -116,12 +116,12 @@ void main() {
       test('Downloaded archives added to protected list', () {
         final downloadedIdentifiers = ['downloaded-1', 'downloaded-2'];
         final userProtected = ['pinned-1'];
-        
+
         final allProtected = <String>{
           ...userProtected,
           ...downloadedIdentifiers,
         }.toList();
-        
+
         expect(allProtected.length, equals(3));
         expect(allProtected.contains('downloaded-1'), isTrue);
         expect(allProtected.contains('downloaded-2'), isTrue);
@@ -131,9 +131,9 @@ void main() {
       test('Protected list handles duplicates correctly', () {
         final list1 = ['archive-1', 'archive-2'];
         final list2 = ['archive-2', 'archive-3'];
-        
+
         final combined = <String>{...list1, ...list2}.toList();
-        
+
         // Set removes duplicates
         expect(combined.length, equals(3));
         expect(combined.contains('archive-1'), isTrue);

@@ -3,7 +3,7 @@ import 'package:internet_archive_helper/models/collection.dart';
 import 'package:internet_archive_helper/services/collections_service.dart';
 
 /// Material Design 3 compliant collection picker widget
-/// 
+///
 /// Displays as a bottom sheet allowing users to:
 /// - Add an archive item to one or more collections
 /// - Create a new collection on-the-fly
@@ -81,9 +81,8 @@ class _CollectionPickerState extends State<CollectionPicker> {
       final collections = await _collectionsService.getAllCollections();
 
       // Load which collections already contain this item
-      final existingCollections = await _collectionsService.getCollectionsForItem(
-        widget.identifier,
-      );
+      final existingCollections = await _collectionsService
+          .getCollectionsForItem(widget.identifier);
       final existingIds = existingCollections.map((c) => c.id!).toSet();
 
       setState(() {
@@ -104,7 +103,9 @@ class _CollectionPickerState extends State<CollectionPicker> {
 
     try {
       // Get currently selected collections
-      final currentIds = await _collectionsService.getCollectionsForItem(widget.identifier);
+      final currentIds = await _collectionsService.getCollectionsForItem(
+        widget.identifier,
+      );
       final currentIdSet = currentIds.map((c) => c.id!).toSet();
 
       // Find collections to add to
@@ -177,7 +178,7 @@ class _CollectionPickerState extends State<CollectionPicker> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              
+
               // Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 8, 8, 16),
@@ -217,9 +218,7 @@ class _CollectionPickerState extends State<CollectionPicker> {
               const Divider(height: 1),
 
               // Content
-              Expanded(
-                child: _buildContent(scrollController),
-              ),
+              Expanded(child: _buildContent(scrollController)),
 
               // Action buttons
               Container(
@@ -338,10 +337,7 @@ class _CollectionPickerState extends State<CollectionPicker> {
               color: colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 24),
-            Text(
-              'No Collections',
-              style: theme.textTheme.titleLarge,
-            ),
+            Text('No Collections', style: theme.textTheme.titleLarge),
             const SizedBox(height: 12),
             Text(
               'Create your first collection to organize your favorites',
@@ -396,8 +392,8 @@ class _CollectionPickerState extends State<CollectionPicker> {
           ),
         ),
         title: Text(collection.name),
-        subtitle: collection.description != null &&
-                collection.description!.isNotEmpty
+        subtitle:
+            collection.description != null && collection.description!.isNotEmpty
             ? Text(
                 collection.description!,
                 maxLines: 1,
@@ -423,7 +419,7 @@ class _CollectionPickerState extends State<CollectionPicker> {
 
       if (collectionId != null) {
         await _loadCollections();
-        
+
         // Auto-select the newly created collection
         setState(() {
           _selectedCollectionIds.add(collectionId);

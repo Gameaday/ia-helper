@@ -1,20 +1,20 @@
 // Material Design 3 Shape System
-// 
+//
 // Provides standardized border radius values following Material Design 3
 // shape scale for consistent shapes throughout the app.
-// 
+//
 // Reference: https://m3.material.io/styles/shape/shape-scale-tokens
 
 import 'package:flutter/material.dart';
 
 /// Material Design 3 Shape Scale
-/// 
+///
 /// Use these constants for all border radius throughout the app.
 class AppShapes {
   AppShapes._();
 
   // ========== Corner Radius Values ==========
-  
+
   /// Extra Small - 4dp
   /// Use for: Small chips, badges, avatars
   static const double extraSmallRadius = 4.0;
@@ -164,34 +164,34 @@ class AppShapes {
 }
 
 /// Material Design 3 Shape Scale Guidelines
-/// 
+///
 /// Component recommendations:
-/// 
+///
 /// **Extra Small (4dp):**
 /// - Badges
 /// - Small chips
 /// - Small avatars
 /// - Status indicators
-/// 
+///
 /// **Small (8dp):**
 /// - Buttons (text, outlined, filled)
 /// - Input fields
 /// - Small cards
 /// - Dropdown menus
-/// 
+///
 /// **Medium (12dp):**
 /// - Cards
 /// - Dialogs
 /// - Bottom sheets
 /// - Navigation rail
 /// - Snackbars
-/// 
+///
 /// **Large (16dp):**
 /// - Large cards
 /// - Extended FAB
 /// - Top app bar (if rounded)
 /// - Large chips
-/// 
+///
 /// **Extra Large (28dp):**
 /// - Extra large containers
 /// - Hero elements

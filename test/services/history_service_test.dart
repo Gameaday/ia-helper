@@ -56,7 +56,7 @@ void main() {
 
     test('should format relative time correctly', () {
       final now = DateTime.now();
-      
+
       // Just now
       var entry = HistoryEntry(
         identifier: 'test',
@@ -377,7 +377,7 @@ void main() {
 
       // Try to load again
       await service.loadHistory();
-      
+
       // Should still have same data (not cleared/reloaded)
       expect(service.history.length, 1);
     });

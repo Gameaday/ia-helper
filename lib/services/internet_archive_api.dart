@@ -25,7 +25,7 @@ import 'metadata_cache.dart';
 /// - Rate limiting and error handling
 ///
 /// API Reference: https://archive.org/developers/md-read.html
-/// 
+///
 /// Compliance:
 /// - Respects rate limits (max 30 requests/minute) via RateLimiter
 /// - Includes proper User-Agent header with contact info via IAHttpClient
@@ -37,7 +37,7 @@ class InternetArchiveApi {
   final IAHttpClient _client;
   final MetadataCache? _cache;
   final BandwidthThrottle? _bandwidthThrottle;
-  
+
   /// App version for User-Agent header
   static const String _appVersion = '1.6.0';
 
@@ -64,7 +64,7 @@ class InternetArchiveApi {
   /// Supports ETag caching if MetadataCache is provided
   Future<ArchiveMetadata> fetchMetadata(String identifier) async {
     final metadataUrl = _getMetadataUrl(identifier);
-    
+
     // Validate identifier format early
     final extractedId = _extractIdentifier(identifier);
     final validationError = IdentifierValidator.validate(extractedId);
@@ -72,12 +72,11 @@ class InternetArchiveApi {
       // Suggest a correction if possible
       final suggestion = IdentifierValidator.suggestCorrection(extractedId);
       if (suggestion != null) {
-        throw FormatException(
-            '$validationError. Did you mean "$suggestion"?');
+        throw FormatException('$validationError. Did you mean "$suggestion"?');
       }
       throw FormatException(validationError);
     }
-    
+
     if (kDebugMode) {
       print('[InternetArchiveApi] Fetching metadata from: $metadataUrl');
     }
@@ -103,7 +102,7 @@ class InternetArchiveApi {
         if (kDebugMode) {
           print('[InternetArchiveApi] Cache hit (304 Not Modified)');
         }
-        
+
         // Get cached metadata
         if (_cache != null) {
           final cached = await _cache.getCachedMetadata(extractedId);
@@ -111,7 +110,7 @@ class InternetArchiveApi {
             return cached.metadata;
           }
         }
-        
+
         // Fallback: cache returned 304 but we don't have the data
         // This shouldn't happen, but handle it gracefully
         throw const IAHttpException(
@@ -125,7 +124,7 @@ class InternetArchiveApi {
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         final metadata = ArchiveMetadata.fromJson(jsonData);
-        
+
         // Update cache with new ETag if available
         if (_cache != null) {
           final newEtag = IAHttpClient.extractETag(response);
@@ -136,7 +135,7 @@ class InternetArchiveApi {
             }
           }
         }
-        
+
         return metadata;
       }
 
@@ -204,9 +203,8 @@ class InternetArchiveApi {
     try {
       // Use HEAD request to get content length first
       final headResponse = await _client.head(Uri.parse(url));
-      final contentLength = int.tryParse(
-            headResponse.headers['content-length'] ?? '') ??
-          0;
+      final contentLength =
+          int.tryParse(headResponse.headers['content-length'] ?? '') ?? 0;
 
       if (kDebugMode) {
         print('[InternetArchiveApi] Content length: $contentLength bytes');
@@ -217,13 +215,17 @@ class InternetArchiveApi {
       // 1. If explicitly set by caller, use that
       // 2. If file is large (>50MB) and auto-reduce is enabled, use reduced priority
       // 3. Otherwise, use default setting
-      bool shouldReducePriority = useReducedPriority ??
+      bool shouldReducePriority =
+          useReducedPriority ??
           (IADownloadPriority.autoReduceLargeFiles &&
-              contentLength >= IADownloadPriority.largeSizeThresholdBytes) ||
-          IADownloadPriority.defaultReducedPriority;
+                  contentLength >=
+                      IADownloadPriority.largeSizeThresholdBytes) ||
+              IADownloadPriority.defaultReducedPriority;
 
       if (shouldReducePriority && kDebugMode) {
-        print('[InternetArchiveApi] Using reduced priority (good citizen mode)');
+        print(
+          '[InternetArchiveApi] Using reduced priority (good citizen mode)',
+        );
       }
 
       // Use IAHttpClient's GET for retry/rate-limit, but we need streaming
@@ -231,7 +233,7 @@ class InternetArchiveApi {
       final request = http.Request('GET', Uri.parse(url));
       request.headers.addAll({
         'User-Agent':
-            'ia-get/$_appVersion (https://github.com/Gameaday/ia-get-cli)',
+            'ia-helper/$_appVersion (https://github.com/Gameaday/ia-helper)',
       });
 
       // Add reduced priority header if requested
@@ -367,7 +369,7 @@ class InternetArchiveApi {
   ///
   /// Supports ZIP, TAR, TAR.GZ, and GZ file formats.
   /// Returns list of extracted file paths.
-  /// 
+  ///
   /// Throws [FileSystemException] if file doesn't exist or directory can't be created.
   /// Throws [FormatException] if archive format is unsupported or corrupted.
   Future<List<String>> decompressFile(
@@ -375,7 +377,7 @@ class InternetArchiveApi {
     String outputDir,
   ) async {
     final file = File(archivePath);
-    
+
     if (!await file.exists()) {
       throw FileSystemException('Archive file not found', archivePath);
     }
@@ -389,7 +391,7 @@ class InternetArchiveApi {
     // Get just the filename without path
     final fileName = path.basename(file.path).toLowerCase();
     final bytes = await file.readAsBytes();
-    
+
     if (kDebugMode) {
       print('Decompressing: $archivePath');
       print('Output directory: $outputDir');
@@ -403,29 +405,25 @@ class InternetArchiveApi {
         // Handle ZIP archives
         final archive = ZipDecoder().decodeBytes(bytes);
         extractedFiles.addAll(await _extractArchive(archive, outputDir));
-        
       } else if (fileName.endsWith('.tar.gz') || fileName.endsWith('.tgz')) {
         // Handle TAR.GZ archives
         final gzipBytes = const GZipDecoder().decodeBytes(bytes);
         final archive = TarDecoder().decodeBytes(gzipBytes);
         extractedFiles.addAll(await _extractArchive(archive, outputDir));
-        
       } else if (fileName.endsWith('.tar')) {
         // Handle TAR archives
         final archive = TarDecoder().decodeBytes(bytes);
         extractedFiles.addAll(await _extractArchive(archive, outputDir));
-        
       } else if (fileName.endsWith('.gz')) {
         // Handle single GZIP files
         final decompressed = const GZipDecoder().decodeBytes(bytes);
         // Extract just the filename without the .gz extension
         String baseFileName = fileName.substring(0, fileName.length - 3);
         final outputPath = path.join(outputDir, baseFileName);
-        
+
         final outputFile = File(outputPath);
         await outputFile.writeAsBytes(decompressed);
         extractedFiles.add(outputPath);
-        
       } else {
         throw FormatException(
           'Unsupported archive format. Supported: .zip, .tar, .tar.gz, .tgz, .gz',
@@ -438,23 +436,28 @@ class InternetArchiveApi {
       }
 
       return extractedFiles;
-      
     } catch (e) {
       if (e is FormatException) {
         rethrow;
       }
-      throw FormatException('Failed to decompress archive: ${e.toString()}', archivePath);
+      throw FormatException(
+        'Failed to decompress archive: ${e.toString()}',
+        archivePath,
+      );
     }
   }
 
   /// Extract files from an Archive object to the output directory
-  Future<List<String>> _extractArchive(Archive archive, String outputDir) async {
+  Future<List<String>> _extractArchive(
+    Archive archive,
+    String outputDir,
+  ) async {
     final extractedFiles = <String>[];
 
     for (final file in archive) {
       if (file.isFile) {
         final outputPath = path.join(outputDir, file.name);
-        
+
         // Create parent directories if needed
         final outputFile = File(outputPath);
         if (!await outputFile.parent.exists()) {
@@ -464,7 +467,7 @@ class InternetArchiveApi {
         // Write file content
         await outputFile.writeAsBytes(file.content as List<int>);
         extractedFiles.add(outputPath);
-        
+
         if (kDebugMode) {
           print('Extracted: ${file.name} (${file.size} bytes)');
         }
@@ -481,44 +484,51 @@ class InternetArchiveApi {
   /// 2. Search for similar identifiers
   ///
   /// Returns a list of SearchResult suggestions
-  Future<List<SearchResult>> suggestAlternativeIdentifiers(String identifier) async {
+  Future<List<SearchResult>> suggestAlternativeIdentifiers(
+    String identifier,
+  ) async {
     final suggestions = <SearchResult>[];
-    
+
     // Check if identifier has uppercase letters
     if (identifier != identifier.toLowerCase()) {
       final lowercaseId = identifier.toLowerCase();
-      
+
       try {
         // Try to fetch metadata with lowercase identifier
         final testUrl = _getMetadataUrl(lowercaseId);
         final testResponse = await _client
-            .get(
-              Uri.parse(testUrl),
-              headers: IAHeaders.standard(_appVersion),
-            )
+            .get(Uri.parse(testUrl), headers: IAHeaders.standard(_appVersion))
             .timeout(const Duration(seconds: 5));
-        
+
         if (testResponse.statusCode == 200) {
           // Parse the response to get title
           try {
             final jsonData = json.decode(testResponse.body);
             final title = jsonData['metadata']?['title'] ?? 'Untitled';
-            final titleStr = title is List ? (title.isNotEmpty ? title.first.toString() : 'Untitled') : title.toString();
-            
-            suggestions.add(SearchResult(
-              identifier: lowercaseId,
-              title: titleStr,
-              description: 'Did you mean this? (identifiers are case-sensitive)',
-            ));
+            final titleStr = title is List
+                ? (title.isNotEmpty ? title.first.toString() : 'Untitled')
+                : title.toString();
+
+            suggestions.add(
+              SearchResult(
+                identifier: lowercaseId,
+                title: titleStr,
+                description:
+                    'Did you mean this? (identifiers are case-sensitive)',
+              ),
+            );
           } catch (_) {
             // If parsing fails, still add a basic suggestion
-            suggestions.add(SearchResult(
-              identifier: lowercaseId,
-              title: lowercaseId,
-              description: 'Did you mean this? (identifiers are case-sensitive)',
-            ));
+            suggestions.add(
+              SearchResult(
+                identifier: lowercaseId,
+                title: lowercaseId,
+                description:
+                    'Did you mean this? (identifiers are case-sensitive)',
+              ),
+            );
           }
-          
+
           // Return early with just the lowercase suggestion
           return suggestions;
         }
@@ -526,7 +536,7 @@ class InternetArchiveApi {
         // Lowercase version doesn't exist either, continue with search
       }
     }
-    
+
     // Try to find similar identifiers using search
     try {
       final searchUrl = IAUtils.buildSearchUrl(
@@ -534,18 +544,15 @@ class InternetArchiveApi {
         rows: 5,
         fields: ['identifier', 'title', 'description'],
       );
-      
+
       final searchResponse = await _client
-          .get(
-            Uri.parse(searchUrl),
-            headers: IAHeaders.standard(_appVersion),
-          )
+          .get(Uri.parse(searchUrl), headers: IAHeaders.standard(_appVersion))
           .timeout(const Duration(seconds: 5));
-      
+
       if (searchResponse.statusCode == 200) {
         final jsonData = json.decode(searchResponse.body);
         final docs = jsonData['response']?['docs'] as List<dynamic>? ?? [];
-        
+
         for (final doc in docs.take(5)) {
           try {
             suggestions.add(SearchResult.fromJson(doc as Map<String, dynamic>));
@@ -558,7 +565,7 @@ class InternetArchiveApi {
     } catch (_) {
       // Search failed, return what we have
     }
-    
+
     return suggestions;
   }
 
@@ -573,9 +580,12 @@ class InternetArchiveApi {
 
     if (trimmed.contains('/details/')) {
       return trimmed.replaceAll('/details/', '/metadata/');
-    } else if (trimmed.contains('://${IAEndpoints.base.replaceAll('https://', '')}/metadata/')) {
+    } else if (trimmed.contains(
+      '://${IAEndpoints.base.replaceAll('https://', '')}/metadata/',
+    )) {
       return trimmed;
-    } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    } else if (trimmed.startsWith('http://') ||
+        trimmed.startsWith('https://')) {
       // It's a URL but not a details or metadata URL - extract identifier
       final uri = Uri.parse(trimmed);
       final segments = uri.pathSegments;
@@ -616,7 +626,8 @@ class InternetArchiveApi {
       if (metadataIndex >= 0 && metadataIndex < segments.length - 1) {
         return segments[metadataIndex + 1];
       }
-    } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    } else if (trimmed.startsWith('http://') ||
+        trimmed.startsWith('https://')) {
       // It's a URL but not a details or metadata URL - extract last segment
       final uri = Uri.parse(trimmed);
       final segments = uri.pathSegments;
@@ -624,7 +635,7 @@ class InternetArchiveApi {
         return segments.last;
       }
     }
-    
+
     // Assume it's a bare identifier
     return trimmed;
   }
@@ -649,9 +660,9 @@ class CancellationToken {
 /// Exception thrown when an archive item is not found
 class NotFoundException implements Exception {
   final String identifier;
-  
+
   NotFoundException(this.identifier);
-  
+
   @override
   String toString() => 'Archive item "$identifier" not found (404)';
 }
@@ -659,9 +670,9 @@ class NotFoundException implements Exception {
 /// Exception thrown when access is forbidden
 class ForbiddenException implements Exception {
   final String message;
-  
+
   ForbiddenException(this.message);
-  
+
   @override
   String toString() => 'Access forbidden (403): $message';
 }
@@ -669,9 +680,9 @@ class ForbiddenException implements Exception {
 /// Exception thrown when the service is unavailable
 class ServiceUnavailableException implements Exception {
   final String message;
-  
+
   ServiceUnavailableException(this.message);
-  
+
   @override
   String toString() => 'Service unavailable (503): $message';
 }

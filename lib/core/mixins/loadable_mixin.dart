@@ -77,10 +77,7 @@ mixin LoadableMixin<T> on State {
           const SizedBox(height: 16),
           Text(error),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: reload,
-            child: const Text('Retry'),
-          ),
+          ElevatedButton(onPressed: reload, child: const Text('Retry')),
         ],
       ),
     );

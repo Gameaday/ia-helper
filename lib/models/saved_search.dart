@@ -153,10 +153,7 @@ class SavedSearch {
 
   /// Create a copy with incremented use count and updated lastUsedAt
   SavedSearch markUsed() {
-    return copyWith(
-      useCount: useCount + 1,
-      lastUsedAt: DateTime.now(),
-    );
+    return copyWith(useCount: useCount + 1, lastUsedAt: DateTime.now());
   }
 
   /// Convert to database map

@@ -7,7 +7,7 @@ import '../database/database_helper.dart';
 import 'resumable_download_service.dart';
 
 /// Scheduler for managing download queue with priority, network awareness, and time-based scheduling
-/// 
+///
 /// Features:
 /// - Priority-based queue management (high → normal → low)
 /// - Network-aware scheduling (Wi-Fi only, unmetered, any)
@@ -63,8 +63,9 @@ class DownloadScheduler {
 
     // Monitor network connectivity
     _currentConnectivity = await _connectivity.checkConnectivity();
-    _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(_handleConnectivityChange);
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
+      _handleConnectivityChange,
+    );
 
     // Start scheduler timer
     _schedulerTimer = Timer.periodic(schedulerTickInterval, (_) => _tick());
@@ -126,7 +127,9 @@ class DownloadScheduler {
       final task = _activeDownloads.remove(taskId);
       if (task != null) {
         _queue.addFirst(task.copyWith(status: DownloadStatus.paused));
-        await _db.updateDownloadTask(task.copyWith(status: DownloadStatus.paused));
+        await _db.updateDownloadTask(
+          task.copyWith(status: DownloadStatus.paused),
+        );
       }
     }
     _emitState();
@@ -167,7 +170,9 @@ class DownloadScheduler {
 
     for (final task in pausedTasks) {
       _queue.add(task.copyWith(status: DownloadStatus.queued));
-      await _db.updateDownloadTask(task.copyWith(status: DownloadStatus.queued));
+      await _db.updateDownloadTask(
+        task.copyWith(status: DownloadStatus.queued),
+      );
     }
 
     _sortQueue();
@@ -176,7 +181,10 @@ class DownloadScheduler {
   }
 
   /// Update task priority
-  Future<void> updateTaskPriority(String taskId, DownloadPriority priority) async {
+  Future<void> updateTaskPriority(
+    String taskId,
+    DownloadPriority priority,
+  ) async {
     // Update in queue
     final taskIndex = _queue.toList().indexWhere((t) => t.id == taskId);
     if (taskIndex != -1) {
@@ -201,7 +209,8 @@ class DownloadScheduler {
     for (final task in tasks) {
       if (task.status == DownloadStatus.queued ||
           task.status == DownloadStatus.paused ||
-          task.status == DownloadStatus.error && task.retryCount < maxRetryAttempts) {
+          task.status == DownloadStatus.error &&
+              task.retryCount < maxRetryAttempts) {
         _queue.add(task);
       }
     }
@@ -237,7 +246,8 @@ class DownloadScheduler {
     if (!_isRunning) return;
 
     // Start new downloads if we have capacity
-    while (_activeDownloads.length < maxConcurrentDownloads && _queue.isNotEmpty) {
+    while (_activeDownloads.length < maxConcurrentDownloads &&
+        _queue.isNotEmpty) {
       final task = _queue.first;
 
       // Check if task is ready to start
@@ -327,9 +337,9 @@ class DownloadScheduler {
 
   void _handleProgressUpdate(String taskId, DownloadProgress progress) {
     // Update progress map and emit
-    final allProgress = Map<String, DownloadProgress>.from(_activeDownloads.map(
-      (id, task) => MapEntry(id, progress),
-    ));
+    final allProgress = Map<String, DownloadProgress>.from(
+      _activeDownloads.map((id, task) => MapEntry(id, progress)),
+    );
     _progressController.add(allProgress);
   }
 
@@ -381,14 +391,17 @@ class DownloadScheduler {
   }
 
   void _emitState() {
-    _stateController.add(DownloadSchedulerState(
-      queuedTasks: _queue.length,
-      activeTasks: _activeDownloads.length,
-      maxConcurrent: maxConcurrentDownloads,
-      isNetworkSuitable: _currentConnectivity.isNotEmpty &&
-          !_currentConnectivity.contains(ConnectivityResult.none),
-      connectivity: _currentConnectivity,
-    ));
+    _stateController.add(
+      DownloadSchedulerState(
+        queuedTasks: _queue.length,
+        activeTasks: _activeDownloads.length,
+        maxConcurrent: maxConcurrentDownloads,
+        isNetworkSuitable:
+            _currentConnectivity.isNotEmpty &&
+            !_currentConnectivity.contains(ConnectivityResult.none),
+        connectivity: _currentConnectivity,
+      ),
+    );
   }
 }
 
@@ -413,7 +426,8 @@ class DownloadSchedulerState {
   bool get isActive => activeTasks > 0;
 
   String get connectivityDescription {
-    if (connectivity.isEmpty || connectivity.contains(ConnectivityResult.none)) {
+    if (connectivity.isEmpty ||
+        connectivity.contains(ConnectivityResult.none)) {
       return 'No connection';
     }
     if (connectivity.contains(ConnectivityResult.wifi)) {

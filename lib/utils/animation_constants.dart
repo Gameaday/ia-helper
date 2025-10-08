@@ -1,8 +1,8 @@
 // Material Design 3 Animation Constants
-// 
+//
 // Provides standardized curves, durations, and builders for animations
 // throughout the app following Material Design 3 motion guidelines.
-// 
+//
 // References:
 // - https://m3.material.io/styles/motion/easing-and-duration/tokens-specs
 // - https://m3.material.io/styles/motion/transitions/transition-patterns
@@ -10,7 +10,7 @@
 import 'package:flutter/material.dart';
 
 /// Material Design 3 Animation Curves
-/// 
+///
 /// Use these curves for consistent motion throughout the app.
 class MD3Curves {
   MD3Curves._();
@@ -37,7 +37,7 @@ class MD3Curves {
 }
 
 /// Material Design 3 Animation Durations
-/// 
+///
 /// Standard durations for different types of motion.
 class MD3Durations {
   MD3Durations._();
@@ -64,13 +64,13 @@ class MD3Durations {
 }
 
 /// Material Design 3 Page Transitions
-/// 
+///
 /// Pre-built page route builders for consistent navigation.
 class MD3PageTransitions {
   MD3PageTransitions._();
 
   /// Fade through transition - Material Design 3 standard
-  /// 
+  ///
   /// The incoming page fades in while the outgoing page fades out.
   static PageRouteBuilder<T> fadeThrough<T>({
     required Widget page,
@@ -84,31 +84,28 @@ class MD3PageTransitions {
       reverseTransitionDuration: duration,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         // Incoming page fades in
-        final incomingOpacity = Tween<double>(
-          begin: 0.0,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: const Interval(0.35, 1.0, curve: MD3Curves.decelerate),
-        ));
+        final incomingOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: const Interval(0.35, 1.0, curve: MD3Curves.decelerate),
+          ),
+        );
 
         // Scale outgoing page slightly
-        final outgoingScale = Tween<double>(
-          begin: 1.0,
-          end: 0.92,
-        ).animate(CurvedAnimation(
-          parent: secondaryAnimation,
-          curve: const Interval(0.0, 0.35, curve: MD3Curves.emphasized),
-        ));
+        final outgoingScale = Tween<double>(begin: 1.0, end: 0.92).animate(
+          CurvedAnimation(
+            parent: secondaryAnimation,
+            curve: const Interval(0.0, 0.35, curve: MD3Curves.emphasized),
+          ),
+        );
 
         // Scale incoming page from slightly larger
-        final incomingScale = Tween<double>(
-          begin: 1.08,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: const Interval(0.35, 1.0, curve: MD3Curves.emphasized),
-        ));
+        final incomingScale = Tween<double>(begin: 1.08, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: const Interval(0.35, 1.0, curve: MD3Curves.emphasized),
+          ),
+        );
 
         return Stack(
           children: [
@@ -116,18 +113,12 @@ class MD3PageTransitions {
             if (secondaryAnimation.status != AnimationStatus.dismissed)
               FadeTransition(
                 opacity: ReverseAnimation(secondaryAnimation),
-                child: ScaleTransition(
-                  scale: outgoingScale,
-                  child: child,
-                ),
+                child: ScaleTransition(scale: outgoingScale, child: child),
               ),
             // Incoming page
             FadeTransition(
               opacity: incomingOpacity,
-              child: ScaleTransition(
-                scale: incomingScale,
-                child: child,
-              ),
+              child: ScaleTransition(scale: incomingScale, child: child),
             ),
           ],
         );
@@ -136,7 +127,7 @@ class MD3PageTransitions {
   }
 
   /// Shared axis transition - For hierarchical navigation
-  /// 
+  ///
   /// Pages slide horizontally with a fade.
   static PageRouteBuilder<T> sharedAxis<T>({
     required Widget page,
@@ -163,17 +154,14 @@ class MD3PageTransitions {
 
         return FadeTransition(
           opacity: fadeAnimation,
-          child: SlideTransition(
-            position: offsetAnimation,
-            child: child,
-          ),
+          child: SlideTransition(position: offsetAnimation, child: child),
         );
       },
     );
   }
 
   /// Container transform - For element-to-page transitions
-  /// 
+  ///
   /// Works with Hero widgets for seamless transitions.
   static PageRouteBuilder<T> containerTransform<T>({
     required Widget page,
@@ -194,20 +182,13 @@ class MD3PageTransitions {
           curve: MD3Curves.emphasized,
         );
 
-        final scaleAnimation = Tween<double>(
-          begin: 0.8,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: MD3Curves.emphasized,
-        ));
+        final scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+          CurvedAnimation(parent: animation, curve: MD3Curves.emphasized),
+        );
 
         return FadeTransition(
           opacity: fadeAnimation,
-          child: ScaleTransition(
-            scale: scaleAnimation,
-            child: child,
-          ),
+          child: ScaleTransition(scale: scaleAnimation, child: child),
         );
       },
     );
@@ -215,7 +196,7 @@ class MD3PageTransitions {
 }
 
 /// Animated list item builder with staggered animation
-/// 
+///
 /// Use this for smooth list item appearances.
 class StaggeredListAnimation extends StatelessWidget {
   const StaggeredListAnimation({
@@ -252,7 +233,7 @@ class StaggeredListAnimation extends StatelessWidget {
 }
 
 /// Smooth state change animation wrapper
-/// 
+///
 /// Wraps any widget with smooth transitions for property changes.
 class SmoothStateChange extends StatelessWidget {
   const SmoothStateChange({

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/download_error.dart';
 
 /// Enhanced error dialog with categorization and retry options
-/// 
+///
 /// Features:
 /// - Color-coded by error category
 /// - Icon visual representation
@@ -95,7 +95,10 @@ class _EnhancedErrorDialogState extends State<EnhancedErrorDialog> {
               builder: (context) {
                 final colorScheme = Theme.of(context).colorScheme;
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.errorContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
@@ -128,10 +131,7 @@ class _EnhancedErrorDialogState extends State<EnhancedErrorDialog> {
           // Error message
           Text(
             widget.error.message,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
 
@@ -288,11 +288,7 @@ class ErrorBadge extends StatelessWidget {
   final DownloadError error;
   final VoidCallback? onTap;
 
-  const ErrorBadge({
-    super.key,
-    required this.error,
-    this.onTap,
-  });
+  const ErrorBadge({super.key, required this.error, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -311,10 +307,7 @@ class ErrorBadge extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              error.category.icon,
-              style: const TextStyle(fontSize: 12),
-            ),
+            Text(error.category.icon, style: const TextStyle(fontSize: 12)),
             const SizedBox(width: 4),
             Text(
               error.category.displayName,
@@ -340,7 +333,10 @@ class ErrorBadge extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor(BuildContext context, DownloadErrorCategory category) {
+  Color _getCategoryColor(
+    BuildContext context,
+    DownloadErrorCategory category,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     switch (category) {
       case DownloadErrorCategory.network:

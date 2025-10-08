@@ -199,7 +199,10 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
               Text(
                 'This audio file may be corrupted or in an unsupported format.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -223,8 +226,12 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      Theme.of(
+                        context,
+                      ).colorScheme.secondary.withValues(alpha: 0.3),
+                      Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.3),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
@@ -232,7 +239,9 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
                 child: Icon(
                   Icons.music_note,
                   size: 100,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ),
@@ -286,7 +295,9 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
                     _seek(Duration(milliseconds: value.toInt()));
                   },
                   activeColor: Theme.of(context).colorScheme.onSurface,
-                  inactiveColor: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                  inactiveColor: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -298,7 +309,10 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
               children: [
                 // Skip backward
                 IconButton(
-                  icon: Icon(Icons.replay_10, color: Theme.of(context).colorScheme.onSurface),
+                  icon: Icon(
+                    Icons.replay_10,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                   iconSize: 36,
                   onPressed: _skipBackward,
                   tooltip: 'Skip backward 10s',
@@ -327,7 +341,10 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
 
                 // Skip forward
                 IconButton(
-                  icon: Icon(Icons.forward_10, color: Theme.of(context).colorScheme.onSurface),
+                  icon: Icon(
+                    Icons.forward_10,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                   iconSize: 36,
                   onPressed: _skipForward,
                   tooltip: 'Skip forward 10s',
@@ -344,13 +361,20 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
                 children: [
                   Text(
                     'Speed',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
                   ),
                   Builder(
                     builder: (context) => DropdownButton<double>(
                       value: _speed,
-                      dropdownColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      dropdownColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       items: _speedOptions.map((speed) {
                         return DropdownMenuItem(
                           value: speed,
@@ -374,7 +398,10 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Row(
                 children: [
-                  Icon(Icons.volume_down, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.volume_down,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   Expanded(
                     child: Slider(
                       value: _volume,
@@ -382,10 +409,15 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
                       max: 1.0,
                       onChanged: _setVolume,
                       activeColor: Theme.of(context).colorScheme.onSurface,
-                      inactiveColor: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                      inactiveColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                     ),
                   ),
-                  Icon(Icons.volume_up, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.volume_up,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ],
               ),
             ),

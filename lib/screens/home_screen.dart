@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      
+
       // Initialize the services
       context.read<ArchiveService>().initialize();
       context.read<HistoryService>().loadHistory();
@@ -70,10 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // On phones, navigate to detail screen only when metadata is successfully loaded
     // Check that we have metadata AND no error AND not currently loading
-    if (service.currentMetadata != null && 
-        service.error == null && 
+    if (service.currentMetadata != null &&
+        service.error == null &&
         !service.isLoading &&
-        mounted && 
+        mounted &&
         !_hasNavigated) {
       _hasNavigated = true;
 
@@ -81,7 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
           .push(
             MD3PageTransitions.fadeThrough(
               page: const ArchiveDetailScreen(),
-              settings: const RouteSettings(name: ArchiveDetailScreen.routeName),
+              settings: const RouteSettings(
+                name: ArchiveDetailScreen.routeName,
+              ),
             ),
           )
           .then((_) {
@@ -103,20 +105,14 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.download_outlined),
             onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/download-queue',
-              );
+              Navigator.pushNamed(context, '/download-queue');
             },
             tooltip: 'Download Queue',
           ),
           IconButton(
             icon: const Icon(Icons.manage_search),
             onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/advanced-search',
-              );
+              Navigator.pushNamed(context, '/advanced-search');
             },
             tooltip: 'Advanced Search',
           ),
@@ -240,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             }
-            
+
             // Show loading if still initializing
             return const Center(
               child: Column(
@@ -256,25 +252,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Build master-detail layout for tablets, standard layout for phones
           final masterPanel = _buildMasterPanel(context, service);
-          final hasDetail = service.currentMetadata != null && service.error == null;
-          
+          final hasDetail =
+              service.currentMetadata != null && service.error == null;
+
           if (ResponsiveUtils.isTabletOrLarger(context) && hasDetail) {
             // Master-detail layout for tablets when we have archive data
             return Row(
               children: [
                 // Master panel (search & suggestions) - left side
                 Expanded(
-                  flex: (ResponsiveUtils.getMasterDetailRatio(context) * 100).round(),
+                  flex: (ResponsiveUtils.getMasterDetailRatio(context) * 100)
+                      .round(),
                   child: masterPanel,
                 ),
                 // Divider
-                Container(
-                  width: 1,
-                  color: Theme.of(context).dividerColor,
-                ),
+                Container(width: 1, color: Theme.of(context).dividerColor),
                 // Detail panel (archive details) - right side
                 Expanded(
-                  flex: ((1.0 - ResponsiveUtils.getMasterDetailRatio(context)) * 100).round(),
+                  flex:
+                      ((1.0 - ResponsiveUtils.getMasterDetailRatio(context)) *
+                              100)
+                          .round(),
                   child: _buildDetailPanel(context, service),
                 ),
               ],
@@ -322,12 +320,17 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.error_outline, color: Theme.of(context).colorScheme.onErrorContainer),
+                    Icon(
+                      Icons.error_outline,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         service.error!,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
                       ),
                     ),
                   ],
@@ -410,9 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Build the detail panel (archive details for tablets)
   Widget _buildDetailPanel(BuildContext context, ArchiveService service) {
     if (service.currentMetadata == null) {
-      return const Center(
-        child: Text('No archive selected'),
-      );
+      return const Center(child: Text('No archive selected'));
     }
 
     return Column(
@@ -420,7 +421,9 @@ class _HomeScreenState extends State<HomeScreen> {
         // App bar for detail panel
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
+            color:
+                Theme.of(context).appBarTheme.backgroundColor ??
+                Theme.of(context).colorScheme.surface,
             border: Border(
               bottom: BorderSide(
                 color: Theme.of(context).dividerColor,

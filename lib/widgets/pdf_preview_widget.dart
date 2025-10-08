@@ -55,7 +55,7 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
       });
     } catch (e) {
       if (!mounted) return;
-      
+
       setState(() {
         _error = 'Failed to load PDF: ${e.toString()}';
         _isLoading = false;
@@ -124,10 +124,7 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
                 color: Theme.of(context).colorScheme.error,
               ),
               const SizedBox(height: 16),
-              Text(
-                'PDF Error',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('PDF Error', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 _error!,
@@ -139,8 +136,9 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
                 'This PDF may be corrupted, password-protected, or in an unsupported format.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 12, 
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -149,9 +147,7 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
     }
 
     if (_pdfController == null) {
-      return const Center(
-        child: Text('Failed to initialize PDF viewer'),
-      );
+      return const Center(child: Text('Failed to initialize PDF viewer'));
     }
 
     return GestureDetector(
@@ -210,10 +206,9 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
                     end: Alignment.topCenter,
                     colors: <Color>[
                       Theme.of(context).colorScheme.surfaceContainer,
-                      Theme.of(context)
-                          .colorScheme
-                          .surfaceContainer
-                          .withValues(alpha: 0.7),
+                      Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainer.withValues(alpha: 0.7),
                       Colors.transparent,
                     ],
                   ),
@@ -250,11 +245,11 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
                         ),
                         child: Text(
                           '$_currentPage',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
                     ),
@@ -265,8 +260,7 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
                         Icons.arrow_forward,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      onPressed:
-                          _currentPage < _totalPages ? _nextPage : null,
+                      onPressed: _currentPage < _totalPages ? _nextPage : null,
                       iconSize: 32,
                       tooltip: 'Next Page',
                     ),
@@ -295,8 +289,8 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
                   child: Text(
                     'Tap to show controls',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ),

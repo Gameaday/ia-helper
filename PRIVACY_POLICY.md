@@ -93,7 +93,7 @@ No optional permissions are currently requested.
 
 Internet Archive Helper is open source:
 
-- **Transparency**: You can review all code at [our GitHub repository](https://github.com/Gameaday/ia-get-cli)
+- **Transparency**: You can review all code at [our GitHub repository](https://github.com/Gameaday/ia-helper)
 - **Community-driven**: Developed openly with community contributions
 - **No hidden functionality**: Everything the app does is visible in the source code
 
@@ -138,8 +138,8 @@ Given our commitment to not collecting data, future changes are unlikely to affe
 
 For questions about this privacy policy or the app:
 
-- **GitHub Issues**: [https://github.com/Gameaday/ia-get-cli/issues](https://github.com/Gameaday/ia-get-cli/issues)
-- **GitHub Discussions**: [https://github.com/Gameaday/ia-get-cli/discussions](https://github.com/Gameaday/ia-get-cli/discussions)
+- **GitHub Issues**: [https://github.com/Gameaday/ia-helper/issues](https://github.com/Gameaday/ia-helper/issues)
+- **GitHub Discussions**: [https://github.com/Gameaday/ia-helper/discussions](https://github.com/Gameaday/ia-helper/discussions)
 - **Email**: gameaday@users.noreply.github.com
 
 For questions about Internet Archive content or services:

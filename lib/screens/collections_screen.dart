@@ -3,7 +3,7 @@ import 'package:internet_archive_helper/models/collection.dart';
 import 'package:internet_archive_helper/services/collections_service.dart';
 
 /// Material Design 3 compliant collections management screen
-/// 
+///
 /// Features:
 /// - List of all collections with item counts
 /// - Create new collection with name, description, icon, color
@@ -21,34 +21,36 @@ class CollectionsScreen extends StatefulWidget {
 
 class _CollectionsScreenState extends State<CollectionsScreen> {
   final _collectionsService = CollectionsService.instance;
-  
+
   List<Collection> _collections = [];
   Map<int, int> _itemCounts = {};
   bool _isLoading = true;
   String? _error;
-  
+
   @override
   void initState() {
     super.initState();
     _loadCollections();
   }
-  
+
   Future<void> _loadCollections() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-    
+
     try {
       final collections = await _collectionsService.getAllCollections();
       final counts = <int, int>{};
-      
+
       // Load item counts for each collection
       for (final collection in collections) {
-        final count = await _collectionsService.getCollectionItemCount(collection.id!);
+        final count = await _collectionsService.getCollectionItemCount(
+          collection.id!,
+        );
         counts[collection.id!] = count;
       }
-      
+
       setState(() {
         _collections = collections;
         _itemCounts = counts;
@@ -61,7 +63,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,12 +81,12 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       body: _buildBody(),
     );
   }
-  
+
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (_error != null) {
       return Center(
         child: Column(
@@ -112,11 +114,11 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
         ),
       );
     }
-    
+
     if (_collections.isEmpty) {
       return _buildEmptyState();
     }
-    
+
     return RefreshIndicator(
       onRefresh: _loadCollections,
       child: ListView.builder(
@@ -128,10 +130,10 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       ),
     );
   }
-  
+
   Widget _buildEmptyState() {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -168,12 +170,12 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       ),
     );
   }
-  
+
   Widget _buildCollectionCard(Collection collection) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final itemCount = _itemCounts[collection.id] ?? 0;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -297,7 +299,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       ),
     );
   }
-  
+
   void _showCreateCollectionDialog() {
     showDialog(
       context: context,
@@ -331,7 +333,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       ),
     );
   }
-  
+
   void _showEditCollectionDialog(Collection collection) {
     showDialog(
       context: context,
@@ -367,10 +369,10 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       ),
     );
   }
-  
+
   void _showDeleteConfirmation(Collection collection) {
     final itemCount = _itemCounts[collection.id] ?? 0;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -415,18 +417,18 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       ),
     );
   }
-  
+
   Future<void> _duplicateCollection(Collection collection) async {
     try {
       final newCollectionId = await _collectionsService.duplicateCollection(
         sourceCollectionId: collection.id!,
         newName: '${collection.name} (Copy)',
       );
-      
+
       if (newCollectionId == null) {
         throw Exception('Failed to duplicate collection');
       }
-      
+
       await _loadCollections();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -445,7 +447,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       );
     }
   }
-  
+
   Future<void> _viewCollectionDetails(Collection collection) async {
     // Get collection items
     final items = await _collectionsService.getCollectionItems(
@@ -464,7 +466,10 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: Icon(
-                    IconData(int.parse(collection.icon!), fontFamily: 'MaterialIcons'),
+                    IconData(
+                      int.parse(collection.icon!),
+                      fontFamily: 'MaterialIcons',
+                    ),
                     color: collection.color,
                   ),
                 ),
@@ -557,8 +562,8 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                       child: Text(
                         '... and ${items.length - 5} more',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                       ),
                     ),
                 ],
@@ -591,24 +596,20 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
   ) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 18,
-          color: Theme.of(context).colorScheme.outline,
-        ),
+        Icon(icon, size: 18, color: Theme.of(context).colorScheme.outline),
         const SizedBox(width: 12),
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+            color: Theme.of(context).colorScheme.outline,
+          ),
         ),
         const Spacer(),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -617,7 +618,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
-  
+
   Color _getContrastColor(Color background) {
     // Calculate luminance to determine if we need light or dark text
     final luminance = background.computeLuminance();
@@ -628,7 +629,8 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
 /// Dialog for creating or editing a collection
 class CollectionEditDialog extends StatefulWidget {
   final Collection? collection;
-  final Function(String name, String? description, String icon, Color? color) onSave;
+  final Function(String name, String? description, String icon, Color? color)
+  onSave;
 
   const CollectionEditDialog({
     super.key,
@@ -645,9 +647,9 @@ class _CollectionEditDialogState extends State<CollectionEditDialog> {
   late final TextEditingController _descriptionController;
   late String _selectedIcon;
   late Color? _selectedColor;
-  
+
   final _formKey = GlobalKey<FormState>();
-  
+
   // Available icons
   static const _availableIcons = [
     'folder',
@@ -662,7 +664,7 @@ class _CollectionEditDialogState extends State<CollectionEditDialog> {
     'style',
     'palette',
   ];
-  
+
   // Available colors
   static final _availableColors = [
     Colors.red,
@@ -685,32 +687,36 @@ class _CollectionEditDialogState extends State<CollectionEditDialog> {
     Colors.grey,
     Colors.blueGrey,
   ];
-  
+
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.collection?.name ?? '');
+    _nameController = TextEditingController(
+      text: widget.collection?.name ?? '',
+    );
     _descriptionController = TextEditingController(
       text: widget.collection?.description ?? '',
     );
     _selectedIcon = widget.collection?.icon ?? 'folder';
     _selectedColor = widget.collection?.color;
   }
-  
+
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return AlertDialog(
-      title: Text(widget.collection == null ? 'Create Collection' : 'Edit Collection'),
+      title: Text(
+        widget.collection == null ? 'Create Collection' : 'Edit Collection',
+      ),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -735,7 +741,7 @@ class _CollectionEditDialogState extends State<CollectionEditDialog> {
                 autofocus: true,
               ),
               const SizedBox(height: 16),
-              
+
               // Description field
               TextFormField(
                 controller: _descriptionController,
@@ -747,12 +753,9 @@ class _CollectionEditDialogState extends State<CollectionEditDialog> {
                 maxLines: 3,
               ),
               const SizedBox(height: 24),
-              
+
               // Icon selector
-              Text(
-                'Icon',
-                style: theme.textTheme.titleSmall,
-              ),
+              Text('Icon', style: theme.textTheme.titleSmall),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
@@ -761,10 +764,7 @@ class _CollectionEditDialogState extends State<CollectionEditDialog> {
                   final isSelected = iconName == _selectedIcon;
                   final iconData = _getIconDataFromName(iconName);
                   return FilterChip(
-                    label: Icon(
-                      iconData,
-                      size: 20,
-                    ),
+                    label: Icon(iconData, size: 20),
                     selected: isSelected,
                     onSelected: (_) {
                       setState(() => _selectedIcon = iconName);
@@ -773,12 +773,9 @@ class _CollectionEditDialogState extends State<CollectionEditDialog> {
                 }).toList(),
               ),
               const SizedBox(height: 24),
-              
+
               // Color selector
-              Text(
-                'Color (optional)',
-                style: theme.textTheme.titleSmall,
-              ),
+              Text('Color (optional)', style: theme.textTheme.titleSmall),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
@@ -844,7 +841,7 @@ class _CollectionEditDialogState extends State<CollectionEditDialog> {
       ],
     );
   }
-  
+
   IconData _getIconDataFromName(String iconName) {
     switch (iconName) {
       case 'folder':

@@ -8,7 +8,7 @@ import 'package:internet_archive_helper/widgets/favorite_button.dart';
 import 'package:provider/provider.dart';
 
 /// Material Design 3 compliant favorites screen
-/// 
+///
 /// Features:
 /// - Grid/list view toggle with segmented button
 /// - Filter by mediatype with filter chips
@@ -28,36 +28,36 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   final _favoritesService = FavoritesService.instance;
   final _searchController = TextEditingController();
-  
+
   List<Favorite> _favorites = [];
   List<Favorite> _filteredFavorites = [];
   bool _isLoading = true;
   String? _error;
-  
+
   // UI state
   ViewMode _viewMode = ViewMode.grid;
   String? _selectedMediaType;
   SortOption _sortOption = SortOption.recent;
   bool _isSearching = false;
-  
+
   @override
   void initState() {
     super.initState();
     _loadFavorites();
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _loadFavorites() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-    
+
     try {
       final favorites = await _favoritesService.getAllFavorites();
       setState(() {
@@ -72,24 +72,26 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       });
     }
   }
-  
+
   void _applyFiltersAndSort() {
     var filtered = List<Favorite>.from(_favorites);
-    
+
     // Apply mediatype filter
     if (_selectedMediaType != null) {
-      filtered = filtered.where((f) => f.mediatype == _selectedMediaType).toList();
+      filtered = filtered
+          .where((f) => f.mediatype == _selectedMediaType)
+          .toList();
     }
-    
+
     // Apply search filter
     final query = _searchController.text.toLowerCase();
     if (query.isNotEmpty) {
       filtered = filtered.where((f) {
         return f.displayTitle.toLowerCase().contains(query) ||
-               f.identifier.toLowerCase().contains(query);
+            f.identifier.toLowerCase().contains(query);
       }).toList();
     }
-    
+
     // Apply sort
     switch (_sortOption) {
       case SortOption.recent:
@@ -99,33 +101,32 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         filtered.sort((a, b) => a.displayTitle.compareTo(b.displayTitle));
         break;
       case SortOption.mediatype:
-        filtered.sort((a, b) => (a.mediatype ?? '').compareTo(b.mediatype ?? ''));
+        filtered.sort(
+          (a, b) => (a.mediatype ?? '').compareTo(b.mediatype ?? ''),
+        );
         break;
     }
-    
+
     setState(() {
       _filteredFavorites = filtered;
     });
   }
-  
+
   void _onFavoriteRemoved(String identifier) {
     setState(() {
       _favorites.removeWhere((f) => f.identifier == identifier);
       _applyFiltersAndSort();
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _isSearching ? _buildSearchAppBar() : _buildAppBar(),
-      body: RefreshIndicator(
-        onRefresh: _loadFavorites,
-        child: _buildBody(),
-      ),
+      body: RefreshIndicator(onRefresh: _loadFavorites, child: _buildBody()),
     );
   }
-  
+
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: const Text('Favorites'),
@@ -144,7 +145,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ],
     );
   }
-  
+
   PreferredSizeWidget _buildSearchAppBar() {
     return AppBar(
       leading: IconButton(
@@ -178,12 +179,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ],
     );
   }
-  
+
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (_error != null) {
       return Center(
         child: Column(
@@ -211,15 +212,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ),
       );
     }
-    
+
     if (_favorites.isEmpty) {
       return _buildEmptyState();
     }
-    
+
     if (_filteredFavorites.isEmpty) {
       return _buildNoResultsState();
     }
-    
+
     return Column(
       children: [
         _buildControls(),
@@ -231,7 +232,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ],
     );
   }
-  
+
   Widget _buildControls() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -269,20 +270,21 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-  
+
   Widget _buildMediaTypeFilters() {
     // Get unique mediatypes from favorites
-    final mediatypes = _favorites
-        .map((f) => f.mediatype)
-        .where((mt) => mt != null && mt.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
-    
+    final mediatypes =
+        _favorites
+            .map((f) => f.mediatype)
+            .where((mt) => mt != null && mt.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+
     if (mediatypes.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -317,7 +319,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-  
+
   Widget _buildGridView() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
@@ -333,7 +335,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       },
     );
   }
-  
+
   Widget _buildListView() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -343,11 +345,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       },
     );
   }
-  
+
   Widget _buildGridItem(Favorite favorite) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -421,7 +423,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               right: 8,
               child: FavoriteIconButton(
                 identifier: favorite.identifier,
-                onFavoriteChanged: (_) => _onFavoriteRemoved(favorite.identifier),
+                onFavoriteChanged: (_) =>
+                    _onFavoriteRemoved(favorite.identifier),
               ),
             ),
           ],
@@ -429,11 +432,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-  
+
   Widget _buildListItem(Favorite favorite) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -460,10 +463,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           children: [
             if (favorite.mediatype != null) ...[
               const SizedBox(height: 4),
-              Text(
-                favorite.mediatype!,
-                style: theme.textTheme.bodySmall,
-              ),
+              Text(favorite.mediatype!, style: theme.textTheme.bodySmall),
             ],
             const SizedBox(height: 4),
             Text(
@@ -482,11 +482,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-  
+
   Widget _buildEmptyState() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -517,11 +517,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-  
+
   Widget _buildNoResultsState() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -564,7 +564,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-  
+
   void _showSortOptions() {
     showModalBottomSheet<void>(
       context: context,
@@ -617,20 +617,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       },
     );
   }
-  
+
   void _navigateToDetail(Favorite favorite) async {
     // Load the metadata into the archive service
     final archiveService = Provider.of<ArchiveService>(context, listen: false);
-    
+
     // Show loading indicator while fetching metadata
     if (!mounted) return;
-    
+
     try {
       // Fetch the metadata for this identifier
       await archiveService.fetchMetadata(favorite.identifier);
-      
+
       if (!mounted) return;
-      
+
       // Navigate to detail screen with MD3 fadeThrough transition
       await Navigator.push(
         context,
@@ -640,7 +640,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             // MD3 fadeThrough transition
             return FadeTransition(
-              opacity: CurveTween(curve: MD3Curves.emphasized).animate(animation),
+              opacity: CurveTween(
+                curve: MD3Curves.emphasized,
+              ).animate(animation),
               child: child,
             );
           },
@@ -649,7 +651,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error loading archive: $e'),
@@ -658,7 +660,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       );
     }
   }
-  
+
   IconData _getIconForMediaType(String? mediatype) {
     switch (mediatype?.toLowerCase()) {
       case 'texts':

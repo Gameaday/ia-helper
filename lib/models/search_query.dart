@@ -281,7 +281,9 @@ class SearchQuery {
   factory SearchQuery.fromJson(Map<String, dynamic> json) {
     return SearchQuery(
       query: json['query'] as String?,
-      fieldQueries: Map<String, String>.from(json['fieldQueries'] as Map? ?? {}),
+      fieldQueries: Map<String, String>.from(
+        json['fieldQueries'] as Map? ?? {},
+      ),
       mediatypes: List<String>.from(json['mediatypes'] as List? ?? []),
       dateRange: json['dateRange'] != null
           ? DateRange.fromJson(json['dateRange'] as Map<String, dynamic>)
@@ -323,7 +325,9 @@ class SearchQuery {
   int get hashCode {
     return Object.hash(
       query,
-      Object.hashAll(fieldQueries.entries.map((e) => Object.hash(e.key, e.value))),
+      Object.hashAll(
+        fieldQueries.entries.map((e) => Object.hash(e.key, e.value)),
+      ),
       Object.hashAll(mediatypes),
       dateRange,
       collection,

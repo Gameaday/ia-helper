@@ -26,7 +26,7 @@ import 'package:flutter/foundation.dart';
 class BandwidthThrottle {
   final int bytesPerSecond;
   final int burstSize;
-  
+
   double _availableTokens;
   DateTime _lastUpdate;
   bool _isPaused = false;
@@ -36,14 +36,15 @@ class BandwidthThrottle {
   /// [bytesPerSecond]: Maximum bytes per second (e.g., 1048576 for 1 MB/s)
   /// [burstSize]: Maximum burst size in bytes (default: 2x bytesPerSecond)
   ///              Allows brief speed-ups for better perceived performance
-  BandwidthThrottle({
-    required this.bytesPerSecond,
-    int? burstSize,
-  })  : burstSize = burstSize ?? (bytesPerSecond * 2),
-        _availableTokens = (burstSize ?? (bytesPerSecond * 2)).toDouble(),
-        _lastUpdate = DateTime.now() {
+  BandwidthThrottle({required this.bytesPerSecond, int? burstSize})
+    : burstSize = burstSize ?? (bytesPerSecond * 2),
+      _availableTokens = (burstSize ?? (bytesPerSecond * 2)).toDouble(),
+      _lastUpdate = DateTime.now() {
     assert(bytesPerSecond > 0, 'bytesPerSecond must be positive');
-    assert(this.burstSize >= bytesPerSecond, 'burstSize must be >= bytesPerSecond');
+    assert(
+      this.burstSize >= bytesPerSecond,
+      'burstSize must be >= bytesPerSecond',
+    );
   }
 
   /// Current bytes per second limit.
@@ -106,7 +107,10 @@ class BandwidthThrottle {
 
     // Add tokens based on elapsed time
     final tokensToAdd = elapsedSeconds * bytesPerSecond;
-    _availableTokens = (_availableTokens + tokensToAdd).clamp(0.0, burstSize.toDouble());
+    _availableTokens = (_availableTokens + tokensToAdd).clamp(
+      0.0,
+      burstSize.toDouble(),
+    );
 
     _lastUpdate = now;
   }
@@ -143,13 +147,14 @@ class BandwidthThrottle {
   /// Get statistics about throttle usage.
   Map<String, dynamic> getStats() {
     _refillTokens(); // Update tokens before returning stats
-    
+
     return {
       'bytesPerSecond': bytesPerSecond,
       'burstSize': burstSize,
       'availableTokens': _availableTokens.toInt(),
       'isPaused': _isPaused,
-      'utilizationPercent': ((burstSize - _availableTokens) / burstSize * 100).toInt(),
+      'utilizationPercent': ((burstSize - _availableTokens) / burstSize * 100)
+          .toInt(),
     };
   }
 
@@ -186,9 +191,7 @@ class BandwidthManager {
   /// Creates a bandwidth manager with global limit.
   ///
   /// [totalBytesPerSecond]: Total bandwidth limit across all downloads
-  BandwidthManager({
-    required this.totalBytesPerSecond,
-  }) {
+  BandwidthManager({required this.totalBytesPerSecond}) {
     assert(totalBytesPerSecond > 0, 'totalBytesPerSecond must be positive');
   }
 
@@ -202,10 +205,7 @@ class BandwidthManager {
   ///
   /// [downloadId]: Unique identifier for the download
   /// [bytesPerSecond]: Per-download limit (optional, uses fair share by default)
-  BandwidthThrottle createThrottle(
-    String downloadId, {
-    int? bytesPerSecond,
-  }) {
+  BandwidthThrottle createThrottle(String downloadId, {int? bytesPerSecond}) {
     if (_throttles.containsKey(downloadId)) {
       return _throttles[downloadId]!;
     }
@@ -274,7 +274,10 @@ class BandwidthManager {
 
   /// Get statistics for all downloads.
   Map<String, dynamic> getStats() {
-    final totalConsumed = _bytesConsumed.values.fold<int>(0, (sum, bytes) => sum + bytes);
+    final totalConsumed = _bytesConsumed.values.fold<int>(
+      0,
+      (sum, bytes) => sum + bytes,
+    );
 
     return {
       'totalBytesPerSecond': totalBytesPerSecond,
@@ -336,7 +339,9 @@ BandwidthManager getGlobalBandwidthManager({
   int bytesPerSecond = BandwidthLimits.unlimited,
 }) {
   _globalBandwidthManager ??= BandwidthManager(
-    totalBytesPerSecond: bytesPerSecond > 0 ? bytesPerSecond : BandwidthLimits.veryFast,
+    totalBytesPerSecond: bytesPerSecond > 0
+        ? bytesPerSecond
+        : BandwidthLimits.veryFast,
   );
   return _globalBandwidthManager!;
 }

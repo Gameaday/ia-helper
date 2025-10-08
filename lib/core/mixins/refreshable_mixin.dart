@@ -30,9 +30,6 @@ mixin RefreshableMixin on State {
 
   /// Wraps content in RefreshIndicator
   Widget buildRefreshable(Widget child) {
-    return RefreshIndicator(
-      onRefresh: handleRefresh,
-      child: child,
-    );
+    return RefreshIndicator(onRefresh: handleRefresh, child: child);
   }
 }

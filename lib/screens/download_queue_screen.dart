@@ -8,7 +8,7 @@ import '../utils/animation_constants.dart';
 import '../core/utils/formatting_utils.dart';
 
 /// Screen showing the download queue with resume capability
-/// 
+///
 /// Features:
 /// - Reorderable queue with drag-and-drop
 /// - Per-item controls (pause/resume/cancel/retry)
@@ -244,7 +244,8 @@ class _DownloadQueueScreenState extends State<DownloadQueueScreen> {
       appBar: AppBar(
         title: const Text('Download Queue'),
         actions: [
-          if (_selectedFilter == DownloadStatus.completed && _filteredTasks.isNotEmpty)
+          if (_selectedFilter == DownloadStatus.completed &&
+              _filteredTasks.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_sweep),
               tooltip: 'Clear completed',
@@ -263,8 +264,7 @@ class _DownloadQueueScreenState extends State<DownloadQueueScreen> {
           _buildFilterChips(colorScheme),
 
           // Queue statistics
-          if (_filteredTasks.isNotEmpty)
-            _buildQueueStats(theme),
+          if (_filteredTasks.isNotEmpty) _buildQueueStats(theme),
 
           const SizedBox(height: 8),
 
@@ -289,28 +289,32 @@ class _DownloadQueueScreenState extends State<DownloadQueueScreen> {
             _FilterChip(
               label: 'Active',
               isSelected: _selectedFilter == DownloadStatus.downloading,
-              onSelected: () => setState(() => _selectedFilter = DownloadStatus.downloading),
+              onSelected: () =>
+                  setState(() => _selectedFilter = DownloadStatus.downloading),
               icon: Icons.downloading,
             ),
             const SizedBox(width: 8),
             _FilterChip(
               label: 'Completed',
               isSelected: _selectedFilter == DownloadStatus.completed,
-              onSelected: () => setState(() => _selectedFilter = DownloadStatus.completed),
+              onSelected: () =>
+                  setState(() => _selectedFilter = DownloadStatus.completed),
               icon: Icons.check_circle,
             ),
             const SizedBox(width: 8),
             _FilterChip(
               label: 'Errors',
               isSelected: _selectedFilter == DownloadStatus.error,
-              onSelected: () => setState(() => _selectedFilter = DownloadStatus.error),
+              onSelected: () =>
+                  setState(() => _selectedFilter = DownloadStatus.error),
               icon: Icons.error,
             ),
             const SizedBox(width: 8),
             _FilterChip(
               label: 'Cancelled',
               isSelected: _selectedFilter == DownloadStatus.cancelled,
-              onSelected: () => setState(() => _selectedFilter = DownloadStatus.cancelled),
+              onSelected: () =>
+                  setState(() => _selectedFilter = DownloadStatus.cancelled),
               icon: Icons.cancel,
             ),
           ],
@@ -320,24 +324,29 @@ class _DownloadQueueScreenState extends State<DownloadQueueScreen> {
   }
 
   Widget _buildQueueStats(ThemeData theme) {
-    final activeTasks = _tasks.where((t) => 
-      t.status == DownloadStatus.downloading || 
-      t.status == DownloadStatus.queued
-    ).toList();
+    final activeTasks = _tasks
+        .where(
+          (t) =>
+              t.status == DownloadStatus.downloading ||
+              t.status == DownloadStatus.queued,
+        )
+        .toList();
 
     if (activeTasks.isEmpty && _selectedFilter == DownloadStatus.downloading) {
       return const SizedBox.shrink();
     }
 
     final totalBytes = _filteredTasks.fold<int>(
-      0, 
+      0,
       (sum, task) => sum + task.totalBytes,
     );
 
-    final avgSpeed = _progressMap.values.fold<double>(
-      0.0,
-      (sum, progress) => sum + (progress.transferSpeed ?? 0.0),
-    ) / (_progressMap.isEmpty ? 1 : _progressMap.length);
+    final avgSpeed =
+        _progressMap.values.fold<double>(
+          0.0,
+          (sum, progress) => sum + (progress.transferSpeed ?? 0.0),
+        ) /
+        (_progressMap.isEmpty ? 1 : _progressMap.length);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -383,7 +392,7 @@ class _DownloadQueueScreenState extends State<DownloadQueueScreen> {
       itemBuilder: (context, index) {
         final task = _filteredTasks[index];
         final progress = _progressMap[task.id];
-        
+
         return _DownloadTaskCard(
           key: ValueKey(task.id),
           task: task,
@@ -399,7 +408,7 @@ class _DownloadQueueScreenState extends State<DownloadQueueScreen> {
 
   Widget _buildEmptyState(ThemeData theme) {
     final (icon, title, subtitle) = _getEmptyStateContent();
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -482,13 +491,13 @@ class _DownloadQueueScreenState extends State<DownloadQueueScreen> {
     try {
       for (int i = 0; i < _filteredTasks.length; i++) {
         final task = _filteredTasks[i];
-        final newPriority = _filteredTasks.length - i; // Higher index = higher priority
-        
+        final newPriority =
+            _filteredTasks.length - i; // Higher index = higher priority
+
         await DatabaseHelper.instance.updateDownloadTask(
           task.copyWith(
-            priority: DownloadPriority.values[
-              (newPriority % DownloadPriority.values.length)
-            ],
+            priority: DownloadPriority
+                .values[(newPriority % DownloadPriority.values.length)],
           ),
         );
       }
@@ -520,11 +529,7 @@ class _FilterChip extends StatelessWidget {
     return FilterChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16),
-          const SizedBox(width: 4),
-          Text(label),
-        ],
+        children: [Icon(icon, size: 16), const SizedBox(width: 4), Text(label)],
       ),
       selected: isSelected,
       onSelected: (_) => onSelected(),
@@ -532,9 +537,7 @@ class _FilterChip extends StatelessWidget {
       checkmarkColor: colorScheme.onPrimaryContainer,
       backgroundColor: colorScheme.surface,
       side: BorderSide(
-        color: isSelected 
-          ? colorScheme.primary 
-          : colorScheme.outline,
+        color: isSelected ? colorScheme.primary : colorScheme.outline,
       ),
     );
   }
@@ -647,7 +650,7 @@ class _DownloadTaskCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Progress bar
-            if (task.status == DownloadStatus.downloading || 
+            if (task.status == DownloadStatus.downloading ||
                 task.status == DownloadStatus.paused)
               _buildProgressBar(theme),
 
@@ -663,7 +666,7 @@ class _DownloadTaskCard extends StatelessWidget {
 
   Widget _buildStatusIcon(ColorScheme colorScheme) {
     final (icon, color) = _getStatusIconAndColor(colorScheme);
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -743,8 +746,9 @@ class _DownloadTaskCard extends StatelessWidget {
   }
 
   Widget _buildProgressBar(ThemeData theme) {
-    final progressValue = progress?.progress ?? (task.partialBytes / task.totalBytes);
-    
+    final progressValue =
+        progress?.progress ?? (task.partialBytes / task.totalBytes);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -779,9 +783,7 @@ class _DownloadTaskCard extends StatelessWidget {
   Widget _buildStatusRow(ThemeData theme) {
     return Row(
       children: [
-        Expanded(
-          child: _buildStatusText(theme),
-        ),
+        Expanded(child: _buildStatusText(theme)),
         if (progress?.transferSpeed != null && progress!.transferSpeed! > 0)
           Text(
             '${FormattingUtils.formatBytes(progress!.transferSpeed!.toInt())}/s',

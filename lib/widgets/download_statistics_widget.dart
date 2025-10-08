@@ -4,7 +4,7 @@ import '../providers/download_provider.dart';
 import '../core/utils/formatting_utils.dart';
 
 /// Widget to display download statistics dashboard
-/// 
+///
 /// Shows real-time download metrics including:
 /// - Total downloads (started, completed, failed)
 /// - Bandwidth usage
@@ -42,7 +42,7 @@ class DownloadStatisticsWidget extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Statistics grid
                 Row(
                   children: [
@@ -88,12 +88,14 @@ class DownloadStatisticsWidget extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Bandwidth and speed
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -106,10 +108,11 @@ class DownloadStatisticsWidget extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           Text(
-                            FormattingUtils.formatBytes(provider.totalBytesDownloaded),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                            FormattingUtils.formatBytes(
+                              provider.totalBytesDownloaded,
                             ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -122,11 +125,14 @@ class DownloadStatisticsWidget extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           Text(
-                            FormattingUtils.formatSpeed(provider.averageDownloadSpeed),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColor,
+                            FormattingUtils.formatSpeed(
+                              provider.averageDownloadSpeed,
                             ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).primaryColor,
+                                ),
                           ),
                         ],
                       ),
@@ -141,10 +147,13 @@ class DownloadStatisticsWidget extends StatelessWidget {
                             ),
                             Text(
                               provider.queuedDownloadCount.toString(),
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.secondary,
+                                  ),
                             ),
                           ],
                         ),
@@ -152,7 +161,7 @@ class DownloadStatisticsWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 // Success rate
                 if (provider.totalDownloadsStarted > 0) ...[
                   const SizedBox(height: 16),
@@ -165,9 +174,12 @@ class DownloadStatisticsWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       LinearProgressIndicator(
-                        value: provider.totalDownloadsCompleted / 
-                               provider.totalDownloadsStarted,
-                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        value:
+                            provider.totalDownloadsCompleted /
+                            provider.totalDownloadsStarted,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         color: Theme.of(context).colorScheme.tertiary,
                       ),
                       const SizedBox(height: 4),

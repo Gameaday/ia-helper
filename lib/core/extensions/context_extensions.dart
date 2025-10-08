@@ -5,8 +5,10 @@ import '../../utils/animation_constants.dart';
 enum MD3TransitionType {
   /// Fade through transition for forward navigation (default)
   fadeThrough,
+
   /// Shared axis transition for lateral navigation
   sharedAxis,
+
   /// Container transform for element-to-page transitions
   containerTransform,
 }
@@ -49,14 +51,17 @@ extension ContextExtensions on BuildContext {
   }
 
   /// Shows snackbar with message
-  void showSnackBar(String message, {Duration duration = const Duration(seconds: 3)}) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(content: Text(message), duration: duration),
-    );
+  void showSnackBar(
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    ScaffoldMessenger.of(
+      this,
+    ).showSnackBar(SnackBar(content: Text(message), duration: duration));
   }
 
   /// Navigates to route with Material Design 3 transitions
-  /// 
+  ///
   /// Uses fadeThrough by default (forward navigation).
   /// Use [transitionType] to specify sharedAxis (lateral) or containerTransform.
   Future<T?> push<T>(
@@ -65,7 +70,7 @@ extension ContextExtensions on BuildContext {
     RouteSettings? settings,
   }) {
     final Route<T> route;
-    
+
     switch (transitionType) {
       case MD3TransitionType.fadeThrough:
         route = MD3PageTransitions.fadeThrough(page: page, settings: settings);
@@ -74,26 +79,41 @@ extension ContextExtensions on BuildContext {
         route = MD3PageTransitions.sharedAxis(page: page, settings: settings);
         break;
       case MD3TransitionType.containerTransform:
-        route = MD3PageTransitions.containerTransform(page: page, settings: settings);
+        route = MD3PageTransitions.containerTransform(
+          page: page,
+          settings: settings,
+        );
         break;
     }
-    
+
     return navigator.push<T>(route);
   }
 
   /// Convenience method for fadeThrough transition (forward navigation)
   Future<T?> pushFade<T>(Widget page, {RouteSettings? settings}) {
-    return push<T>(page, transitionType: MD3TransitionType.fadeThrough, settings: settings);
+    return push<T>(
+      page,
+      transitionType: MD3TransitionType.fadeThrough,
+      settings: settings,
+    );
   }
 
   /// Convenience method for sharedAxis transition (lateral navigation)
   Future<T?> pushShared<T>(Widget page, {RouteSettings? settings}) {
-    return push<T>(page, transitionType: MD3TransitionType.sharedAxis, settings: settings);
+    return push<T>(
+      page,
+      transitionType: MD3TransitionType.sharedAxis,
+      settings: settings,
+    );
   }
 
   /// Convenience method for containerTransform transition (element-to-page)
   Future<T?> pushTransform<T>(Widget page, {RouteSettings? settings}) {
-    return push<T>(page, transitionType: MD3TransitionType.containerTransform, settings: settings);
+    return push<T>(
+      page,
+      transitionType: MD3TransitionType.containerTransform,
+      settings: settings,
+    );
   }
 
   /// Pops current route

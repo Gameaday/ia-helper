@@ -36,11 +36,15 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.2),
             ),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.shadow.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -146,7 +150,9 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -334,7 +340,9 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
       children: [
         LinearProgressIndicator(
           value: isIndeterminate ? null : progress,
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
           valueColor: AlwaysStoppedAnimation<Color>(
             _getStatusColor(context, download),
           ),
@@ -537,7 +545,7 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
       // Get metadata and files from service
       final metadata = service.getDownloadMetadata(download.downloadId);
       final files = service.getDownloadFiles(download.downloadId);
-      
+
       if (metadata == null || files == null || files.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -551,10 +559,11 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
 
       // Cancel the failed download first
       await service.cancelDownload(download.downloadId);
-      
+
       // Get download path from settings or use default
-      final downloadPath = service.getDownloadPath(download.downloadId) ?? 
-                          '/storage/emulated/0/Download';
+      final downloadPath =
+          service.getDownloadPath(download.downloadId) ??
+          '/storage/emulated/0/Download';
 
       // Restart the download with same parameters
       await service.startBackgroundDownload(
@@ -566,16 +575,14 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Retrying download: ${download.identifier}'),
-          ),
+          SnackBar(content: Text('Retrying download: ${download.identifier}')),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to retry download: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to retry download: $e')));
       }
     }
   }

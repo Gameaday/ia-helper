@@ -49,7 +49,7 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
               builder: (context, service, child) {
                 final identifier = service.currentMetadata?.identifier;
                 if (identifier == null) return const SizedBox.shrink();
-                
+
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

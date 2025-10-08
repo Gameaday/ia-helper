@@ -314,34 +314,35 @@ class BackgroundDownloadService extends ChangeNotifier {
               if (_activeDownloads.containsKey(downloadId)) {
                 final now = DateTime.now();
                 final currentTotalBytes = fileStartBytes + received;
-                
+
                 // Calculate transfer speed (bytes per second)
                 double? speed;
                 if (lastUpdateTime != null) {
-                  final timeDiff = now.difference(lastUpdateTime!).inMilliseconds / 1000.0;
+                  final timeDiff =
+                      now.difference(lastUpdateTime!).inMilliseconds / 1000.0;
                   if (timeDiff > 0) {
                     final bytesDiff = currentTotalBytes - lastDownloadedBytes;
                     speed = bytesDiff / timeDiff;
                   }
                 }
-                
+
                 lastUpdateTime = now;
                 lastDownloadedBytes = currentTotalBytes;
-                
+
                 // Calculate overall progress (across all files)
                 final download = _activeDownloads[downloadId]!;
                 final overallTotal = download.totalBytes ?? 0;
-                final overallProgress = overallTotal > 0 
-                    ? currentTotalBytes / overallTotal 
+                final overallProgress = overallTotal > 0
+                    ? currentTotalBytes / overallTotal
                     : 0.0;
-                
+
                 // Calculate ETA if we have speed
                 int? eta;
                 if (speed != null && speed > 0 && overallTotal > 0) {
                   final remainingBytes = overallTotal - currentTotalBytes;
                   eta = (remainingBytes / speed).round();
                 }
-                
+
                 _activeDownloads[downloadId] = download.copyWith(
                   completedFiles: completedFiles,
                   currentFile: fileName,
@@ -360,7 +361,7 @@ class BackgroundDownloadService extends ChangeNotifier {
           completedFiles++;
           // Update total bytes after file completes
           // Note: We should get the actual file size, but for now use received bytes
-          
+
           // Update completed count
           if (_activeDownloads.containsKey(downloadId)) {
             _activeDownloads[downloadId] = _activeDownloads[downloadId]!

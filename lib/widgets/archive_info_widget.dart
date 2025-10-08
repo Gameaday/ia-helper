@@ -22,7 +22,10 @@ class ArchiveInfoWidget extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.archive, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.archive,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -50,7 +53,9 @@ class ArchiveInfoWidget extends StatelessWidget {
                           message: 'Available offline',
                           child: Builder(
                             builder: (builderContext) {
-                              final colorScheme = Theme.of(builderContext).colorScheme;
+                              final colorScheme = Theme.of(
+                                builderContext,
+                              ).colorScheme;
                               return Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -102,9 +107,11 @@ class ArchiveInfoWidget extends StatelessWidget {
                                 isPinned
                                     ? Icons.push_pin
                                     : Icons.push_pin_outlined,
-                                color: isPinned 
+                                color: isPinned
                                     ? Theme.of(context).colorScheme.secondary
-                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                               ),
                               tooltip: isPinned
                                   ? 'Unpin archive'
@@ -121,7 +128,10 @@ class ArchiveInfoWidget extends StatelessWidget {
                         ),
                         // Sync button
                         IconButton(
-                          icon: Icon(Icons.sync, color: Theme.of(context).colorScheme.primary),
+                          icon: Icon(
+                            Icons.sync,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                           tooltip: 'Sync metadata',
                           onPressed: () async {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -149,7 +159,9 @@ class ArchiveInfoWidget extends StatelessWidget {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('Sync failed: $e'),
-                                    backgroundColor: Theme.of(context).colorScheme.error,
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.error,
                                   ),
                                 );
                               }
@@ -166,7 +178,9 @@ class ArchiveInfoWidget extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 metadata.description!,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -175,7 +189,11 @@ class ArchiveInfoWidget extends StatelessWidget {
             Row(
               children: [
                 if (metadata.creator != null) ...[
-                  Icon(Icons.person, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.person,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -198,7 +216,10 @@ class ArchiveInfoWidget extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     metadata.date!,
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ],
@@ -206,18 +227,32 @@ class ArchiveInfoWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.folder, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.folder,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   '${metadata.totalFiles} files',
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(width: 16),
-                Icon(Icons.storage, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.storage,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   _formatSize(metadata.totalSize),
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -239,7 +274,11 @@ class ArchiveInfoWidget extends StatelessWidget {
                       final colorScheme = Theme.of(builderContext).colorScheme;
                       return Row(
                         children: [
-                          Icon(Icons.sync, size: 14, color: colorScheme.primary),
+                          Icon(
+                            Icons.sync,
+                            size: 14,
+                            color: colorScheme.primary,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             cachedMeta.syncStatusString,

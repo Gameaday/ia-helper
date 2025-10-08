@@ -31,7 +31,9 @@ extension DateTimeExtensions on DateTime {
       return short ? 'now' : 'just now';
     } else if (difference.inMinutes < 60) {
       final minutes = difference.inMinutes;
-      return short ? '${minutes}m' : '$minutes minute${minutes == 1 ? '' : 's'} ago';
+      return short
+          ? '${minutes}m'
+          : '$minutes minute${minutes == 1 ? '' : 's'} ago';
     } else if (difference.inHours < 24) {
       final hours = difference.inHours;
       return short ? '${hours}h' : '$hours hour${hours == 1 ? '' : 's'} ago';
@@ -43,7 +45,9 @@ extension DateTimeExtensions on DateTime {
       return short ? '${weeks}w' : '$weeks week${weeks == 1 ? '' : 's'} ago';
     } else if (difference.inDays < 365) {
       final months = (difference.inDays / 30).floor();
-      return short ? '${months}mo' : '$months month${months == 1 ? '' : 's'} ago';
+      return short
+          ? '${months}mo'
+          : '$months month${months == 1 ? '' : 's'} ago';
     } else {
       final years = (difference.inDays / 365).floor();
       return short ? '${years}y' : '$years year${years == 1 ? '' : 's'} ago';

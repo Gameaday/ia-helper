@@ -38,7 +38,7 @@ enum NetworkRequirement {
 }
 
 /// Download task with resume capability and scheduling
-/// 
+///
 /// This model tracks all information needed for resumable downloads:
 /// - Resume state (partial bytes, ETag validation)
 /// - Scheduling (priority, network requirements, scheduled time)
@@ -153,7 +153,8 @@ class DownloadTask {
 
   /// Check if download is active (downloading or paused)
   bool get isActive {
-    return status == DownloadStatus.downloading || status == DownloadStatus.paused;
+    return status == DownloadStatus.downloading ||
+        status == DownloadStatus.paused;
   }
 
   /// Check if download is completed
@@ -164,7 +165,8 @@ class DownloadTask {
 
   /// Check if download can be resumed
   bool get canResume {
-    return (status == DownloadStatus.paused || status == DownloadStatus.error) &&
+    return (status == DownloadStatus.paused ||
+            status == DownloadStatus.error) &&
         partialBytes > 0 &&
         partialBytes < totalBytes;
   }

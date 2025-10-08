@@ -105,9 +105,7 @@ class SavedSearchService extends ChangeNotifier {
   Future<List<SavedSearch>> getSearchesByTag(String tag) async {
     await getAllSavedSearches(); // Ensure loaded
 
-    return _savedSearches
-        .where((search) => search.tags.contains(tag))
-        .toList();
+    return _savedSearches.where((search) => search.tags.contains(tag)).toList();
   }
 
   /// Get all unique tags used in saved searches
@@ -131,7 +129,9 @@ class SavedSearchService extends ChangeNotifier {
     // Check for duplicate name
     final existing = await getSavedSearchByName(search.name);
     if (existing != null) {
-      throw Exception('A saved search with the name "${search.name}" already exists');
+      throw Exception(
+        'A saved search with the name "${search.name}" already exists',
+      );
     }
 
     final id = await db.insert(_tableName, _toMap(search));
@@ -154,7 +154,9 @@ class SavedSearchService extends ChangeNotifier {
     // Check for duplicate name (excluding current search)
     final existing = await getSavedSearchByName(search.name);
     if (existing != null && existing.id != search.id) {
-      throw Exception('A saved search with the name "${search.name}" already exists');
+      throw Exception(
+        'A saved search with the name "${search.name}" already exists',
+      );
     }
 
     await db.update(
@@ -175,11 +177,7 @@ class SavedSearchService extends ChangeNotifier {
   /// Delete a saved search
   Future<void> deleteSavedSearch(int id) async {
     final db = await _dbHelper.database;
-    await db.delete(
-      _tableName,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.delete(_tableName, where: 'id = ?', whereArgs: [id]);
 
     _savedSearches.removeWhere((search) => search.id == id);
     notifyListeners();
@@ -266,8 +264,9 @@ class SavedSearchService extends ChangeNotifier {
   Future<List<SavedSearch>> getRecentlyUsedSearches({int limit = 10}) async {
     await getAllSavedSearches(); // Ensure loaded
 
-    final withLastUsed = _savedSearches.where((s) => s.lastUsedAt != null).toList()
-      ..sort((a, b) => b.lastUsedAt!.compareTo(a.lastUsedAt!));
+    final withLastUsed =
+        _savedSearches.where((s) => s.lastUsedAt != null).toList()
+          ..sort((a, b) => b.lastUsedAt!.compareTo(a.lastUsedAt!));
 
     return withLastUsed.take(limit).toList();
   }

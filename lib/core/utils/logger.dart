@@ -4,12 +4,7 @@ library;
 import 'package:flutter/foundation.dart';
 
 /// Log levels for categorizing log messages
-enum LogLevel {
-  debug,
-  info,
-  warning,
-  error,
-}
+enum LogLevel { debug, info, warning, error }
 
 /// A simple logger utility for consistent logging across the app
 class Logger {

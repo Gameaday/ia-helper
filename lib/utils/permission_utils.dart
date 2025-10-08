@@ -142,7 +142,7 @@ class PermissionUtils {
         // On Android 11+, this permission requires ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
         // Show dialog explaining why we need this
         if (!context.mounted) return false;
-        
+
         final shouldRequest = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -174,30 +174,30 @@ class PermissionUtils {
         if (!result.isGranted && context.mounted) {
           // User didn't grant permission, show how to do it manually
           await showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Permission Not Granted'),
-                content: const Text(
-                  'To enable folder access:\n'
-                  '1. Open Settings\n'
-                  '2. Find this app\n'
-                  '3. Enable "All files access"',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('OK'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      openAppSettings();
-                    },
-                    child: const Text('Open Settings'),
-                  ),
-                ],
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Permission Not Granted'),
+              content: const Text(
+                'To enable folder access:\n'
+                '1. Open Settings\n'
+                '2. Find this app\n'
+                '3. Enable "All files access"',
               ),
-            );
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    openAppSettings();
+                  },
+                  child: const Text('Open Settings'),
+                ),
+              ],
+            ),
+          );
           return false;
         }
 

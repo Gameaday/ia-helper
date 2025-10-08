@@ -64,7 +64,9 @@ class BandwidthManagerProvider extends ChangeNotifier {
     if (!preset.isUnlimited) {
       _manager = BandwidthManager(totalBytesPerSecond: preset.bytesPerSecond);
       if (kDebugMode) {
-        print('[BandwidthManagerProvider] Initialized with ${preset.displayName}');
+        print(
+          '[BandwidthManagerProvider] Initialized with ${preset.displayName}',
+        );
       }
     } else {
       _manager = null;
@@ -81,8 +83,10 @@ class BandwidthManagerProvider extends ChangeNotifier {
     if (newPreset == _currentPreset) return;
 
     if (kDebugMode) {
-      print('[BandwidthManagerProvider] Changing preset: '
-          '${_currentPreset.displayName} → ${newPreset.displayName}');
+      print(
+        '[BandwidthManagerProvider] Changing preset: '
+        '${_currentPreset.displayName} → ${newPreset.displayName}',
+      );
     }
 
     // Clean up old manager
@@ -98,7 +102,9 @@ class BandwidthManagerProvider extends ChangeNotifier {
   BandwidthThrottle? createThrottle(String downloadId) {
     if (_manager == null) {
       if (kDebugMode) {
-        print('[BandwidthManagerProvider] Unlimited mode - no throttle for $downloadId');
+        print(
+          '[BandwidthManagerProvider] Unlimited mode - no throttle for $downloadId',
+        );
       }
       return null;
     }
@@ -107,8 +113,10 @@ class BandwidthManagerProvider extends ChangeNotifier {
     _activeThrottles[downloadId] = throttle;
 
     if (kDebugMode) {
-      print('[BandwidthManagerProvider] Created throttle for $downloadId '
-          '(${_activeThrottles.length} active)');
+      print(
+        '[BandwidthManagerProvider] Created throttle for $downloadId '
+        '(${_activeThrottles.length} active)',
+      );
     }
 
     notifyListeners();
@@ -121,8 +129,10 @@ class BandwidthManagerProvider extends ChangeNotifier {
       _manager?.removeThrottle(downloadId);
 
       if (kDebugMode) {
-        print('[BandwidthManagerProvider] Removed throttle for $downloadId '
-            '(${_activeThrottles.length} remaining)');
+        print(
+          '[BandwidthManagerProvider] Removed throttle for $downloadId '
+          '(${_activeThrottles.length} remaining)',
+        );
       }
 
       notifyListeners();

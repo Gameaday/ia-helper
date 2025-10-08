@@ -79,7 +79,10 @@ class _FilterControlsWidgetState extends State<FilterControlsWidget> {
             Expanded(
               child: Text(
                 _getFilterSummary(),
-                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

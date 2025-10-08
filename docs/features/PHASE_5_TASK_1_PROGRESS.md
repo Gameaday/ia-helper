@@ -38,7 +38,7 @@
   - Old: `app-release.apk`
   - New: `app-production-release.apk`
   - Matches new CI product flavor builds
-- ✅ Verified web app link: `https://gameaday.github.io/ia-get-cli`
+- ✅ Verified web app link: `https://gameaday.github.io/ia-helper`
 
 **Result**: Download links now work with latest CI builds
 

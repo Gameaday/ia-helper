@@ -42,16 +42,13 @@ class BandwidthControlsWidget extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          Icons.speed_rounded,
-          color: Theme.of(context).colorScheme.primary,
-        ),
+        Icon(Icons.speed_rounded, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 8),
         Text(
           'Bandwidth Limit',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const Spacer(),
         Tooltip(
@@ -77,8 +74,8 @@ class BandwidthControlsWidget extends StatelessWidget {
         Text(
           'Select Speed:',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -130,17 +127,17 @@ class BandwidthControlsWidget extends StatelessWidget {
             Text(
               'Current Usage:',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             Text(
               '${usage.currentSpeedDisplay} / ${usage.maxSpeedDisplay}',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: usage.isNearLimit
-                        ? Theme.of(context).colorScheme.error
-                        : Theme.of(context).colorScheme.primary,
-                  ),
+                fontWeight: FontWeight.w600,
+                color: usage.isNearLimit
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.primary,
+              ),
             ),
           ],
         ),
@@ -150,13 +147,15 @@ class BandwidthControlsWidget extends StatelessWidget {
           child: LinearProgressIndicator(
             value: usage.usagePercentage,
             minHeight: 8,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation<Color>(
               usage.isNearLimit
                   ? Theme.of(context).colorScheme.error
                   : usage.isThrottled
-                      ? Theme.of(context).colorScheme.tertiary
-                      : Theme.of(context).colorScheme.primary,
+                  ? Theme.of(context).colorScheme.tertiary
+                  : Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
@@ -214,9 +213,9 @@ class BandwidthControlsWidget extends StatelessWidget {
                   child: Text(
                     'Throttling active - downloads may be slowed',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.tertiary,
-                          fontStyle: FontStyle.italic,
-                        ),
+                      color: Theme.of(context).colorScheme.tertiary,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
               ],
@@ -245,15 +244,15 @@ class BandwidthControlsWidget extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     );

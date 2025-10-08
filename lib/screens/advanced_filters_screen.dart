@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/file_filter.dart';
 
 /// Advanced Filters Screen
-/// 
+///
 /// Provides comprehensive filtering options including:
 /// - Subfolder/path-based filtering
 /// - Wildcard and regex patterns
@@ -31,10 +31,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
   late bool _includeDerivative;
   late bool _includeMetadata;
   late bool _useRegex;
-  
+
   int? _minSize;
   int? _maxSize;
-  
+
   final _patternController = TextEditingController();
   final _subfolderController = TextEditingController();
   final _minSizeController = TextEditingController();
@@ -56,7 +56,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
     _includeDerivative = filter.includeDerivative;
     _includeMetadata = filter.includeMetadata;
     _useRegex = filter.useRegex;
-    
+
     if (_minSize != null) {
       _minSizeController.text = (_minSize! / (1024 * 1024)).toStringAsFixed(0);
     }
@@ -84,7 +84,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
             TextButton.icon(
               onPressed: _clearAll,
               icon: const Icon(Icons.clear_all, color: Colors.white),
-              label: const Text('Clear All', style: TextStyle(color: Colors.white)),
+              label: const Text(
+                'Clear All',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
         ],
       ),
@@ -103,16 +106,19 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                   Expanded(
                     child: Text(
                       'Advanced filtering with subfolder, pattern, and size-based criteria',
-                      style: TextStyle(color: Colors.blue.shade900, fontSize: 13),
+                      style: TextStyle(
+                        color: Colors.blue.shade900,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Subfolder filtering
           _buildSectionHeader('Subfolder Filtering', Icons.folder),
           const SizedBox(height: 8),
@@ -148,40 +154,56 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           ),
           const SizedBox(height: 12),
           if (_includeSubfolders.isNotEmpty) ...[
-            const Text('Include folders:', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(
+              'Include folders:',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _includeSubfolders.map((folder) => Chip(
-                label: Text(folder),
-                deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () => setState(() => _includeSubfolders.remove(folder)),
-                backgroundColor: Colors.green.shade100,
-              )).toList(),
+              children: _includeSubfolders
+                  .map(
+                    (folder) => Chip(
+                      label: Text(folder),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: () =>
+                          setState(() => _includeSubfolders.remove(folder)),
+                      backgroundColor: Colors.green.shade100,
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 12),
           ],
           if (_excludeSubfolders.isNotEmpty) ...[
-            const Text('Exclude folders:', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(
+              'Exclude folders:',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _excludeSubfolders.map((folder) => Chip(
-                label: Text(folder),
-                deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () => setState(() => _excludeSubfolders.remove(folder)),
-                backgroundColor: Colors.red.shade100,
-              )).toList(),
+              children: _excludeSubfolders
+                  .map(
+                    (folder) => Chip(
+                      label: Text(folder),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: () =>
+                          setState(() => _excludeSubfolders.remove(folder)),
+                      backgroundColor: Colors.red.shade100,
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 12),
           ],
-          
+
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 24),
-          
+
           // File pattern filtering
           _buildSectionHeader('File Patterns', Icons.text_fields),
           const SizedBox(height: 8),
@@ -197,9 +219,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            _useRegex 
-              ? 'Enter regex patterns (e.g., "^data_\\d+\\.txt\$")'
-              : 'Enter wildcard patterns (e.g., "*.pdf", "chapter*", "data_?.txt")',
+            _useRegex
+                ? 'Enter regex patterns (e.g., "^data_\\d+\\.txt\$")'
+                : 'Enter wildcard patterns (e.g., "*.pdf", "chapter*", "data_?.txt")',
             style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 12),
@@ -230,40 +252,56 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           ),
           const SizedBox(height: 12),
           if (_includePatterns.isNotEmpty) ...[
-            const Text('Include patterns:', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(
+              'Include patterns:',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _includePatterns.map((pattern) => Chip(
-                label: Text(pattern),
-                deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () => setState(() => _includePatterns.remove(pattern)),
-                backgroundColor: Colors.green.shade100,
-              )).toList(),
+              children: _includePatterns
+                  .map(
+                    (pattern) => Chip(
+                      label: Text(pattern),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: () =>
+                          setState(() => _includePatterns.remove(pattern)),
+                      backgroundColor: Colors.green.shade100,
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 12),
           ],
           if (_excludePatterns.isNotEmpty) ...[
-            const Text('Exclude patterns:', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(
+              'Exclude patterns:',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _excludePatterns.map((pattern) => Chip(
-                label: Text(pattern),
-                deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () => setState(() => _excludePatterns.remove(pattern)),
-                backgroundColor: Colors.red.shade100,
-              )).toList(),
+              children: _excludePatterns
+                  .map(
+                    (pattern) => Chip(
+                      label: Text(pattern),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: () =>
+                          setState(() => _excludePatterns.remove(pattern)),
+                      backgroundColor: Colors.red.shade100,
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 12),
           ],
-          
+
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 24),
-          
+
           // Size filtering
           _buildSectionHeader('Size Range', Icons.storage),
           const SizedBox(height: 8),
@@ -291,7 +329,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text('to', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(
+                  'to',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
               Expanded(
                 child: TextField(
@@ -310,11 +351,11 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 24),
-          
+
           // Source type filtering
           _buildSectionHeader('Source Type', Icons.source),
           const SizedBox(height: 12),
@@ -342,7 +383,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 32),
         ],
       ),
@@ -363,7 +404,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
             children: [
               if (_hasActiveFilters())
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade100,
                     borderRadius: BorderRadius.circular(20),
@@ -382,7 +426,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                 icon: const Icon(Icons.check),
                 label: const Text('Apply Filters'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ],
@@ -408,7 +455,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
   void _addPattern(bool include) {
     final pattern = _patternController.text.trim();
     if (pattern.isEmpty) return;
-    
+
     setState(() {
       if (include) {
         if (!_includePatterns.contains(pattern)) {
@@ -428,7 +475,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
   void _addSubfolder(bool include) {
     final subfolder = _subfolderController.text.trim();
     if (subfolder.isEmpty) return;
-    
+
     setState(() {
       if (include) {
         if (!_includeSubfolders.contains(subfolder)) {
@@ -500,7 +547,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
       includeMetadata: _includeMetadata,
       useRegex: _useRegex,
     );
-    
+
     Navigator.pop(context, filter);
   }
 }

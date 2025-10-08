@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 /// Represents a collection of Internet Archive items
-/// 
+///
 /// Collections allow users to organize their archives into named groups.
 /// Collections can be regular (manually curated) or smart (auto-populated by rules).
 class Collection {
@@ -40,7 +40,8 @@ class Collection {
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
       isSmart: (map['is_smart'] as int?) == 1,
       smartRulesJson: map['smart_rules_json'] != null
-          ? json.decode(map['smart_rules_json'] as String) as Map<String, dynamic>
+          ? json.decode(map['smart_rules_json'] as String)
+                as Map<String, dynamic>
           : null,
     );
   }
@@ -56,7 +57,9 @@ class Collection {
       'created_at': createdAt.millisecondsSinceEpoch,
       'updated_at': updatedAt.millisecondsSinceEpoch,
       'is_smart': isSmart ? 1 : 0,
-      'smart_rules_json': smartRulesJson != null ? json.encode(smartRulesJson) : null,
+      'smart_rules_json': smartRulesJson != null
+          ? json.encode(smartRulesJson)
+          : null,
     };
   }
 
@@ -122,7 +125,7 @@ class Collection {
   /// Get icon data for display
   IconData get iconData {
     if (icon == null) return Icons.folder;
-    
+
     // Map icon name strings to IconData
     switch (icon) {
       case 'favorite':

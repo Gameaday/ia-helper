@@ -16,7 +16,7 @@ void main() {
 
     test('should include User-Agent header in all requests', () async {
       String? capturedUserAgent;
-      
+
       final mockClient = MockClient((request) async {
         capturedUserAgent = request.headers['User-Agent'];
         return http.Response('OK', 200);
@@ -39,7 +39,7 @@ void main() {
 
     test('should allow custom User-Agent', () async {
       String? capturedUserAgent;
-      
+
       final mockClient = MockClient((request) async {
         capturedUserAgent = request.headers['User-Agent'];
         return http.Response('OK', 200);
@@ -60,7 +60,7 @@ void main() {
 
     test('should retry on 429 Rate Limited', () async {
       int attemptCount = 0;
-      
+
       final mockClient = MockClient((request) async {
         attemptCount++;
         if (attemptCount < 3) {
@@ -89,7 +89,7 @@ void main() {
 
     test('should retry on 503 Service Unavailable', () async {
       int attemptCount = 0;
-      
+
       final mockClient = MockClient((request) async {
         attemptCount++;
         if (attemptCount < 2) {
@@ -115,7 +115,7 @@ void main() {
     test('should respect Retry-After header', () async {
       int attemptCount = 0;
       final startTime = DateTime.now();
-      
+
       final mockClient = MockClient((request) async {
         attemptCount++;
         if (attemptCount == 1) {
@@ -146,11 +146,11 @@ void main() {
     test('should use exponential backoff for retries', () async {
       int attemptCount = 0;
       final attemptTimes = <DateTime>[];
-      
+
       final mockClient = MockClient((request) async {
         attemptCount++;
         attemptTimes.add(DateTime.now());
-        
+
         if (attemptCount < 4) {
           return http.Response('Service Unavailable', 503);
         }
@@ -170,7 +170,7 @@ void main() {
       await client.get(Uri.parse('https://archive.org/test'));
 
       expect(attemptCount, 4);
-      
+
       // Check delays between attempts
       final delay1 = attemptTimes[1].difference(attemptTimes[0]);
       final delay2 = attemptTimes[2].difference(attemptTimes[1]);
@@ -200,11 +200,13 @@ void main() {
 
       await expectLater(
         client.get(Uri.parse('https://archive.org/test')),
-        throwsA(isA<IAHttpException>().having(
-          (e) => e.type,
-          'type',
-          IAHttpExceptionType.serverError,
-        )),
+        throwsA(
+          isA<IAHttpException>().having(
+            (e) => e.type,
+            'type',
+            IAHttpExceptionType.serverError,
+          ),
+        ),
       );
 
       client.close();
@@ -212,7 +214,7 @@ void main() {
 
     test('should not retry on 404 Not Found', () async {
       int attemptCount = 0;
-      
+
       final mockClient = MockClient((request) async {
         attemptCount++;
         return http.Response('Not Found', 404);
@@ -225,11 +227,13 @@ void main() {
 
       await expectLater(
         client.get(Uri.parse('https://archive.org/test')),
-        throwsA(isA<IAHttpException>().having(
-          (e) => e.type,
-          'type',
-          IAHttpExceptionType.notFound,
-        )),
+        throwsA(
+          isA<IAHttpException>().having(
+            (e) => e.type,
+            'type',
+            IAHttpExceptionType.notFound,
+          ),
+        ),
       );
 
       expect(attemptCount, 1); // No retries
@@ -239,7 +243,7 @@ void main() {
 
     test('should not retry on 400 Bad Request', () async {
       int attemptCount = 0;
-      
+
       final mockClient = MockClient((request) async {
         attemptCount++;
         return http.Response('Bad Request', 400);
@@ -252,11 +256,13 @@ void main() {
 
       await expectLater(
         client.get(Uri.parse('https://archive.org/test')),
-        throwsA(isA<IAHttpException>().having(
-          (e) => e.type,
-          'type',
-          IAHttpExceptionType.clientError,
-        )),
+        throwsA(
+          isA<IAHttpException>().having(
+            (e) => e.type,
+            'type',
+            IAHttpExceptionType.clientError,
+          ),
+        ),
       );
 
       expect(attemptCount, 1); // No retries
@@ -278,11 +284,13 @@ void main() {
 
       await expectLater(
         client.get(Uri.parse('https://archive.org/test')),
-        throwsA(isA<IAHttpException>().having(
-          (e) => e.type,
-          'type',
-          IAHttpExceptionType.timeout,
-        )),
+        throwsA(
+          isA<IAHttpException>().having(
+            (e) => e.type,
+            'type',
+            IAHttpExceptionType.timeout,
+          ),
+        ),
       );
 
       client.close();
@@ -320,10 +328,12 @@ void main() {
       final rateLimiter = RateLimiter(maxConcurrent: 2, minDelay: null);
       int concurrentCount = 0;
       int maxConcurrent = 0;
-      
+
       final mockClient = MockClient((request) async {
         concurrentCount++;
-        maxConcurrent = concurrentCount > maxConcurrent ? concurrentCount : maxConcurrent;
+        maxConcurrent = concurrentCount > maxConcurrent
+            ? concurrentCount
+            : maxConcurrent;
         await Future.delayed(const Duration(milliseconds: 50));
         concurrentCount--;
         return http.Response('OK', 200);
@@ -351,7 +361,7 @@ void main() {
     test('should support POST requests', () async {
       String? capturedMethod;
       String? capturedBody;
-      
+
       final mockClient = MockClient((request) async {
         capturedMethod = request.method;
         capturedBody = request.body;
@@ -376,7 +386,7 @@ void main() {
 
     test('should support HEAD requests', () async {
       String? capturedMethod;
-      
+
       final mockClient = MockClient((request) async {
         capturedMethod = request.method;
         return http.Response('', 200, headers: {'content-length': '12345'});
@@ -397,28 +407,44 @@ void main() {
 
     test('IAHttpException should categorize error types correctly', () {
       expect(
-        const IAHttpException('test', statusCode: 429, type: IAHttpExceptionType.rateLimited).isTransient,
+        const IAHttpException(
+          'test',
+          statusCode: 429,
+          type: IAHttpExceptionType.rateLimited,
+        ).isTransient,
         true,
       );
       expect(
-        const IAHttpException('test', statusCode: 503, type: IAHttpExceptionType.serverError).isTransient,
+        const IAHttpException(
+          'test',
+          statusCode: 503,
+          type: IAHttpExceptionType.serverError,
+        ).isTransient,
         true,
       );
       expect(
-        const IAHttpException('test', statusCode: 404, type: IAHttpExceptionType.notFound).isTransient,
+        const IAHttpException(
+          'test',
+          statusCode: 404,
+          type: IAHttpExceptionType.notFound,
+        ).isTransient,
         false,
       );
       expect(
-        const IAHttpException('test', statusCode: 400, type: IAHttpExceptionType.clientError).isTransient,
+        const IAHttpException(
+          'test',
+          statusCode: 400,
+          type: IAHttpExceptionType.clientError,
+        ).isTransient,
         false,
       );
     });
 
     test('should provide rate limiter statistics', () {
       final client = IAHttpClient(rateLimiter: testRateLimiter);
-      
+
       final stats = client.getStats();
-      
+
       expect(stats, isNotNull);
       expect(stats['maxConcurrent'], 10);
       expect(stats['active'], isA<int>());
@@ -448,7 +474,7 @@ void main() {
           fail('Should have thrown IAHttpException');
         } on IAHttpException catch (e) {
           expect(e.statusCode, 429);
-          
+
           // Check rate limit status includes retry-after info
           final status = client.getRateLimitStatus();
           expect(status.retryAfterSeconds, 120);
@@ -482,7 +508,7 @@ void main() {
           fail('Should have thrown IAHttpException');
         } on IAHttpException catch (e) {
           expect(e.statusCode, 429);
-          
+
           // Check rate limit status includes retry-after info
           final status = client.getRateLimitStatus();
           expect(status.retryAfterSeconds, isNotNull);
@@ -515,7 +541,7 @@ void main() {
           fail('Should have thrown IAHttpException');
         } on IAHttpException catch (e) {
           expect(e.statusCode, 429);
-          
+
           // Should not crash, just use default retry behavior
           final status = client.getRateLimitStatus();
           // Invalid format should result in null values

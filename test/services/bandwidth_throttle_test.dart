@@ -13,10 +13,7 @@ void main() {
     });
 
     test('should throttle when exceeding available tokens', () async {
-      final throttle = BandwidthThrottle(
-        bytesPerSecond: 1000,
-        burstSize: 1000,
-      );
+      final throttle = BandwidthThrottle(bytesPerSecond: 1000, burstSize: 1000);
 
       // Consume all tokens
       await throttle.consume(1000);
@@ -32,10 +29,7 @@ void main() {
     });
 
     test('should refill tokens over time', () async {
-      final throttle = BandwidthThrottle(
-        bytesPerSecond: 1000,
-        burstSize: 1000,
-      );
+      final throttle = BandwidthThrottle(bytesPerSecond: 1000, burstSize: 1000);
 
       // Consume all tokens
       await throttle.consume(1000);
@@ -51,10 +45,7 @@ void main() {
     });
 
     test('should not exceed burst size when refilling', () async {
-      final throttle = BandwidthThrottle(
-        bytesPerSecond: 1000,
-        burstSize: 2000,
-      );
+      final throttle = BandwidthThrottle(bytesPerSecond: 1000, burstSize: 2000);
 
       // Wait for a long time
       await Future.delayed(const Duration(seconds: 5));
@@ -79,10 +70,7 @@ void main() {
     });
 
     test('should track utilization percentage', () async {
-      final throttle = BandwidthThrottle(
-        bytesPerSecond: 1000,
-        burstSize: 1000,
-      );
+      final throttle = BandwidthThrottle(bytesPerSecond: 1000, burstSize: 1000);
 
       final initialStats = throttle.getStats();
       expect(initialStats['utilizationPercent'], 0);
@@ -95,10 +83,7 @@ void main() {
     });
 
     test('should reset state correctly', () async {
-      final throttle = BandwidthThrottle(
-        bytesPerSecond: 1000,
-        burstSize: 2000,
-      );
+      final throttle = BandwidthThrottle(bytesPerSecond: 1000, burstSize: 2000);
 
       // Consume some tokens and pause
       await throttle.consume(1000);
@@ -360,7 +345,7 @@ void main() {
 
       // Both downloads should complete
       expect(stats['totalBytesConsumed'], 20000);
-      
+
       // Verify the operation completed (timing may be unreliable in test environment)
       // The actual throttling behavior is tested in other tests
       expect(elapsed.inMilliseconds, greaterThanOrEqualTo(0));

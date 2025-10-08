@@ -117,11 +117,13 @@ class BandwidthUsage {
   bool get isNearLimit => usagePercentage > 0.8;
 
   /// Human-readable current speed
-  String get currentSpeedDisplay => _formatBytesPerSecond(currentBytesPerSecond);
+  String get currentSpeedDisplay =>
+      _formatBytesPerSecond(currentBytesPerSecond);
 
   /// Human-readable maximum speed
-  String get maxSpeedDisplay =>
-      maxBytesPerSecond == 0 ? 'Unlimited' : _formatBytesPerSecond(maxBytesPerSecond.toDouble());
+  String get maxSpeedDisplay => maxBytesPerSecond == 0
+      ? 'Unlimited'
+      : _formatBytesPerSecond(maxBytesPerSecond.toDouble());
 
   /// Average session speed
   double get averageSpeed {

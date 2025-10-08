@@ -19,11 +19,11 @@ class DatabaseHelper {
   static const String tableSearchHistory = 'search_history';
   static const String tableSavedSearches = 'saved_searches';
   static const String tableDownloadTasks = 'download_tasks';
-  
+
   // Singleton pattern
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
-  
+
   static Database? _database;
 
   /// Get database instance, creating it if necessary
@@ -301,7 +301,7 @@ class DatabaseHelper {
     // Migration from version 1 to version 2: Add preview cache table
     if (oldVersion < 2) {
       debugPrint('Migrating to version 2: Adding preview_cache table');
-      
+
       await db.execute('''
         CREATE TABLE $tablePreviewCache (
           identifier TEXT NOT NULL,
@@ -336,7 +336,7 @@ class DatabaseHelper {
     // Migration from version 2 to version 3: Add etag column to cached_metadata
     if (oldVersion < 3) {
       debugPrint('Migrating to version 3: Adding etag column');
-      
+
       await db.execute('''
         ALTER TABLE $tableCachedMetadata ADD COLUMN etag TEXT
       ''');
@@ -346,8 +346,10 @@ class DatabaseHelper {
 
     // Migration from version 3 to version 4: Add favorites and collections tables
     if (oldVersion < 4) {
-      debugPrint('Migrating to version 4: Adding favorites and collections tables');
-      
+      debugPrint(
+        'Migrating to version 4: Adding favorites and collections tables',
+      );
+
       // Favorites table
       await db.execute('''
         CREATE TABLE $tableFavorites (
@@ -416,8 +418,10 @@ class DatabaseHelper {
 
     // Migration from version 4 to version 5: Add search history and saved searches tables
     if (oldVersion < 5) {
-      debugPrint('Migrating to version 5: Adding search history and saved searches tables');
-      
+      debugPrint(
+        'Migrating to version 5: Adding search history and saved searches tables',
+      );
+
       // Search history table
       await db.execute('''
         CREATE TABLE $tableSearchHistory (
@@ -475,7 +479,7 @@ class DatabaseHelper {
     // Migration from version 5 to version 6: Add download tasks table for resumable downloads
     if (oldVersion < 6) {
       debugPrint('Migrating to version 6: Adding download_tasks table');
-      
+
       // Download tasks table for resumable downloads and queue management
       await db.execute('''
         CREATE TABLE $tableDownloadTasks (
@@ -555,13 +559,13 @@ class DatabaseHelper {
       // Since we can't easily get file size in Flutter without dart:io,
       // estimate based on row count
       final db = await database;
-      
+
       // Count cached metadata
       final metadataResult = await db.rawQuery(
         'SELECT COUNT(*) as count FROM $tableCachedMetadata',
       );
       final metadataCount = Sqflite.firstIntValue(metadataResult) ?? 0;
-      
+
       // Count preview cache and sum data sizes
       final previewResult = await db.rawQuery('''
         SELECT 
@@ -571,7 +575,7 @@ class DatabaseHelper {
       ''');
       final textSize = previewResult.first['text_size'] as int? ?? 0;
       final blobSize = previewResult.first['blob_size'] as int? ?? 0;
-      
+
       // Rough estimate: ~50KB per cached archive + actual preview sizes
       return (metadataCount * 50 * 1024) + textSize + blobSize;
     } catch (e) {
@@ -636,10 +640,10 @@ class DatabaseHelper {
     int? limit,
   }) async {
     final db = await database;
-    
+
     String? whereClause;
     List<dynamic>? whereArgs;
-    
+
     if (status != null) {
       whereClause = 'status = ?';
       whereArgs = [status.index];
@@ -659,22 +663,21 @@ class DatabaseHelper {
   /// Delete a download task
   Future<void> deleteDownloadTask(String taskId) async {
     final db = await database;
-    await db.delete(
-      tableDownloadTasks,
-      where: 'id = ?',
-      whereArgs: [taskId],
-    );
+    await db.delete(tableDownloadTasks, where: 'id = ?', whereArgs: [taskId]);
   }
 
   /// Delete all completed tasks older than specified days
   Future<int> deleteOldCompletedTasks(int daysOld) async {
     final db = await database;
     final cutoffDate = DateTime.now().subtract(Duration(days: daysOld));
-    
+
     return await db.delete(
       tableDownloadTasks,
       where: 'status = ? AND completed_at < ?',
-      whereArgs: [DownloadStatus.completed.index, cutoffDate.millisecondsSinceEpoch],
+      whereArgs: [
+        DownloadStatus.completed.index,
+        cutoffDate.millisecondsSinceEpoch,
+      ],
     );
   }
 }

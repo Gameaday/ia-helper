@@ -71,7 +71,7 @@ class FilePreview {
   /// Get formatted file size
   String get formattedSize {
     if (fileSize == null) return 'Unknown size';
-    
+
     final bytes = fileSize!;
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) {

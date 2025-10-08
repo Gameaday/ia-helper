@@ -5,31 +5,31 @@ library;
 class DownloadProgressInfo {
   /// Current download speed in bytes per second (smoothed)
   final double currentSpeed;
-  
+
   /// Average download speed in bytes per second since start
   final double averageSpeed;
-  
+
   /// Estimated time remaining in seconds (null if unknown)
   final int? etaSeconds;
-  
+
   /// Total bytes downloaded so far
   final int bytesDownloaded;
-  
+
   /// Total bytes to download
   final int totalBytes;
-  
+
   /// Overall progress percentage (0-100)
   final double progressPercentage;
-  
+
   /// Number of files completed
   final int filesCompleted;
-  
+
   /// Total number of files
   final int totalFiles;
-  
+
   /// Time elapsed since download started
   final Duration elapsed;
-  
+
   /// Whether download is currently throttled by bandwidth limiter
   final bool isThrottled;
 
@@ -74,18 +74,18 @@ class DownloadProgressInfo {
   }) {
     final elapsed = DateTime.now().difference(startTime);
     final elapsedSeconds = elapsed.inSeconds;
-    
+
     // Calculate average speed
     final averageSpeed = elapsedSeconds > 0
         ? bytesDownloaded / elapsedSeconds
         : 0.0;
-    
+
     // Calculate ETA based on average speed (more stable than current speed)
     final remainingBytes = totalBytes - bytesDownloaded;
     final etaSeconds = averageSpeed > 0
         ? (remainingBytes / averageSpeed).round()
         : null;
-    
+
     // Calculate progress percentage
     final progressPercentage = totalBytes > 0
         ? (bytesDownloaded / totalBytes * 100)
@@ -107,35 +107,37 @@ class DownloadProgressInfo {
 
   /// Format speed for display (e.g., "1.5 MB/s")
   String get formattedCurrentSpeed => _formatSpeed(currentSpeed);
-  
+
   /// Format average speed for display
   String get formattedAverageSpeed => _formatSpeed(averageSpeed);
-  
+
   /// Format ETA for display (e.g., "2m 30s", "1h 5m", "30s")
   String get formattedEta {
     if (etaSeconds == null || etaSeconds! <= 0) {
       return 'Calculating...';
     }
-    
+
     final seconds = etaSeconds!;
-    
+
     if (seconds < 60) {
       return '${seconds}s';
     } else if (seconds < 3600) {
       final minutes = seconds ~/ 60;
       final remainingSeconds = seconds % 60;
-      return remainingSeconds > 0 ? '${minutes}m ${remainingSeconds}s' : '${minutes}m';
+      return remainingSeconds > 0
+          ? '${minutes}m ${remainingSeconds}s'
+          : '${minutes}m';
     } else {
       final hours = seconds ~/ 3600;
       final minutes = (seconds % 3600) ~/ 60;
       return minutes > 0 ? '${hours}h ${minutes}m' : '${hours}h';
     }
   }
-  
+
   /// Format elapsed time for display
   String get formattedElapsed {
     final seconds = elapsed.inSeconds;
-    
+
     if (seconds < 60) {
       return '${seconds}s';
     } else if (seconds < 3600) {

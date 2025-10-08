@@ -56,7 +56,7 @@ void main() {
   group('AdvancedSearchService - State Management', () {
     test('should update search state during search', () async {
       final query = SearchQuery.simple('test');
-      
+
       // Note: This will make an actual API call
       // In a real app, you'd mock the HTTP client
       try {
@@ -101,7 +101,11 @@ void main() {
 
     test('should search by field', () async {
       try {
-        final results = await service.searchByField('creator', 'archive.org', rows: 5);
+        final results = await service.searchByField(
+          'creator',
+          'archive.org',
+          rows: 5,
+        );
         expect(results, isNotNull);
         expect(results, isList);
       } catch (e) {
@@ -133,9 +137,13 @@ void main() {
   group('AdvancedSearchService - Pagination', () {
     test('should execute paginated search', () async {
       final query = SearchQuery.simple('test');
-      
+
       try {
-        final page = await service.searchPaginated(query, page: 1, pageSize: 20);
+        final page = await service.searchPaginated(
+          query,
+          page: 1,
+          pageSize: 20,
+        );
         expect(page, isNotNull);
         expect(page.page, equals(1));
         expect(page.pageSize, equals(20));
@@ -148,9 +156,13 @@ void main() {
 
     test('should handle different page sizes', () async {
       final query = SearchQuery.simple('archive');
-      
+
       try {
-        final page = await service.searchPaginated(query, page: 1, pageSize: 10);
+        final page = await service.searchPaginated(
+          query,
+          page: 1,
+          pageSize: 10,
+        );
         expect(page.pageSize, equals(10));
       } catch (e) {
         // Network errors are acceptable in tests
@@ -162,12 +174,12 @@ void main() {
       // Create a mock page result
       const totalResults = 100;
       const pageSize = 20;
-      
+
       for (int page = 1; page <= 5; page++) {
         final hasNext = page * pageSize < totalResults;
         final hasPrevious = page > 1;
         final totalPages = (totalResults / pageSize).ceil();
-        
+
         expect(totalPages, equals(5));
         expect(hasNext, equals(page < 5));
         expect(hasPrevious, equals(page > 1));
@@ -179,7 +191,7 @@ void main() {
     test('should copy query with modifications', () {
       final original = SearchQuery.simple('test');
       final modified = original.copyWith(rows: 50, page: 2);
-      
+
       expect(modified.query, equals('test'));
       expect(modified.rows, equals(50));
       expect(modified.page, equals(2));
@@ -193,7 +205,7 @@ void main() {
         rows: 20,
       );
       final modified = original.copyWith(page: 2);
-      
+
       expect(modified.query, equals('test'));
       expect(modified.mediatypes, equals(['texts']));
       expect(modified.rows, equals(20));
@@ -205,7 +217,7 @@ void main() {
     test('should handle very long query string', () async {
       final longQuery = 'a' * 500;
       final query = SearchQuery.simple(longQuery);
-      
+
       try {
         await service.search(query);
       } catch (e) {
@@ -238,7 +250,7 @@ void main() {
       });
 
       service.clearResults();
-      
+
       expect(notified, isTrue);
     });
 

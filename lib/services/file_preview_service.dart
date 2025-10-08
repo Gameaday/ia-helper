@@ -9,7 +9,7 @@ import '../models/archive_metadata.dart';
 import '../database/database_helper.dart';
 
 /// Service for managing file previews with caching
-/// 
+///
 /// Supports generating and caching previews for various file types:
 /// - Text files (txt, md, json, xml, csv, log)
 /// - Images (jpg, png, gif, webp, bmp)
@@ -28,67 +28,120 @@ class FilePreviewService {
 
   // Supported file formats
   static const Set<String> _textFormats = {
-    'txt', 'md', 'markdown', 'json', 'xml', 'csv', 'log',
-    'html', 'htm', 'css', 'js', 'ts', 'dart', 'py', 'java',
-    'c', 'cpp', 'h', 'hpp', 'rs', 'go', 'sh', 'bat', 'yaml', 'yml',
+    'txt',
+    'md',
+    'markdown',
+    'json',
+    'xml',
+    'csv',
+    'log',
+    'html',
+    'htm',
+    'css',
+    'js',
+    'ts',
+    'dart',
+    'py',
+    'java',
+    'c',
+    'cpp',
+    'h',
+    'hpp',
+    'rs',
+    'go',
+    'sh',
+    'bat',
+    'yaml',
+    'yml',
   };
 
   static const Set<String> _imageFormats = {
-    'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg',
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+    'bmp',
+    'svg',
   };
 
   static const Set<String> _audioFormats = {
-    'mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac',
+    'mp3',
+    'wav',
+    'ogg',
+    'm4a',
+    'flac',
+    'aac',
   };
 
   static const Set<String> _videoFormats = {
-    'mp4', 'webm', 'avi', 'mov', 'mkv', 'flv',
+    'mp4',
+    'webm',
+    'avi',
+    'mov',
+    'mkv',
+    'flv',
   };
 
-  static const Set<String> _documentFormats = {
-    'pdf',
-  };
+  static const Set<String> _documentFormats = {'pdf'};
 
   static const Set<String> _archiveFormats = {
-    'zip', 'tar', 'gz', 'gzip', 'bz2', 'bzip2', 'xz',
-    'tgz', 'tar.gz', 'tbz', 'tbz2', 'tar.bz2', 'txz', 'tar.xz',
-    '7z', 'rar', 'cab', 'arj', 'lzh', 'ace',
+    'zip',
+    'tar',
+    'gz',
+    'gzip',
+    'bz2',
+    'bzip2',
+    'xz',
+    'tgz',
+    'tar.gz',
+    'tbz',
+    'tbz2',
+    'tar.bz2',
+    'txz',
+    'tar.xz',
+    '7z',
+    'rar',
+    'cab',
+    'arj',
+    'lzh',
+    'ace',
   };
 
   /// Check if a file format can be previewed
   bool canPreview(String fileName) {
     final extension = _getFileExtension(fileName).toLowerCase();
     return _textFormats.contains(extension) ||
-           _imageFormats.contains(extension) ||
-           _audioFormats.contains(extension) ||
-           _videoFormats.contains(extension) ||
-           _documentFormats.contains(extension) ||
-           _archiveFormats.contains(extension);
+        _imageFormats.contains(extension) ||
+        _audioFormats.contains(extension) ||
+        _videoFormats.contains(extension) ||
+        _documentFormats.contains(extension) ||
+        _archiveFormats.contains(extension);
   }
 
   /// Determine the preview type based on file extension
   PreviewType getPreviewType(String fileName) {
     final extension = _getFileExtension(fileName).toLowerCase();
-    
+
     if (_textFormats.contains(extension)) return PreviewType.text;
     if (_imageFormats.contains(extension)) return PreviewType.image;
     if (_audioFormats.contains(extension)) return PreviewType.audio;
     if (_videoFormats.contains(extension)) return PreviewType.video;
     if (_documentFormats.contains(extension)) return PreviewType.document;
     if (_archiveFormats.contains(extension)) return PreviewType.archive;
-    
+
     return PreviewType.unavailable;
   }
 
   /// Check if file should be downloaded before previewing
-  /// 
+  ///
   /// Returns true if file is too large and should be downloaded first
   bool shouldDownloadFirst(int fileSize) {
     return fileSize > _cacheWithConfirmationThreshold;
   }
 
   /// Check if preview should be cached automatically
-  /// 
+  ///
   /// Returns false if file is between 1-5MB (requires confirmation)
   bool shouldCacheAutomatically(int fileSize) {
     return fileSize <= _cacheAlwaysThreshold;
@@ -135,7 +188,7 @@ class FilePreviewService {
   }
 
   /// Generate preview for a file
-  /// 
+  ///
   /// This is the main method for creating previews.
   /// It will:
   /// 1. Check if preview is already cached
@@ -221,10 +274,7 @@ class FilePreviewService {
   }
 
   /// Delete a cached preview
-  Future<void> deleteCachedPreview(
-    String identifier,
-    String fileName,
-  ) async {
+  Future<void> deleteCachedPreview(String identifier, String fileName) async {
     try {
       final db = await _db.database;
       await db.delete(
@@ -272,7 +322,7 @@ class FilePreviewService {
   Future<PreviewCacheStats> getCacheStats() async {
     try {
       final db = await _db.database;
-      
+
       // Count total previews
       final countResult = await db.rawQuery(
         'SELECT COUNT(*) as count FROM preview_cache',
@@ -285,7 +335,7 @@ class FilePreviewService {
         FROM preview_cache 
         GROUP BY preview_type
       ''');
-      
+
       final typeBreakdown = <PreviewType, int>{};
       for (final row in typeResult) {
         final type = _parsePreviewType(row['preview_type'] as String);
@@ -299,7 +349,7 @@ class FilePreviewService {
           SUM(LENGTH(preview_data)) as blob_size
         FROM preview_cache
       ''');
-      
+
       final textSize = sizeResult.first['text_size'] as int? ?? 0;
       final blobSize = sizeResult.first['blob_size'] as int? ?? 0;
       final totalSize = textSize + blobSize;
@@ -322,7 +372,7 @@ class FilePreviewService {
   // Private helper methods
 
   /// Generate text preview for a file
-  /// 
+  ///
   /// Downloads text content via HTTP and creates a preview.
   /// Truncates content if larger than 1MB to prevent memory issues.
   Future<FilePreview> _generateTextPreview(
@@ -338,12 +388,14 @@ class FilePreviewService {
       debugPrint('Downloading text preview: $url');
 
       // Download content with timeout
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          throw TimeoutException('Preview download timed out');
-        },
-      );
+      final response = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw TimeoutException('Preview download timed out');
+            },
+          );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -385,7 +437,7 @@ class FilePreviewService {
   }
 
   /// Generate image preview for a file
-  /// 
+  ///
   /// Downloads image via HTTP, resizes to max 800x800px, and compresses.
   /// Stores compressed image data as BLOB in database.
   Future<FilePreview> _generateImagePreview(
@@ -401,12 +453,14 @@ class FilePreviewService {
       debugPrint('Downloading image preview: $url');
 
       // Download image with timeout
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 60),
-        onTimeout: () {
-          throw TimeoutException('Image preview download timed out');
-        },
-      );
+      final response = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 60),
+            onTimeout: () {
+              throw TimeoutException('Image preview download timed out');
+            },
+          );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -420,9 +474,7 @@ class FilePreviewService {
         throw Exception('Failed to decode image: ${file.name}');
       }
 
-      debugPrint(
-        'Original image size: ${image.width}x${image.height}',
-      );
+      debugPrint('Original image size: ${image.width}x${image.height}');
 
       // Resize if larger than 800x800
       const maxDimension = 800;
@@ -430,7 +482,7 @@ class FilePreviewService {
         // Calculate new dimensions maintaining aspect ratio
         int newWidth;
         int newHeight;
-        
+
         if (image.width > image.height) {
           newWidth = maxDimension;
           newHeight = (image.height * maxDimension / image.width).round();
@@ -447,19 +499,13 @@ class FilePreviewService {
           interpolation: img.Interpolation.linear,
         );
 
-        debugPrint(
-          'Resized image to: ${image.width}x${image.height}',
-        );
+        debugPrint('Resized image to: ${image.width}x${image.height}');
       }
 
       // Compress to JPEG with quality 85
-      final jpegBytes = Uint8List.fromList(
-        img.encodeJpg(image, quality: 85),
-      );
+      final jpegBytes = Uint8List.fromList(img.encodeJpg(image, quality: 85));
 
-      debugPrint(
-        'Compressed image size: ${_formatBytes(jpegBytes.length)}',
-      );
+      debugPrint('Compressed image size: ${_formatBytes(jpegBytes.length)}');
 
       // Create preview
       return FilePreview(
@@ -477,7 +523,7 @@ class FilePreviewService {
   }
 
   /// Generate PDF document preview
-  /// 
+  ///
   /// Downloads PDF file via HTTP and stores raw PDF data for rendering.
   /// PDF rendering is handled by the PdfPreviewWidget.
   Future<FilePreview> _generateDocumentPreview(
@@ -493,31 +539,30 @@ class FilePreviewService {
       debugPrint('Downloading PDF preview: $url');
 
       // Download PDF with timeout
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 120),
-        onTimeout: () {
-          throw TimeoutException('PDF preview download timed out');
-        },
-      );
+      final response = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 120),
+            onTimeout: () {
+              throw TimeoutException('PDF preview download timed out');
+            },
+          );
 
       if (response.statusCode != 200) {
-        throw Exception(
-          'Failed to download PDF: HTTP ${response.statusCode}',
-        );
+        throw Exception('Failed to download PDF: HTTP ${response.statusCode}');
       }
 
       final pdfBytes = response.bodyBytes;
-      
-      debugPrint(
-        'Downloaded PDF size: ${_formatBytes(pdfBytes.length)}',
-      );
+
+      debugPrint('Downloaded PDF size: ${_formatBytes(pdfBytes.length)}');
 
       // Validate that it's actually a PDF (check magic bytes)
       if (pdfBytes.length < 4 ||
-          pdfBytes[0] != 0x25 ||  // %
-          pdfBytes[1] != 0x50 ||  // P
-          pdfBytes[2] != 0x44 ||  // D
-          pdfBytes[3] != 0x46) {  // F
+          pdfBytes[0] != 0x25 || // %
+          pdfBytes[1] != 0x50 || // P
+          pdfBytes[2] != 0x44 || // D
+          pdfBytes[3] != 0x46) {
+        // F
         throw Exception('Invalid PDF file format');
       }
 
@@ -549,12 +594,14 @@ class FilePreviewService {
       debugPrint('Downloading audio preview: $url');
 
       // Download audio with timeout
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 120),
-        onTimeout: () {
-          throw TimeoutException('Audio preview download timed out');
-        },
-      );
+      final response = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 120),
+            onTimeout: () {
+              throw TimeoutException('Audio preview download timed out');
+            },
+          );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -563,10 +610,8 @@ class FilePreviewService {
       }
 
       final audioBytes = response.bodyBytes;
-      
-      debugPrint(
-        'Downloaded audio size: ${_formatBytes(audioBytes.length)}',
-      );
+
+      debugPrint('Downloaded audio size: ${_formatBytes(audioBytes.length)}');
 
       // Create preview with raw audio data
       return FilePreview(
@@ -584,7 +629,7 @@ class FilePreviewService {
   }
 
   /// Generate preview for video files
-  /// 
+  ///
   /// Downloads video file from Internet Archive for playback.
   /// Uses longer timeout for potentially large video files.
   Future<FilePreview> _generateVideoPreview(
@@ -593,21 +638,23 @@ class FilePreviewService {
   ) async {
     try {
       debugPrint('Generating video preview for: ${file.name}');
-      
+
       // Construct download URL
       final url = Uri.parse(
         'https://archive.org/download/$identifier/${file.name}',
       );
 
       debugPrint('Downloading video preview: $url');
-      
+
       // Download video with longer timeout for large files
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 180), // 3 minutes for large videos
-        onTimeout: () {
-          throw TimeoutException('Video preview download timed out');
-        },
-      );
+      final response = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 180), // 3 minutes for large videos
+            onTimeout: () {
+              throw TimeoutException('Video preview download timed out');
+            },
+          );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -616,10 +663,8 @@ class FilePreviewService {
       }
 
       final videoBytes = response.bodyBytes;
-      
-      debugPrint(
-        'Downloaded video size: ${_formatBytes(videoBytes.length)}',
-      );
+
+      debugPrint('Downloaded video size: ${_formatBytes(videoBytes.length)}');
 
       // Create preview with raw video data
       return FilePreview(
@@ -642,21 +687,23 @@ class FilePreviewService {
   ) async {
     try {
       debugPrint('Generating archive preview for: ${file.name}');
-      
+
       // Construct download URL
       final url = Uri.parse(
         'https://archive.org/download/$identifier/${file.name}',
       );
 
       debugPrint('Downloading archive preview: $url');
-      
+
       // Download archive with longer timeout for large files
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 180), // 3 minutes for large archives
-        onTimeout: () {
-          throw TimeoutException('Archive preview download timed out');
-        },
-      );
+      final response = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 180), // 3 minutes for large archives
+            onTimeout: () {
+              throw TimeoutException('Archive preview download timed out');
+            },
+          );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -665,7 +712,7 @@ class FilePreviewService {
       }
 
       final archiveBytes = response.bodyBytes;
-      
+
       debugPrint(
         'Downloaded archive size: ${_formatBytes(archiveBytes.length)}',
       );

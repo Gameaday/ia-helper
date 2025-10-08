@@ -23,7 +23,7 @@ class DeepLinkService {
           return null;
         },
       );
-      
+
       if (initialUri != null) {
         _handleDeepLink(initialUri);
       }

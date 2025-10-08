@@ -36,9 +36,9 @@ class ArchiveService extends ChangeNotifier {
     IAHttpClient? httpClient,
     BandwidthThrottle? bandwidthThrottle,
     MetadataCache? cache,
-  })  : _cache = cache ?? MetadataCache(),
-        _historyService = historyService,
-        _localArchiveStorage = localArchiveStorage {
+  }) : _cache = cache ?? MetadataCache(),
+       _historyService = historyService,
+       _localArchiveStorage = localArchiveStorage {
     _api = InternetArchiveApi(
       client: httpClient,
       cache: _cache,

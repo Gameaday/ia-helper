@@ -2,17 +2,17 @@
 library;
 
 /// Download priority levels for Internet Archive downloads
-/// 
+///
 /// Controls request priority header (X-Accept-Reduced-Priority)
 /// and queue ordering for concurrent downloads.
 
 enum DownloadPriority {
   /// Low priority - adds reduced priority header, queued last
   low,
-  
+
   /// Normal priority - default behavior, no special headers
   normal,
-  
+
   /// High priority - queued first, no reduced priority header
   high,
 }
@@ -29,7 +29,7 @@ extension DownloadPriorityExtension on DownloadPriority {
         return 'High';
     }
   }
-  
+
   /// Get icon for UI representation
   String get icon {
     switch (this) {
@@ -41,7 +41,7 @@ extension DownloadPriorityExtension on DownloadPriority {
         return '⬆️'; // Up arrow
     }
   }
-  
+
   /// Get color for UI representation
   int get colorValue {
     switch (this) {
@@ -53,12 +53,12 @@ extension DownloadPriorityExtension on DownloadPriority {
         return 0xFFFF9800; // Orange
     }
   }
-  
+
   /// Whether to send X-Accept-Reduced-Priority header
   bool get useReducedPriorityHeader {
     return this == DownloadPriority.low;
   }
-  
+
   /// Queue sort weight (higher = processed first)
   int get queueWeight {
     switch (this) {
@@ -70,7 +70,7 @@ extension DownloadPriorityExtension on DownloadPriority {
         return 3;
     }
   }
-  
+
   /// Get description for tooltip/help
   String get description {
     switch (this) {

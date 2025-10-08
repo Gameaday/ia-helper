@@ -3,7 +3,7 @@ import 'package:photo_view/photo_view.dart';
 import '../models/file_preview.dart';
 
 /// Widget for displaying image previews with zoom and pan
-/// 
+///
 /// Features:
 /// - Pinch to zoom using photo_view package
 /// - Pan gesture support
@@ -13,17 +13,12 @@ import '../models/file_preview.dart';
 class ImagePreviewWidget extends StatelessWidget {
   final FilePreview preview;
 
-  const ImagePreviewWidget({
-    super.key,
-    required this.preview,
-  });
+  const ImagePreviewWidget({super.key, required this.preview});
 
   @override
   Widget build(BuildContext context) {
     if (preview.previewData == null || preview.previewData!.isEmpty) {
-      return const Center(
-        child: Text('No image preview available'),
-      );
+      return const Center(child: Text('No image preview available'));
     }
 
     return Stack(
@@ -68,7 +63,7 @@ class ImagePreviewWidget extends StatelessWidget {
             );
           },
         ),
-        
+
         // Info overlay at bottom
         Positioned(
           left: 0,

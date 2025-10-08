@@ -83,35 +83,39 @@ class _DownloadScreenState extends State<DownloadScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.download_done, size: 64, color: SemanticColors.disabled(context)),
+                        Icon(
+                          Icons.download_done,
+                          size: 64,
+                          color: SemanticColors.disabled(context),
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'No downloads yet',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: SemanticColors.subtitle(context),
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: SemanticColors.subtitle(context),
+                              ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Start downloading files from the main screen',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: SemanticColors.hint(context),
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: SemanticColors.hint(context)),
                         ),
                       ],
                     ),
                   )
                 : ResponsiveUtils.isTabletOrLarger(context)
-                    ? _buildTwoColumnLayout(
-                        activeDownloads,
-                        completedDownloads,
-                        downloadProvider,
-                      )
-                    : _buildSingleColumnLayout(
-                        activeDownloads,
-                        completedDownloads,
-                        downloadProvider,
-                      ),
+                ? _buildTwoColumnLayout(
+                    activeDownloads,
+                    completedDownloads,
+                    downloadProvider,
+                  )
+                : _buildSingleColumnLayout(
+                    activeDownloads,
+                    completedDownloads,
+                    downloadProvider,
+                  ),
           ),
         );
       },
@@ -130,7 +134,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
         // Bandwidth controls at the top
         const BandwidthControlsWidget(),
         const SizedBox(height: 12),
-        
+
         // Rate limit indicator (shows when rate limiting is active)
         Consumer<ArchiveService>(
           builder: (context, archiveService, _) {
@@ -142,7 +146,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
           },
         ),
         const SizedBox(height: 24),
-        
+
         if (activeDownloads.isNotEmpty) ...[
           Text(
             'Active Downloads',
@@ -150,8 +154,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
           ),
           const SizedBox(height: 8),
           ...activeDownloads.map(
-            (state) =>
-                _buildActiveDownloadCard(state, downloadProvider),
+            (state) => _buildActiveDownloadCard(state, downloadProvider),
           ),
           const SizedBox(height: 24),
         ],
@@ -162,10 +165,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
           ),
           const SizedBox(height: 8),
           ...completedDownloads.map(
-            (state) => _buildCompletedDownloadCard(
-              state,
-              downloadProvider,
-            ),
+            (state) => _buildCompletedDownloadCard(state, downloadProvider),
           ),
         ],
       ],
@@ -189,7 +189,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
               // Bandwidth controls at the top
               const BandwidthControlsWidget(),
               const SizedBox(height: 12),
-              
+
               // Rate limit indicator
               Consumer<ArchiveService>(
                 builder: (context, archiveService, _) {
@@ -201,7 +201,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
                 },
               ),
               const SizedBox(height: 24),
-              
+
               Text(
                 'Active Downloads',
                 style: Theme.of(context).textTheme.titleLarge,
@@ -221,9 +221,10 @@ class _DownloadScreenState extends State<DownloadScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'No active downloads',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: SemanticColors.subtitle(context),
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: SemanticColors.subtitle(context),
+                              ),
                         ),
                       ],
                     ),
@@ -236,13 +237,10 @@ class _DownloadScreenState extends State<DownloadScreen> {
             ],
           ),
         ),
-        
+
         // Divider
-        Container(
-          width: 1,
-          color: Theme.of(context).dividerColor,
-        ),
-        
+        Container(width: 1, color: Theme.of(context).dividerColor),
+
         // Right column: Completed downloads
         Expanded(
           child: ListView(
@@ -267,9 +265,10 @@ class _DownloadScreenState extends State<DownloadScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'No completed downloads',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: SemanticColors.subtitle(context),
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: SemanticColors.subtitle(context),
+                              ),
                         ),
                       ],
                     ),
@@ -277,7 +276,8 @@ class _DownloadScreenState extends State<DownloadScreen> {
                 )
               else
                 ...completedDownloads.map(
-                  (state) => _buildCompletedDownloadCard(state, downloadProvider),
+                  (state) =>
+                      _buildCompletedDownloadCard(state, downloadProvider),
                 ),
             ],
           ),
@@ -315,13 +315,16 @@ class _DownloadScreenState extends State<DownloadScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.download_done, size: 64, color: SemanticColors.disabled(context)),
+                      Icon(
+                        Icons.download_done,
+                        size: 64,
+                        color: SemanticColors.disabled(context),
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'No downloads yet',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: SemanticColors.subtitle(context),
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: SemanticColors.subtitle(context)),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -406,7 +409,9 @@ class _DownloadScreenState extends State<DownloadScreen> {
             const SizedBox(height: 12),
             LinearPercentIndicator(
               percent: prog,
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
               progressColor: Theme.of(context).primaryColor,
               lineHeight: 8,
               barRadius: const Radius.circular(4),
@@ -561,7 +566,9 @@ class _DownloadScreenState extends State<DownloadScreen> {
             const SizedBox(height: 12),
             LinearPercentIndicator(
               percent: overallProgress,
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
               progressColor: Theme.of(context).primaryColor,
               lineHeight: 8,
               barRadius: const Radius.circular(4),
@@ -589,7 +596,8 @@ class _DownloadScreenState extends State<DownloadScreen> {
               isExpanded: _expandedDownloads[identifier] ?? false,
               onToggleExpanded: () {
                 setState(() {
-                  _expandedDownloads[identifier] = !(_expandedDownloads[identifier] ?? false);
+                  _expandedDownloads[identifier] =
+                      !(_expandedDownloads[identifier] ?? false);
                 });
               },
             ),
@@ -612,7 +620,11 @@ class _DownloadScreenState extends State<DownloadScreen> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const Icon(Icons.check_circle, color: SemanticColors.success, size: 24),
+            const Icon(
+              Icons.check_circle,
+              color: SemanticColors.success,
+              size: 24,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

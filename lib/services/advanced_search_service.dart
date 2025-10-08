@@ -23,7 +23,7 @@ import '../services/rate_limiter.dart';
 /// - Provides progress tracking
 class AdvancedSearchService extends ChangeNotifier {
   final IAHttpClient _client;
-  
+
   bool _isSearching = false;
   int? _totalResults;
   List<SearchResult> _currentResults = [];
@@ -36,7 +36,7 @@ class AdvancedSearchService extends ChangeNotifier {
   String? get error => _error;
 
   AdvancedSearchService({IAHttpClient? client})
-      : _client = client ?? IAHttpClient(rateLimiter: archiveRateLimiter);
+    : _client = client ?? IAHttpClient(rateLimiter: archiveRateLimiter);
 
   /// Execute a search query
   ///
@@ -54,7 +54,9 @@ class AdvancedSearchService extends ChangeNotifier {
 
       if (kDebugMode) {
         print('[AdvancedSearchService] Searching: $url');
-        print('[AdvancedSearchService] Query string: ${query.buildQueryString()}');
+        print(
+          '[AdvancedSearchService] Query string: ${query.buildQueryString()}',
+        );
       }
 
       // Execute search
@@ -74,7 +76,9 @@ class AdvancedSearchService extends ChangeNotifier {
             .toList();
 
         if (kDebugMode) {
-          print('[AdvancedSearchService] Found $_totalResults total results, returned ${_currentResults.length}');
+          print(
+            '[AdvancedSearchService] Found $_totalResults total results, returned ${_currentResults.length}',
+          );
         }
 
         _isSearching = false;
@@ -103,10 +107,7 @@ class AdvancedSearchService extends ChangeNotifier {
     int page = 1,
     int pageSize = 20,
   }) async {
-    final paginatedQuery = query.copyWith(
-      page: page,
-      rows: pageSize,
-    );
+    final paginatedQuery = query.copyWith(page: page, rows: pageSize);
 
     final results = await search(paginatedQuery);
 
@@ -115,7 +116,9 @@ class AdvancedSearchService extends ChangeNotifier {
       page: page,
       pageSize: pageSize,
       totalResults: _totalResults ?? 0,
-      totalPages: _totalResults != null ? (_totalResults! / pageSize).ceil() : 0,
+      totalPages: _totalResults != null
+          ? (_totalResults! / pageSize).ceil()
+          : 0,
       hasNextPage: page * pageSize < (_totalResults ?? 0),
       hasPreviousPage: page > 1,
     );
@@ -124,10 +127,7 @@ class AdvancedSearchService extends ChangeNotifier {
   /// Execute a simple text search
   ///
   /// Convenience method for basic searches
-  Future<List<SearchResult>> simpleSearch(
-    String query, {
-    int rows = 20,
-  }) async {
+  Future<List<SearchResult>> simpleSearch(String query, {int rows = 20}) async {
     final searchQuery = SearchQuery.simple(query).copyWith(rows: rows);
     return search(searchQuery);
   }

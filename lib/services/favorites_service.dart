@@ -4,10 +4,10 @@ import '../database/database_helper.dart';
 import '../models/favorite.dart';
 
 /// Service for managing favorites (starred archives)
-/// 
+///
 /// Provides CRUD operations for favoriting Internet Archive items.
 /// Uses SQLite for persistent storage with efficient queries.
-/// 
+///
 /// Features:
 /// - Add/remove favorites
 /// - Check if item is favorited
@@ -19,7 +19,8 @@ class FavoritesService {
 
   /// Singleton pattern
   FavoritesService._privateConstructor();
-  static final FavoritesService instance = FavoritesService._privateConstructor();
+  static final FavoritesService instance =
+      FavoritesService._privateConstructor();
 
   // Cache for quick favorite status checks
   final Set<String> _favoritesCache = {};
@@ -42,14 +43,16 @@ class FavoritesService {
       }
 
       _cacheInitialized = true;
-      debugPrint('Favorites cache initialized with ${_favoritesCache.length} items');
+      debugPrint(
+        'Favorites cache initialized with ${_favoritesCache.length} items',
+      );
     } catch (e) {
       debugPrint('Error initializing favorites cache: $e');
     }
   }
 
   /// Add an archive to favorites
-  /// 
+  ///
   /// Returns true if added successfully, false if already favorited
   Future<bool> addFavorite(Favorite favorite) async {
     try {
@@ -79,7 +82,7 @@ class FavoritesService {
   }
 
   /// Remove an archive from favorites
-  /// 
+  ///
   /// Returns true if removed successfully, false if not found
   Future<bool> removeFavorite(String identifier) async {
     try {
@@ -103,7 +106,7 @@ class FavoritesService {
   }
 
   /// Toggle favorite status (add if not favorited, remove if favorited)
-  /// 
+  ///
   /// Returns the new favorite status (true = favorited, false = not favorited)
   Future<bool> toggleFavorite(Favorite favorite) async {
     if (await isFavorited(favorite.identifier)) {
@@ -116,7 +119,7 @@ class FavoritesService {
   }
 
   /// Check if an archive is favorited
-  /// 
+  ///
   /// Uses cache for fast lookups after initialization
   Future<bool> isFavorited(String identifier) async {
     await _initializeCache();
@@ -145,7 +148,7 @@ class FavoritesService {
   }
 
   /// Get all favorites
-  /// 
+  ///
   /// [orderBy] - Sort order: 'added_at DESC' (default), 'added_at ASC', 'title ASC', 'title DESC'
   /// [limit] - Maximum number of favorites to return (null = no limit)
   /// [offset] - Number of favorites to skip (for pagination)
@@ -172,7 +175,7 @@ class FavoritesService {
   }
 
   /// Get favorites by mediatype
-  /// 
+  ///
   /// [mediatype] - Filter by mediatype (e.g., 'texts', 'movies', 'audio')
   /// [orderBy] - Sort order (default: 'added_at DESC')
   Future<List<Favorite>> getFavoritesByMediatype({
@@ -201,10 +204,7 @@ class FavoritesService {
   }
 
   /// Get favorites added in the last N days
-  Future<List<Favorite>> getRecentFavorites({
-    int days = 7,
-    int? limit,
-  }) async {
+  Future<List<Favorite>> getRecentFavorites({int days = 7, int? limit}) async {
     try {
       final db = await _dbHelper.database;
       final cutoffTime = DateTime.now()
@@ -232,7 +232,9 @@ class FavoritesService {
       final db = await _dbHelper.database;
 
       final count = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM ${DatabaseHelper.tableFavorites}'),
+        await db.rawQuery(
+          'SELECT COUNT(*) FROM ${DatabaseHelper.tableFavorites}',
+        ),
       );
 
       return count ?? 0;
@@ -243,7 +245,7 @@ class FavoritesService {
   }
 
   /// Count favorites by mediatype
-  /// 
+  ///
   /// Returns a map of mediatype -> count
   Future<Map<String, int>> getFavoritesCountByMediatype() async {
     try {
@@ -274,7 +276,7 @@ class FavoritesService {
   }
 
   /// Search favorites by title
-  /// 
+  ///
   /// Performs case-insensitive search on title and identifier
   Future<List<Favorite>> searchFavorites({
     required String query,
@@ -301,7 +303,7 @@ class FavoritesService {
   }
 
   /// Clear all favorites
-  /// 
+  ///
   /// Use with caution! This will delete all favorited items.
   /// Returns the number of favorites deleted.
   Future<int> clearAllFavorites() async {
@@ -322,7 +324,7 @@ class FavoritesService {
   }
 
   /// Delete favorites older than N days
-  /// 
+  ///
   /// Useful for cleaning up old favorites automatically
   /// Returns the number of favorites deleted
   Future<int> deleteOldFavorites({required int days}) async {
@@ -351,7 +353,7 @@ class FavoritesService {
   }
 
   /// Export favorites as JSON
-  /// 
+  ///
   /// Useful for backup or sharing favorites
   Future<List<Map<String, dynamic>>> exportFavorites() async {
     try {
@@ -364,7 +366,7 @@ class FavoritesService {
   }
 
   /// Import favorites from JSON
-  /// 
+  ///
   /// [favorites] - List of favorite maps to import
   /// [replaceExisting] - If true, existing favorites will be replaced
   /// Returns the number of favorites imported
@@ -378,15 +380,15 @@ class FavoritesService {
 
       for (final map in favorites) {
         final favorite = Favorite.fromMap(map);
-        
+
         final exists = await isFavorited(favorite.identifier);
         if (!exists || replaceExisting) {
           await db.insert(
             DatabaseHelper.tableFavorites,
             favorite.toMap(),
-            conflictAlgorithm: replaceExisting 
-              ? ConflictAlgorithm.replace 
-              : ConflictAlgorithm.ignore,
+            conflictAlgorithm: replaceExisting
+                ? ConflictAlgorithm.replace
+                : ConflictAlgorithm.ignore,
           );
           importedCount++;
         }
@@ -412,24 +414,24 @@ class FavoritesService {
       final recentCount = (await getRecentFavorites(days: 7)).length;
 
       // Get oldest and newest favorites
-      final oldest = await getAllFavorites(
-        orderBy: 'added_at ASC',
-        limit: 1,
-      );
-      final newest = await getAllFavorites(
-        orderBy: 'added_at DESC',
-        limit: 1,
-      );
+      final oldest = await getAllFavorites(orderBy: 'added_at ASC', limit: 1);
+      final newest = await getAllFavorites(orderBy: 'added_at DESC', limit: 1);
 
       return {
         'total_count': totalCount,
         'counts_by_mediatype': countsByMediatype,
         'recent_count': recentCount,
-        'oldest_favorite': oldest.isNotEmpty ? oldest.first.addedAt.toIso8601String() : null,
-        'newest_favorite': newest.isNotEmpty ? newest.first.addedAt.toIso8601String() : null,
-        'most_popular_mediatype': countsByMediatype.isNotEmpty 
-          ? countsByMediatype.entries.reduce((a, b) => a.value > b.value ? a : b).key
-          : null,
+        'oldest_favorite': oldest.isNotEmpty
+            ? oldest.first.addedAt.toIso8601String()
+            : null,
+        'newest_favorite': newest.isNotEmpty
+            ? newest.first.addedAt.toIso8601String()
+            : null,
+        'most_popular_mediatype': countsByMediatype.isNotEmpty
+            ? countsByMediatype.entries
+                  .reduce((a, b) => a.value > b.value ? a : b)
+                  .key
+            : null,
       };
     } catch (e) {
       debugPrint('Error getting favorites stats: $e');

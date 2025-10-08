@@ -38,11 +38,7 @@ class HistoryScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.history,
-                    size: 64,
-                    color: Colors.grey.shade400,
-                  ),
+                  Icon(Icons.history, size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
                     'No history yet',
@@ -55,10 +51,7 @@ class HistoryScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Archives you visit will appear here',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade500,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
                   ),
                 ],
               ),
@@ -173,8 +166,11 @@ class _HistoryCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.access_time,
-                            size: 14, color: Colors.grey.shade600),
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           entry.relativeTime,
@@ -184,8 +180,11 @@ class _HistoryCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Icon(Icons.folder,
-                            size: 14, color: Colors.grey.shade600),
+                        Icon(
+                          Icons.folder,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${entry.totalFiles} files',
@@ -195,8 +194,11 @@ class _HistoryCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Icon(Icons.storage,
-                            size: 14, color: Colors.grey.shade600),
+                        Icon(
+                          Icons.storage,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           _formatSize(entry.totalSize),
@@ -215,9 +217,9 @@ class _HistoryCard extends StatelessWidget {
                 icon: Icon(Icons.more_vert, color: Colors.grey.shade600),
                 onSelected: (value) {
                   if (value == 'remove') {
-                    context
-                        .read<HistoryService>()
-                        .removeFromHistory(entry.identifier);
+                    context.read<HistoryService>().removeFromHistory(
+                      entry.identifier,
+                    );
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Removed from history')),
                     );

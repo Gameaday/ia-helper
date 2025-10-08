@@ -21,15 +21,11 @@ import 'archive_detail_screen.dart';
 /// - MD3 animations and transitions
 class SearchResultsScreen extends StatefulWidget {
   static const String routeName = '/search-results';
-  
+
   final SearchQuery query;
   final String? title;
 
-  const SearchResultsScreen({
-    required this.query,
-    this.title,
-    super.key,
-  });
+  const SearchResultsScreen({required this.query, this.title, super.key});
 
   @override
   State<SearchResultsScreen> createState() => _SearchResultsScreenState();
@@ -145,19 +141,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-    );
+    return Scaffold(appBar: _buildAppBar(), body: _buildBody());
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -235,10 +225,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
               color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 16),
-            Text(
-              'Search Error',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Search Error', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
               _error ?? 'An unknown error occurred',
@@ -278,8 +265,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             Text(
               'Try adjusting your search query or filters',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -296,9 +283,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   Widget _buildLoadingMoreIndicator() {
     return const Padding(
       padding: EdgeInsets.all(16),
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -324,8 +309,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                 Text(
                   result.description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -343,8 +328,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     child: Text(
                       result.identifier,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -363,12 +348,12 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   Future<void> _navigateToDetail(SearchResult result) async {
     // Load metadata into ArchiveService
     final archiveService = context.read<ArchiveService>();
-    
+
     try {
       await archiveService.fetchMetadata(result.identifier);
-      
+
       if (!mounted) return;
-      
+
       // Navigate to detail screen with MD3 fadeThrough transition
       await Navigator.push(
         context,
@@ -378,7 +363,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             // MD3 fadeThrough transition
             return FadeTransition(
-              opacity: CurveTween(curve: MD3Curves.emphasized).animate(animation),
+              opacity: CurveTween(
+                curve: MD3Curves.emphasized,
+              ).animate(animation),
               child: child,
             );
           },

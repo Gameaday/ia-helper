@@ -43,3 +43,28 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android signing keys
+*.jks
+*.keystore
+key.properties
+/android/key.properties
+
+# Local configuration files
+local.properties
+/android/local.properties
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.gr.dart
+
+# Database files (development)
+*.db
+*.db-shm
+*.db-wal
+
+# Environment files
+.env
+.env.local
+.env.*.local

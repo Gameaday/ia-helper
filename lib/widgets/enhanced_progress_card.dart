@@ -3,7 +3,7 @@ import '../models/download_progress_info.dart';
 import '../utils/file_utils.dart';
 
 /// Enhanced progress display for a single download
-/// 
+///
 /// Shows speed, ETA, and detailed file progress in a compact mobile layout.
 /// Expandable to show more details.
 class EnhancedProgressCard extends StatelessWidget {
@@ -42,46 +42,47 @@ class EnhancedProgressCard extends StatelessWidget {
           Icon(
             progressInfo.isThrottled ? Icons.speed : Icons.bolt,
             size: 16,
-            color: progressInfo.isThrottled ? colorScheme.error : colorScheme.primary,
+            color: progressInfo.isThrottled
+                ? colorScheme.error
+                : colorScheme.primary,
           ),
           const SizedBox(width: 4),
           Text(
             progressInfo.formattedCurrentSpeed,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
           const SizedBox(width: 12),
         ],
-        
+
         // ETA
         if (progressInfo.hasEta) ...[
-          Icon(Icons.timer_outlined, size: 16, color: colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.timer_outlined,
+            size: 16,
+            color: colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 4),
           Text(
             progressInfo.formattedEta,
-            style: TextStyle(
-              fontSize: 13,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: 12),
         ],
-        
+
         // File count
-        Icon(Icons.insert_drive_file_outlined, size: 16, color: colorScheme.onSurfaceVariant),
+        Icon(
+          Icons.insert_drive_file_outlined,
+          size: 16,
+          color: colorScheme.onSurfaceVariant,
+        ),
         const SizedBox(width: 4),
         Text(
           progressInfo.formattedFileProgress,
-          style: TextStyle(
-            fontSize: 13,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
         ),
-        
+
         const Spacer(),
-        
+
         // Expand/collapse button
         if (onToggleExpanded != null)
           IconButton(
@@ -133,13 +134,18 @@ class EnhancedProgressCard extends StatelessWidget {
             context,
             icon: Icons.data_usage,
             label: 'Downloaded',
-            value: '${FileUtils.formatSize(progressInfo.bytesDownloaded)} / ${FileUtils.formatSize(progressInfo.totalBytes)}',
+            value:
+                '${FileUtils.formatSize(progressInfo.bytesDownloaded)} / ${FileUtils.formatSize(progressInfo.totalBytes)}',
           ),
           if (progressInfo.isThrottled) ...[
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.warning_amber_rounded, size: 16, color: colorScheme.error),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 16,
+                  color: colorScheme.error,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   'Bandwidth throttling active',
@@ -172,18 +178,12 @@ class EnhancedProgressCard extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ],
     );

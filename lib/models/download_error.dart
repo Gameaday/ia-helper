@@ -1,5 +1,5 @@
 /// Categorized download error information for enhanced error handling
-/// 
+///
 /// Provides structured error data with:
 /// - Error category for appropriate handling
 /// - Retry recommendations
@@ -11,25 +11,25 @@ library;
 enum DownloadErrorCategory {
   /// Network connectivity issues (no internet, timeout)
   network,
-  
+
   /// Server errors (404, 500, 503)
   server,
-  
+
   /// Rate limiting or quota exceeded
   rateLimited,
-  
+
   /// Insufficient storage space
   storage,
-  
+
   /// Permission denied (file system, network)
   permission,
-  
+
   /// Corrupted download or checksum mismatch
   corruption,
-  
+
   /// User cancelled the operation
   cancelled,
-  
+
   /// Unknown or uncategorized error
   unknown,
 }
@@ -137,9 +137,9 @@ class DownloadError {
     int retryCount = 0,
   }) {
     final message = exception.toString();
-    
+
     // Categorize based on message content
-    if (message.contains('SocketException') || 
+    if (message.contains('SocketException') ||
         message.contains('NetworkException') ||
         message.contains('timeout')) {
       return DownloadError(
@@ -149,7 +149,7 @@ class DownloadError {
         retryCount: retryCount,
       );
     }
-    
+
     if (message.contains('404')) {
       return DownloadError(
         category: DownloadErrorCategory.server,
@@ -159,7 +159,7 @@ class DownloadError {
         retryCount: retryCount,
       );
     }
-    
+
     if (message.contains('429') || message.contains('rate limit')) {
       return DownloadError(
         category: DownloadErrorCategory.rateLimited,
@@ -169,7 +169,7 @@ class DownloadError {
         retryCount: retryCount,
       );
     }
-    
+
     if (message.contains('503')) {
       return DownloadError(
         category: DownloadErrorCategory.server,
@@ -179,7 +179,7 @@ class DownloadError {
         retryCount: retryCount,
       );
     }
-    
+
     if (message.contains('storage') || message.contains('disk')) {
       return DownloadError(
         category: DownloadErrorCategory.storage,
@@ -188,7 +188,7 @@ class DownloadError {
         retryCount: retryCount,
       );
     }
-    
+
     if (message.contains('permission') || message.contains('denied')) {
       return DownloadError(
         category: DownloadErrorCategory.permission,
@@ -197,7 +197,7 @@ class DownloadError {
         retryCount: retryCount,
       );
     }
-    
+
     if (message.contains('checksum') || message.contains('corrupt')) {
       return DownloadError(
         category: DownloadErrorCategory.corruption,
@@ -206,7 +206,7 @@ class DownloadError {
         retryCount: retryCount,
       );
     }
-    
+
     if (message.contains('cancel')) {
       return DownloadError(
         category: DownloadErrorCategory.cancelled,
@@ -215,7 +215,7 @@ class DownloadError {
         retryCount: retryCount,
       );
     }
-    
+
     return DownloadError(
       category: DownloadErrorCategory.unknown,
       message: 'An unexpected error occurred',

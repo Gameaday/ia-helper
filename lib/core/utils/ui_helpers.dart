@@ -13,11 +13,7 @@ class UIHelpers {
     SnackBarAction? action,
   }) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: duration,
-        action: action,
-      ),
+      SnackBar(content: Text(message), duration: duration, action: action),
     );
   }
 
@@ -159,10 +155,7 @@ class UIHelpers {
               const SizedBox(height: 4),
               Text(
                 details,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'monospace',
-                ),
+                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
               ),
             ],
           ],
@@ -381,10 +374,7 @@ class UIHelpers {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             if (message != null) ...[
@@ -395,10 +385,7 @@ class UIHelpers {
                 textAlign: TextAlign.center,
               ),
             ],
-            if (action != null) ...[
-              const SizedBox(height: 24),
-              action,
-            ],
+            if (action != null) ...[const SizedBox(height: 24), action],
           ],
         ),
       ),
@@ -412,10 +399,7 @@ class UIHelpers {
         mainAxisSize: MainAxisSize.min,
         children: [
           const CircularProgressIndicator(),
-          if (message != null) ...[
-            const SizedBox(height: 16),
-            Text(message),
-          ],
+          if (message != null) ...[const SizedBox(height: 16), Text(message)],
         ],
       ),
     );
@@ -437,10 +421,7 @@ class UIHelpers {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             if (message != null) ...[

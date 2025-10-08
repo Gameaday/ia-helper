@@ -252,9 +252,9 @@ class _FileListWidgetState extends State<FileListWidget> {
                                 'Try adjusting your filters to see more results',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -572,9 +572,7 @@ class _FileListWidgetState extends State<FileListWidget> {
   void _showFilePreview(ArchiveFile file) {
     Navigator.push(
       context,
-      MD3PageTransitions.fadeThrough(
-        page: FilePreviewScreen(file: file),
-      ),
+      MD3PageTransitions.fadeThrough(page: FilePreviewScreen(file: file)),
     );
   }
 
@@ -837,17 +835,20 @@ class _FileListWidgetState extends State<FileListWidget> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return FutureBuilder<bool>(
-      future: FilePreviewService().isPreviewCached(_currentArchiveId!, file.name),
+      future: FilePreviewService().isPreviewCached(
+        _currentArchiveId!,
+        file.name,
+      ),
       builder: (context, snapshot) {
         final isCached = snapshot.data ?? false;
-        
+
         return Stack(
           clipBehavior: Clip.none,
           children: [
             IconButton(
               icon: const Icon(Icons.visibility_outlined),
-              tooltip: isCached 
-                  ? 'Preview file (cached offline)' 
+              tooltip: isCached
+                  ? 'Preview file (cached offline)'
                   : 'Preview file',
               onPressed: () => _showPreview(file),
               iconSize: 20,
@@ -862,10 +863,7 @@ class _FileListWidgetState extends State<FileListWidget> {
                   decoration: BoxDecoration(
                     color: colorScheme.tertiary,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: colorScheme.surface,
-                      width: 1,
-                    ),
+                    border: Border.all(color: colorScheme.surface, width: 1),
                   ),
                   child: Icon(
                     Icons.offline_pin,
@@ -1042,30 +1040,25 @@ class _FileListWidgetState extends State<FileListWidget> {
   /// Show preview dialog for a file
   void _showPreview(ArchiveFile file) {
     if (_currentArchiveId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Archive not loaded')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Archive not loaded')));
       return;
     }
 
     // Get filtered and sorted files (same list as displayed)
     final displayedFiles = _getSortedFiles();
-    
+
     // Find the index of the current file
     final fileIndex = displayedFiles.indexWhere((f) => f.name == file.name);
-    
+
     if (fileIndex == -1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('File not found')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('File not found')));
       return;
     }
 
-    PreviewDialog.show(
-      context,
-      _currentArchiveId!,
-      displayedFiles,
-      fileIndex,
-    );
+    PreviewDialog.show(context, _currentArchiveId!, displayedFiles, fileIndex);
   }
 }

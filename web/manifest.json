@@ -1,11 +1,11 @@
 {
-    "name": "internet_archive_helper",
-    "short_name": "internet_archive_helper",
+    "name": "Internet Archive Helper",
+    "short_name": "IA Helper",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Your complete Internet Archive companion - Download, search, and organize content from archive.org with a beautiful Material Design 3 interface.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

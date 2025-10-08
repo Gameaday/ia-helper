@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import '../services/metadata_cache.dart';
 
 /// Widget displaying cache statistics and management controls
-/// 
+///
 /// Shows cache health metrics:
 /// - Total cached archives
 /// - Cache size (data + database)
 /// - Pinned vs unpinned archives
-/// 
+///
 /// Provides cache management actions:
 /// - Clear all cache
 /// - Purge stale entries
@@ -49,10 +49,7 @@ class CacheStatisticsWidget extends StatelessWidget {
         const SizedBox(width: 8),
         const Text(
           'Cache Statistics',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const Spacer(),
         _buildHealthIndicator(),
@@ -221,10 +218,7 @@ class CacheStatisticsWidget extends StatelessWidget {
 class CacheStatusBadge extends StatelessWidget {
   final CacheStats stats;
 
-  const CacheStatusBadge({
-    super.key,
-    required this.stats,
-  });
+  const CacheStatusBadge({super.key, required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +228,10 @@ class CacheStatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

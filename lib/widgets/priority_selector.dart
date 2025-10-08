@@ -3,7 +3,7 @@ import '../models/download_priority.dart';
 import '../utils/app_shapes.dart';
 
 /// Compact priority selector for mobile UI
-/// 
+///
 /// Shows priority as a chip/badge with icon and color
 /// Tapping opens a bottom sheet for selection
 class PrioritySelector extends StatelessWidget {
@@ -43,12 +43,7 @@ class PrioritySelector extends StatelessWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              priority.icon,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ],
+          children: [Text(priority.icon, style: const TextStyle(fontSize: 14))],
         ),
       ),
     );
@@ -72,10 +67,7 @@ class PrioritySelector extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              priority.icon,
-              style: const TextStyle(fontSize: 16),
-            ),
+            Text(priority.icon, style: const TextStyle(fontSize: 16)),
             const SizedBox(width: 8),
             Text(
               priority.displayName,
@@ -95,9 +87,7 @@ class PrioritySelector extends StatelessWidget {
   void _showPriorityPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: AppShapes.topLarge,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: AppShapes.topLarge),
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Column(
@@ -108,18 +98,14 @@ class PrioritySelector extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'Download Priority',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 16),
-            ...DownloadPriority.values.map((p) => _buildPriorityOption(
-              context,
-              p,
-              isSelected: p == priority,
-            )),
+            ...DownloadPriority.values.map(
+              (p) =>
+                  _buildPriorityOption(context, p, isSelected: p == priority),
+            ),
           ],
         ),
       ),
@@ -129,9 +115,9 @@ class PrioritySelector extends StatelessWidget {
   /// Build individual priority option in bottom sheet
   Widget _buildPriorityOption(
     BuildContext context,
-    DownloadPriority p,
-    {required bool isSelected}
-  ) {
+    DownloadPriority p, {
+    required bool isSelected,
+  }) {
     return ListTile(
       leading: Container(
         width: 40,
@@ -145,10 +131,7 @@ class PrioritySelector extends StatelessWidget {
           ),
         ),
         child: Center(
-          child: Text(
-            p.icon,
-            style: const TextStyle(fontSize: 20),
-          ),
+          child: Text(p.icon, style: const TextStyle(fontSize: 20)),
         ),
       ),
       title: Text(
@@ -158,10 +141,7 @@ class PrioritySelector extends StatelessWidget {
           color: isSelected ? Color(p.colorValue) : null,
         ),
       ),
-      subtitle: Text(
-        p.description,
-        style: const TextStyle(fontSize: 12),
-      ),
+      subtitle: Text(p.description, style: const TextStyle(fontSize: 12)),
       trailing: isSelected
           ? Icon(Icons.check_circle, color: Color(p.colorValue))
           : null,
@@ -187,10 +167,7 @@ class PriorityBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: showLabel ? 8 : 8,
-        vertical: 4,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: showLabel ? 8 : 8, vertical: 4),
       decoration: BoxDecoration(
         color: Color(priority.colorValue).withAlpha(25),
         borderRadius: AppShapes.medium,
@@ -202,10 +179,7 @@ class PriorityBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            priority.icon,
-            style: const TextStyle(fontSize: 12),
-          ),
+          Text(priority.icon, style: const TextStyle(fontSize: 12)),
           if (showLabel) ...[
             const SizedBox(width: 4),
             Text(

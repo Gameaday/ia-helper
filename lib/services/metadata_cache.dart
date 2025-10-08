@@ -103,10 +103,7 @@ class MetadataCache {
 
     await db.update(
       'cached_metadata',
-      {
-        'etag': etag,
-        'last_synced': DateTime.now().millisecondsSinceEpoch,
-      },
+      {'etag': etag, 'last_synced': DateTime.now().millisecondsSinceEpoch},
       where: 'identifier = ?',
       whereArgs: [identifier],
     );

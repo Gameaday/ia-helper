@@ -54,7 +54,9 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
         archive = TarDecoder().decodeBytes(widget.archiveBytes);
       } else if (ext == '.gz' || ext == '.gzip') {
         // Try to decompress GZip
-        final decompressed = const GZipDecoder().decodeBytes(widget.archiveBytes);
+        final decompressed = const GZipDecoder().decodeBytes(
+          widget.archiveBytes,
+        );
         // Check if it's a tar.gz
         if (widget.fileName.toLowerCase().endsWith('.tar.gz') ||
             widget.fileName.toLowerCase().endsWith('.tgz')) {
@@ -186,7 +188,9 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Extracted ${_archive!.files.length} files to $extractPath'),
+            content: Text(
+              'Extracted ${_archive!.files.length} files to $extractPath',
+            ),
             backgroundColor: Theme.of(context).colorScheme.tertiary,
           ),
         );
@@ -216,9 +220,17 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
 
   String _getFileIcon(String filename) {
     final ext = path.extension(filename).toLowerCase();
-    
+
     // Images
-    if (['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.svg'].contains(ext)) {
+    if ([
+      '.png',
+      '.jpg',
+      '.jpeg',
+      '.gif',
+      '.bmp',
+      '.webp',
+      '.svg',
+    ].contains(ext)) {
       return '🖼️';
     }
     // Documents
@@ -238,10 +250,20 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
       return '📦';
     }
     // Code
-    if (['.rs', '.dart', '.js', '.ts', '.py', '.java', '.cpp', '.c', '.h'].contains(ext)) {
+    if ([
+      '.rs',
+      '.dart',
+      '.js',
+      '.ts',
+      '.py',
+      '.java',
+      '.cpp',
+      '.c',
+      '.h',
+    ].contains(ext)) {
       return '💻';
     }
-    
+
     return '📄';
   }
 
@@ -250,7 +272,9 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
       return Center(
         child: Text(
           'Empty archive',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }
@@ -262,7 +286,7 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
     for (final file in _archive!.files) {
       final filePath = file.name;
       final dirPath = path.dirname(filePath);
-      
+
       // Add all parent directories
       String currentPath = '';
       for (final segment in dirPath.split('/')) {
@@ -279,9 +303,7 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
     }
 
     return ListView(
-      children: [
-        _buildDirectoryNode('.', filesByPath, directories, 0),
-      ],
+      children: [_buildDirectoryNode('.', filesByPath, directories, 0)],
     );
   }
 
@@ -293,10 +315,11 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
   ) {
     final isExpanded = _expandedFolders.contains(dirPath);
     final files = filesByPath[dirPath] ?? [];
-    final subdirs = directories
-        .where((d) => path.dirname(d) == dirPath && d != dirPath)
-        .toList()
-      ..sort();
+    final subdirs =
+        directories
+            .where((d) => path.dirname(d) == dirPath && d != dirPath)
+            .toList()
+          ..sort();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -306,7 +329,11 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
           InkWell(
             onTap: () => _toggleFolder(dirPath),
             child: Padding(
-              padding: EdgeInsets.only(left: level * 16.0 + 8, top: 4, bottom: 4),
+              padding: EdgeInsets.only(
+                left: level * 16.0 + 8,
+                top: 4,
+                bottom: 4,
+              ),
               child: Row(
                 children: [
                   Icon(
@@ -329,12 +356,18 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
               ),
             ),
           ),
-        
+
         // Contents (if expanded or root)
         if (isExpanded || dirPath == '.')
-          ...subdirs.map((subdir) =>
-              _buildDirectoryNode(subdir, filesByPath, directories, level + 1)),
-        
+          ...subdirs.map(
+            (subdir) => _buildDirectoryNode(
+              subdir,
+              filesByPath,
+              directories,
+              level + 1,
+            ),
+          ),
+
         if (isExpanded || dirPath == '.')
           ...files.map((file) => _buildFileNode(file, level + 1)),
       ],
@@ -348,14 +381,18 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
     return InkWell(
       onTap: () => _selectFile(file),
       child: Container(
-        color: isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : null,
-        padding: EdgeInsets.only(left: level * 16.0 + 8, top: 8, bottom: 8, right: 8),
+        color: isSelected
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+            : null,
+        padding: EdgeInsets.only(
+          left: level * 16.0 + 8,
+          top: 8,
+          bottom: 8,
+          right: 8,
+        ),
         child: Row(
           children: [
-            Text(
-              _getFileIcon(filename),
-              style: const TextStyle(fontSize: 16),
-            ),
+            Text(_getFileIcon(filename), style: const TextStyle(fontSize: 16)),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -364,7 +401,9 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
                   Text(
                     filename,
                     style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                   Text(
@@ -378,7 +417,11 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, size: 20),
+              Icon(
+                Icons.check_circle,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
           ],
         ),
       ),
@@ -390,7 +433,9 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
       return Center(
         child: Text(
           'Select a file to preview',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }
@@ -418,7 +463,7 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
     }
 
     final ext = path.extension(_selectedFile!.name).toLowerCase();
-    
+
     // Try to preview based on file type
     if (['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'].contains(ext)) {
       // Image preview
@@ -432,7 +477,9 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
                 errorBuilder: (context, error, stackTrace) {
                   return Text(
                     'Failed to load image',
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   );
                 },
               ),
@@ -454,7 +501,17 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
           ),
         ],
       );
-    } else if (['.txt', '.md', '.json', '.xml', '.html', '.css', '.js', '.dart', '.rs'].contains(ext)) {
+    } else if ([
+      '.txt',
+      '.md',
+      '.json',
+      '.xml',
+      '.html',
+      '.css',
+      '.js',
+      '.dart',
+      '.rs',
+    ].contains(ext)) {
       // Text preview
       try {
         final text = String.fromCharCodes(_selectedFileContent!);
@@ -528,7 +585,10 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
                 const SizedBox(height: 4),
                 Text(
                   'Binary file (showing first 1KB as hex)',
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -558,7 +618,11 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(
               _error!,
@@ -585,7 +649,10 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
             color: Theme.of(context).colorScheme.primaryContainer,
             child: Row(
               children: [
-                Icon(Icons.archive, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.archive,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -617,7 +684,7 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
             ),
           ),
         ),
-        
+
         // Split view: file tree and preview
         Expanded(
           child: Row(
@@ -629,19 +696,18 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
                   builder: (context) => Container(
                     decoration: BoxDecoration(
                       border: Border(
-                        right: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                        right: BorderSide(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
                       ),
                     ),
                     child: _buildFileTree(),
                   ),
                 ),
               ),
-              
+
               // File preview (right side)
-              Expanded(
-                flex: 1,
-                child: _buildFilePreview(),
-              ),
+              Expanded(flex: 1, child: _buildFilePreview()),
             ],
           ),
         ),

@@ -3,7 +3,7 @@ import '../models/rate_limit_status.dart';
 import '../utils/app_shapes.dart';
 
 /// Compact rate limit status indicator for mobile
-/// 
+///
 /// Shows current rate limiting status with color-coded indicator
 /// Expandable to show details
 class RateLimitIndicator extends StatelessWidget {
@@ -52,10 +52,7 @@ class RateLimitIndicator extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          status.level.icon,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(status.level.icon, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
@@ -140,8 +137,11 @@ class RateLimitIndicator extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 14, 
-          color: Theme.of(context).colorScheme.onSurfaceVariant),
+        Icon(
+          icon,
+          size: 14,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -153,9 +153,9 @@ class RateLimitIndicator extends StatelessWidget {
         ),
         Text(
           value,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -166,10 +166,7 @@ class RateLimitIndicator extends StatelessWidget {
 class RateLimitBadge extends StatelessWidget {
   final RateLimitStatus status;
 
-  const RateLimitBadge({
-    super.key,
-    required this.status,
-  });
+  const RateLimitBadge({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {

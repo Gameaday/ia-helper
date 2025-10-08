@@ -31,7 +31,7 @@ class _ErrorInfo {
 }
 
 /// Full-screen dialog for displaying file previews with swipe navigation
-/// 
+///
 /// Automatically chooses the correct preview widget based on file type,
 /// provides loading, error, and retry functionality, and allows swiping
 /// between multiple files.
@@ -80,7 +80,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
-    
+
     // Preload current, previous, and next previews
     _loadPreview(_currentIndex);
     if (_currentIndex > 0) {
@@ -98,7 +98,8 @@ class _PreviewDialogState extends State<PreviewDialog> {
   }
 
   Future<FilePreview> _loadPreview(int index) {
-    if (_previewCache.containsKey(index) && !(_forceRefreshMap[index] ?? false)) {
+    if (_previewCache.containsKey(index) &&
+        !(_forceRefreshMap[index] ?? false)) {
       return _previewCache[index]!;
     }
 
@@ -108,10 +109,10 @@ class _PreviewDialogState extends State<PreviewDialog> {
       file,
       forceRefresh: _forceRefreshMap[index] ?? false,
     );
-    
+
     _previewCache[index] = future;
     _forceRefreshMap[index] = false;
-    
+
     return future;
   }
 
@@ -119,12 +120,13 @@ class _PreviewDialogState extends State<PreviewDialog> {
     setState(() {
       _currentIndex = index;
     });
-    
+
     // Preload adjacent pages
     if (index > 0 && !_previewCache.containsKey(index - 1)) {
       _loadPreview(index - 1);
     }
-    if (index < widget.files.length - 1 && !_previewCache.containsKey(index + 1)) {
+    if (index < widget.files.length - 1 &&
+        !_previewCache.containsKey(index + 1)) {
       _loadPreview(index + 1);
     }
   }
@@ -140,7 +142,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
   Future<void> _sharePreview() async {
     try {
       final preview = await _loadPreview(_currentIndex);
-      
+
       switch (preview.previewType) {
         case PreviewType.text:
           await _shareText(preview);
@@ -176,9 +178,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
     }
 
     // share_plus v12+ uses ShareParams
-    await SharePlus.instance.share(ShareParams(
-      text: preview.textContent!,
-    ));
+    await SharePlus.instance.share(ShareParams(text: preview.textContent!));
   }
 
   /// Share image content
@@ -196,9 +196,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
     );
 
     // share_plus v12+ uses ShareParams with files
-    await SharePlus.instance.share(ShareParams(
-      files: [xFile],
-    ));
+    await SharePlus.instance.share(ShareParams(files: [xFile]));
   }
 
   /// Show share error message
@@ -234,11 +232,10 @@ class _PreviewDialogState extends State<PreviewDialog> {
                 Text(
                   '${_currentIndex + 1} of ${widget.files.length}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onPrimary
-                            .withValues(alpha: 0.7),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withValues(alpha: 0.7),
+                  ),
                 ),
             ],
           ),
@@ -298,7 +295,9 @@ class _PreviewDialogState extends State<PreviewDialog> {
 
   /// Build preview state (loading, error, or content)
   Widget _buildPreviewState(
-      AsyncSnapshot<FilePreview> snapshot, bool isDarkMode) {
+    AsyncSnapshot<FilePreview> snapshot,
+    bool isDarkMode,
+  ) {
     // Loading state
     if (snapshot.connectionState == ConnectionState.waiting) {
       return _buildLoadingState();
@@ -315,9 +314,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
     }
 
     // Empty state
-    return const Center(
-      child: Text('No preview available'),
-    );
+    return const Center(child: Text('No preview available'));
   }
 
   /// Build loading state with enhanced animations
@@ -332,16 +329,16 @@ class _PreviewDialogState extends State<PreviewDialog> {
             size: 60.0,
           ),
           const SizedBox(height: 24),
-          
+
           // Loading message
           Text(
             'Generating preview...',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
-          
+
           // File name with icon
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -356,8 +353,8 @@ class _PreviewDialogState extends State<PreviewDialog> {
                 child: Text(
                   _currentFile.name,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -366,7 +363,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Progress hint
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -386,9 +383,8 @@ class _PreviewDialogState extends State<PreviewDialog> {
                 Text(
                   'This may take a moment for large files',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ],
             ),
@@ -416,23 +412,19 @@ class _PreviewDialogState extends State<PreviewDialog> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Error icon with color based on severity
-            Icon(
-              errorInfo.icon,
-              size: 72,
-              color: errorInfo.color,
-            ),
+            Icon(errorInfo.icon, size: 72, color: errorInfo.color),
             const SizedBox(height: 20),
-            
+
             // Error title
             Text(
               errorInfo.title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            
+
             // Error message
             Container(
               padding: const EdgeInsets.all(16),
@@ -456,21 +448,21 @@ class _PreviewDialogState extends State<PreviewDialog> {
                       title: Text(
                         'Technical Details',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             errorInfo.technicalDetails!,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontFamily: 'monospace',
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontFamily: 'monospace',
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
                           ),
                         ),
                       ],
@@ -480,7 +472,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Action buttons
             Column(
               children: [
@@ -497,7 +489,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Secondary actions
                 Row(
                   children: [
@@ -526,7 +518,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
                 ),
               ],
             ),
-            
+
             // Helpful tips
             const SizedBox(height: 24),
             Container(
@@ -549,44 +541,44 @@ class _PreviewDialogState extends State<PreviewDialog> {
                       Text(
                         'Troubleshooting Tips',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  ...errorInfo.tips.map((tip) => Padding(
-                        padding: const EdgeInsets.only(left: 24, top: 4),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '• ',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer,
-                              ),
+                  ...errorInfo.tips.map(
+                    (tip) => Padding(
+                      padding: const EdgeInsets.only(left: 24, top: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '• ',
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                             ),
-                            Expanded(
-                              child: Text(
-                                tip,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimaryContainer,
-                                    ),
-                              ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              tip,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                  ),
                             ),
-                          ],
-                        ),
-                      )),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -608,7 +600,8 @@ class _PreviewDialogState extends State<PreviewDialog> {
         icon: Icons.wifi_off,
         color: Theme.of(context).colorScheme.error,
         title: 'Connection Error',
-        message: 'Unable to download file for preview. Please check your internet connection.',
+        message:
+            'Unable to download file for preview. Please check your internet connection.',
         technicalDetails: error.toString(),
         tips: [
           'Check your WiFi or mobile data connection',
@@ -624,7 +617,8 @@ class _PreviewDialogState extends State<PreviewDialog> {
         icon: Icons.access_time,
         color: Theme.of(context).colorScheme.error,
         title: 'Request Timeout',
-        message: 'The preview is taking too long to generate. The file might be very large or the server is slow.',
+        message:
+            'The preview is taking too long to generate. The file might be very large or the server is slow.',
         technicalDetails: error.toString(),
         tips: [
           'Try again with a better connection',
@@ -642,7 +636,8 @@ class _PreviewDialogState extends State<PreviewDialog> {
         icon: Icons.broken_image,
         color: Theme.of(context).colorScheme.error,
         title: 'Invalid File Format',
-        message: 'This file format is not supported for preview or the file is corrupted.',
+        message:
+            'This file format is not supported for preview or the file is corrupted.',
         technicalDetails: error.toString(),
         tips: [
           'Try downloading the file to view it',
@@ -687,11 +682,10 @@ class _PreviewDialogState extends State<PreviewDialog> {
   void _reportIssue() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Issue reporting coming soon! Please contact support.'),
-        action: SnackBarAction(
-          label: 'OK',
-          onPressed: () {},
+        content: const Text(
+          'Issue reporting coming soon! Please contact support.',
         ),
+        action: SnackBarAction(label: 'OK', onPressed: () {}),
         duration: const Duration(seconds: 3),
       ),
     );
@@ -715,26 +709,24 @@ class _PreviewDialogState extends State<PreviewDialog> {
               color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 24),
-            
+
             // Title
             Text(
               'Large File',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            
+
             // File info
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+                border: Border.all(color: Theme.of(context).colorScheme.error),
               ),
               child: Column(
                 children: [
@@ -762,16 +754,15 @@ class _PreviewDialogState extends State<PreviewDialog> {
                   Text(
                     fileSize,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onErrorContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Description
             Text(
               'This file is too large to preview directly.\n'
@@ -780,7 +771,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            
+
             // Action buttons
             Column(
               children: [
@@ -802,7 +793,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Cancel button
                 SizedBox(
                   width: double.infinity,
@@ -816,7 +807,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
                 ),
               ],
             ),
-            
+
             // Tip
             const SizedBox(height: 24),
             Container(
@@ -837,10 +828,8 @@ class _PreviewDialogState extends State<PreviewDialog> {
                     child: Text(
                       'Files larger than 5MB require downloading before preview',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
                     ),
                   ),
                 ],
@@ -853,18 +842,17 @@ class _PreviewDialogState extends State<PreviewDialog> {
   }
 
   /// Trigger file download using snackbar
-  /// 
+  ///
   /// This shows a message to the user that the file download has been initiated.
   /// The actual download is handled by the file list widget's download functionality.
   void _triggerFileDownload(ArchiveFile file) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Please use the download button in the file list to download ${file.name}'),
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'OK',
-          onPressed: () {},
+        content: Text(
+          'Please use the download button in the file list to download ${file.name}',
         ),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(label: 'OK', onPressed: () {}),
       ),
     );
   }
@@ -883,15 +871,10 @@ class _PreviewDialogState extends State<PreviewDialog> {
   Widget _buildPreviewContent(FilePreview preview, bool isDarkMode) {
     switch (preview.previewType) {
       case PreviewType.text:
-        return TextPreviewWidget(
-          preview: preview,
-          isDarkMode: isDarkMode,
-        );
+        return TextPreviewWidget(preview: preview, isDarkMode: isDarkMode);
 
       case PreviewType.image:
-        return ImagePreviewWidget(
-          preview: preview,
-        );
+        return ImagePreviewWidget(preview: preview);
 
       case PreviewType.document:
         if (preview.previewData != null && preview.previewData!.isNotEmpty) {
@@ -937,7 +920,9 @@ class _PreviewDialogState extends State<PreviewDialog> {
         return _buildUnsupportedPreview('Video thumbnail preview');
 
       case PreviewType.unavailable:
-        return _buildUnsupportedPreview('Preview not available for this file type');
+        return _buildUnsupportedPreview(
+          'Preview not available for this file type',
+        );
     }
   }
 

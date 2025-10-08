@@ -87,12 +87,12 @@ class HistoryService extends ChangeNotifier {
   final List<HistoryEntry> _history = [];
   static const int _maxHistorySize = 100;
   static const String _historyKey = 'archive_history';
-  
+
   bool _isLoaded = false;
 
   /// Get all history entries
   List<HistoryEntry> get history => List.unmodifiable(_history);
-  
+
   /// Check if history has been loaded from storage
   bool get isLoaded => _isLoaded;
 
@@ -100,15 +100,15 @@ class HistoryService extends ChangeNotifier {
   void addToHistory(HistoryEntry entry) {
     // Remove existing entry with same identifier if exists
     _history.removeWhere((e) => e.identifier == entry.identifier);
-    
+
     // Add to beginning (most recent first)
     _history.insert(0, entry);
-    
+
     // Limit history size
     if (_history.length > _maxHistorySize) {
       _history.removeRange(_maxHistorySize, _history.length);
     }
-    
+
     notifyListeners();
     _saveHistory();
   }
@@ -134,7 +134,7 @@ class HistoryService extends ChangeNotifier {
       final jsonList = _history.map((e) => e.toJson()).toList();
       final jsonString = jsonEncode(jsonList);
       await prefs.setString(_historyKey, jsonString);
-      
+
       if (kDebugMode) {
         print('History saved: ${_history.length} entries');
       }
@@ -150,18 +150,20 @@ class HistoryService extends ChangeNotifier {
     if (_isLoaded) {
       return; // Already loaded
     }
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_historyKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final jsonList = jsonDecode(jsonString) as List<dynamic>;
         _history.clear();
         _history.addAll(
-          jsonList.map((json) => HistoryEntry.fromJson(json as Map<String, dynamic>)),
+          jsonList.map(
+            (json) => HistoryEntry.fromJson(json as Map<String, dynamic>),
+          ),
         );
-        
+
         if (kDebugMode) {
           print('History loaded: ${_history.length} entries');
         }
@@ -170,14 +172,15 @@ class HistoryService extends ChangeNotifier {
           print('No saved history found');
         }
       }
-      
+
       _isLoaded = true;
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
         print('Error loading history: $e');
       }
-      _isLoaded = true; // Mark as loaded even on error to prevent repeated attempts
+      _isLoaded =
+          true; // Mark as loaded even on error to prevent repeated attempts
     }
   }
 }

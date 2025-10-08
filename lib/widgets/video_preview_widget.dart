@@ -6,7 +6,7 @@ import 'package:chewie/chewie.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Widget for previewing video files
-/// 
+///
 /// Displays video content with full playback controls using Chewie player:
 /// - Play/pause toggle
 /// - Seek bar with duration display
@@ -14,18 +14,18 @@ import 'package:path_provider/path_provider.dart';
 /// - Volume control
 /// - Playback speed control
 /// - Loading and error states
-/// 
+///
 /// Uses Chewie wrapper around VideoPlayerController for better UX.
 class VideoPreviewWidget extends StatefulWidget {
   /// Raw video bytes to display
   final Uint8List videoBytes;
-  
+
   /// Name of the video file (for display)
   final String fileName;
-  
+
   /// Whether to autoplay video (default: false)
   final bool autoPlay;
-  
+
   /// Whether to loop video (default: false)
   final bool looping;
 
@@ -55,7 +55,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   }
 
   /// Initialize video player from bytes
-  /// 
+  ///
   /// Creates temporary file from bytes since VideoPlayerController
   /// doesn't support direct byte array loading.
   Future<void> _initializePlayer() async {
@@ -96,9 +96,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
         ),
         placeholder: Container(
           color: colorScheme.surface,
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
+          child: const Center(child: CircularProgressIndicator()),
         ),
         errorBuilder: (context, errorMessage) {
           return Center(
@@ -147,13 +145,13 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   void dispose() {
     _chewieController?.dispose();
     _videoPlayerController?.dispose();
-    
+
     // Clean up temporary file
     _tempVideoFile?.delete().catchError((_) {
       // Ignore errors during cleanup
       return _tempVideoFile!;
     });
-    
+
     super.dispose();
   }
 
@@ -161,9 +159,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.surface,
-      child: Center(
-        child: _buildContent(),
-      ),
+      child: Center(child: _buildContent()),
     );
   }
 
@@ -217,17 +213,13 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            color: colorScheme.error,
-            size: 64,
-          ),
+          Icon(Icons.error_outline, color: colorScheme.error, size: 64),
           const SizedBox(height: 24),
           Text(
             'Unable to play video',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: colorScheme.onSurface,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
           ),
           const SizedBox(height: 16),
           Text(
@@ -245,10 +237,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
               foregroundColor: colorScheme.onPrimary,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
         ],
@@ -262,12 +251,8 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Video player with controls
-        Expanded(
-          child: Chewie(
-            controller: _chewieController!,
-          ),
-        ),
-        
+        Expanded(child: Chewie(controller: _chewieController!)),
+
         // Video info footer
         _buildVideoInfo(),
       ],
@@ -279,7 +264,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
     final duration = _videoPlayerController?.value.duration;
     final size = widget.videoBytes.lengthInBytes;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       color: colorScheme.surfaceContainer,
@@ -288,9 +273,9 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
         children: [
           Text(
             widget.fileName,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: colorScheme.onSurface,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: colorScheme.onSurface),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -313,7 +298,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                 ),
                 const SizedBox(width: 16),
               ],
-              
+
               // File size
               Icon(
                 Icons.storage_outlined,
@@ -327,9 +312,9 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              
+
               const Spacer(),
-              
+
               // Resolution info
               if (_videoPlayerController?.value.size != null) ...[
                 Text(
@@ -342,7 +327,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
               ],
             ],
           ),
-          
+
           // Help text
           const SizedBox(height: 12),
           Row(

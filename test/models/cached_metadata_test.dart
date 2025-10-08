@@ -227,10 +227,14 @@ void main() {
         expect(restored.identifier, equals(cached.identifier));
         expect(restored.isPinned, equals(cached.isPinned));
         // Compare milliseconds since epoch to avoid microsecond precision issues
-        expect(restored.cachedAt.millisecondsSinceEpoch,
-            equals(cached.cachedAt.millisecondsSinceEpoch));
-        expect(restored.lastAccessed.millisecondsSinceEpoch,
-            equals(cached.lastAccessed.millisecondsSinceEpoch));
+        expect(
+          restored.cachedAt.millisecondsSinceEpoch,
+          equals(cached.cachedAt.millisecondsSinceEpoch),
+        );
+        expect(
+          restored.lastAccessed.millisecondsSinceEpoch,
+          equals(cached.lastAccessed.millisecondsSinceEpoch),
+        );
         expect(restored.metadata.title, equals(cached.metadata.title));
       });
     });

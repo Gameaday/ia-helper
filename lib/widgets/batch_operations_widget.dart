@@ -5,7 +5,7 @@ import '../providers/download_provider.dart';
 import '../core/utils/formatting_utils.dart';
 
 /// Widget for batch operations on selected files
-/// 
+///
 /// Provides quick actions for multiple selected files:
 /// - Download all selected files
 /// - Deselect all
@@ -69,16 +69,16 @@ class BatchOperationsWidget extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Deselect button
           IconButton(
             icon: const Icon(Icons.clear),
             tooltip: 'Deselect all',
             onPressed: onDeselectAll,
           ),
-          
+
           const SizedBox(width: 8),
-          
+
           // Download button
           ElevatedButton.icon(
             icon: const Icon(Icons.download, size: 20),
@@ -97,7 +97,7 @@ class BatchOperationsWidget extends StatelessWidget {
 
   void _handleBatchDownload(BuildContext context) async {
     final provider = context.read<DownloadProvider>();
-    
+
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
@@ -107,7 +107,9 @@ class BatchOperationsWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Download ${selectedFiles.length} selected file${selectedFiles.length == 1 ? '' : 's'}?'),
+            Text(
+              'Download ${selectedFiles.length} selected file${selectedFiles.length == 1 ? '' : 's'}?',
+            ),
             const SizedBox(height: 12),
             Text(
               'Total size: ${FormattingUtils.formatBytes(selectedFiles.fold<int>(0, (sum, f) => sum + (f.size ?? 0)))}',
@@ -124,11 +126,17 @@ class BatchOperationsWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline, size: 16, color: colorScheme.primary),
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: colorScheme.primary,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -163,10 +171,10 @@ class BatchOperationsWidget extends StatelessWidget {
       try {
         // Extract file names
         final fileNames = selectedFiles.map((f) => f.name).toList();
-        
+
         // Start batch download
         await provider.batchDownload(identifier, fileNames);
-        
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

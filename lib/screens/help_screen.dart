@@ -44,7 +44,9 @@ class HelpScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: Colors.blue.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,21 +201,21 @@ class HelpScreen extends StatelessWidget {
                     Icons.code,
                     'Source Code',
                     'View the project on GitHub',
-                    'https://github.com/Gameaday/ia-get-cli',
+                    'https://github.com/Gameaday/ia-helper',
                   ),
                   _buildLinkItem(
                     context,
                     Icons.bug_report,
                     'Report Issues',
                     'Report bugs or request features',
-                    'https://github.com/Gameaday/ia-get-cli/issues',
+                    'https://github.com/Gameaday/ia-helper/issues',
                   ),
                   _buildLinkItem(
                     context,
                     Icons.policy,
                     'Privacy Policy',
                     'Read our privacy policy',
-                    'https://github.com/Gameaday/ia-get-cli/blob/main/PRIVACY_POLICY.md',
+                    'https://github.com/Gameaday/ia-helper/blob/main/PRIVACY_POLICY.md',
                   ),
                 ],
               ),

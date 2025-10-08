@@ -1,5 +1,5 @@
 /// Advanced file filtering model
-/// 
+///
 /// Supports multiple filter types including:
 /// - Wildcard patterns (*.pdf, chapter*)
 /// - Regex patterns (^data_\\d+\\.txt$)
@@ -11,24 +11,24 @@ class FileFilter {
   // Wildcard and regex patterns
   final List<String> includePatterns;
   final List<String> excludePatterns;
-  
+
   // Subfolder filters
   final List<String> includeSubfolders;
   final List<String> excludeSubfolders;
-  
+
   // Format filters
   final List<String> includeFormats;
   final List<String> excludeFormats;
-  
+
   // Size filters (in bytes)
   final int? minSize;
   final int? maxSize;
-  
+
   // Source type filters
   final bool includeOriginal;
   final bool includeDerivative;
   final bool includeMetadata;
-  
+
   // Regex mode (if true, patterns are treated as regex)
   final bool useRegex;
 
@@ -81,19 +81,27 @@ class FileFilter {
     final parts = <String>[];
 
     if (includePatterns.isNotEmpty) {
-      parts.add('Include: ${includePatterns.take(2).join(", ")}${includePatterns.length > 2 ? "..." : ""}');
+      parts.add(
+        'Include: ${includePatterns.take(2).join(", ")}${includePatterns.length > 2 ? "..." : ""}',
+      );
     }
 
     if (includeSubfolders.isNotEmpty) {
-      parts.add('Folders: ${includeSubfolders.take(2).join(", ")}${includeSubfolders.length > 2 ? "..." : ""}');
+      parts.add(
+        'Folders: ${includeSubfolders.take(2).join(", ")}${includeSubfolders.length > 2 ? "..." : ""}',
+      );
     }
 
     if (excludePatterns.isNotEmpty) {
-      parts.add('Exclude: ${excludePatterns.take(2).join(", ")}${excludePatterns.length > 2 ? "..." : ""}');
+      parts.add(
+        'Exclude: ${excludePatterns.take(2).join(", ")}${excludePatterns.length > 2 ? "..." : ""}',
+      );
     }
 
     if (includeFormats.isNotEmpty) {
-      parts.add('Formats: ${includeFormats.take(2).join(", ")}${includeFormats.length > 2 ? "..." : ""}');
+      parts.add(
+        'Formats: ${includeFormats.take(2).join(", ")}${includeFormats.length > 2 ? "..." : ""}',
+      );
     }
 
     if (minSize != null || maxSize != null) {
@@ -185,27 +193,33 @@ class FileFilter {
   /// Create from JSON
   factory FileFilter.fromJson(Map<String, dynamic> json) {
     return FileFilter(
-      includePatterns: (json['includePatterns'] as List<dynamic>?)
+      includePatterns:
+          (json['includePatterns'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      excludePatterns: (json['excludePatterns'] as List<dynamic>?)
+      excludePatterns:
+          (json['excludePatterns'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      includeSubfolders: (json['includeSubfolders'] as List<dynamic>?)
+      includeSubfolders:
+          (json['includeSubfolders'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      excludeSubfolders: (json['excludeSubfolders'] as List<dynamic>?)
+      excludeSubfolders:
+          (json['excludeSubfolders'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      includeFormats: (json['includeFormats'] as List<dynamic>?)
+      includeFormats:
+          (json['includeFormats'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      excludeFormats: (json['excludeFormats'] as List<dynamic>?)
+      excludeFormats:
+          (json['excludeFormats'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],

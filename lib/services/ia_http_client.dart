@@ -6,7 +6,7 @@ import 'rate_limiter.dart';
 import '../models/rate_limit_status.dart';
 
 /// Current Flutter SDK version for User-Agent header.
-/// 
+///
 /// NOTE: Flutter doesn't expose SDK version at runtime without external dependencies.
 /// This constant should be updated when upgrading Flutter SDK.
 /// Run `flutter --version` to get the current version.
@@ -74,18 +74,20 @@ class IAHttpClient {
     this.defaultTimeout = const Duration(seconds: 30),
     this.maxRetries = 5,
     List<Duration>? customRetryDelays,
-  })  : _innerClient = innerClient ?? http.Client(),
-        _rateLimiter = rateLimiter ?? archiveRateLimiter,
-        userAgent = userAgent ??
-            'InternetArchiveHelper/1.6.0 ($contact) Flutter/${_getFlutterVersion()}',
-        retryDelays = customRetryDelays ??
-            [
-              const Duration(seconds: 1),
-              const Duration(seconds: 2),
-              const Duration(seconds: 4),
-              const Duration(seconds: 8),
-              const Duration(seconds: 60),
-            ];
+  }) : _innerClient = innerClient ?? http.Client(),
+       _rateLimiter = rateLimiter ?? archiveRateLimiter,
+       userAgent =
+           userAgent ??
+           'InternetArchiveHelper/1.6.0 ($contact) Flutter/${_getFlutterVersion()}',
+       retryDelays =
+           customRetryDelays ??
+           [
+             const Duration(seconds: 1),
+             const Duration(seconds: 2),
+             const Duration(seconds: 4),
+             const Duration(seconds: 8),
+             const Duration(seconds: 60),
+           ];
 
   /// GET request with automatic retry and rate limiting.
   ///
@@ -138,14 +140,11 @@ class IAHttpClient {
     Map<String, String>? headers,
     Duration? timeout,
   }) async {
-    return _executeWithRetry(
-      () async {
-        final request = http.Request('GET', url);
-        request.headers.addAll(_mergeHeaders(headers));
-        return await _innerClient.send(request);
-      },
-      timeout: timeout,
-    );
+    return _executeWithRetry(() async {
+      final request = http.Request('GET', url);
+      request.headers.addAll(_mergeHeaders(headers));
+      return await _innerClient.send(request);
+    }, timeout: timeout);
   }
 
   /// Execute request with exponential backoff retry logic.
@@ -250,7 +249,11 @@ class IAHttpClient {
     }
 
     await Future.delayed(delay);
-    return _executeWithRetry(request, timeout: timeout, attemptNumber: attemptNumber + 1);
+    return _executeWithRetry(
+      request,
+      timeout: timeout,
+      attemptNumber: attemptNumber + 1,
+    );
   }
 
   /// Check if request should be retried based on response.
@@ -258,7 +261,7 @@ class IAHttpClient {
     if (attemptNumber >= maxRetries) return false;
 
     final statusCode = _getStatusCode(response);
-    
+
     // Retry on transient errors
     return statusCode == 429 || // Rate limited
         statusCode == 503 || // Service unavailable
@@ -278,7 +281,7 @@ class IAHttpClient {
 
     final headers = response.headers;
     final retryAfter = headers['retry-after'] ?? headers['Retry-After'];
-    
+
     if (retryAfter == null) return null;
 
     // Try parsing as seconds (integer)
@@ -295,7 +298,7 @@ class IAHttpClient {
       final httpDate = HttpDate.parse(retryAfter);
       final now = DateTime.now();
       final delaySeconds = httpDate.difference(now).inSeconds;
-      
+
       if (delaySeconds > 0) {
         // Store for UI display
         _lastRetryAfterSeconds = delaySeconds;
@@ -378,7 +381,7 @@ class IAHttpClient {
   ///
   /// Returns Flutter SDK version (from constant) and Dart SDK version (from Platform.version).
   /// Flutter SDK version is defined as a constant since Flutter doesn't expose it at runtime.
-  /// 
+  ///
   /// Format examples:
   /// - Native: "Flutter/3.35.5 Dart/3.8.0"
   /// - Web: "Flutter/3.35.5 (Web)"
@@ -386,7 +389,7 @@ class IAHttpClient {
     if (kIsWeb) {
       return 'Flutter/$_kFlutterVersion (Web)';
     }
-    
+
     try {
       // Platform.version includes full Dart version info
       // Format: "3.8.0 (stable) on \"windows_x64\""
@@ -400,7 +403,7 @@ class IAHttpClient {
       // Fallback if Platform.version is not available
       debugPrint('Failed to get Dart version: $e');
     }
-    
+
     return 'Flutter/$_kFlutterVersion';
   }
 
@@ -412,7 +415,7 @@ class IAHttpClient {
   /// Get current rate limiter status for UI display.
   RateLimitStatus getRateLimitStatus() {
     // Clear expired retry-after data
-    if (_lastRetryAfterExpiry != null && 
+    if (_lastRetryAfterExpiry != null &&
         DateTime.now().isAfter(_lastRetryAfterExpiry!)) {
       _lastRetryAfterSeconds = null;
       _lastRetryAfterExpiry = null;

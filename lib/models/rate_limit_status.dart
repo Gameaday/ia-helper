@@ -5,19 +5,19 @@ library;
 class RateLimitStatus {
   /// Number of active concurrent requests
   final int activeRequests;
-  
+
   /// Number of requests waiting in queue
   final int queuedRequests;
-  
+
   /// Maximum concurrent requests allowed
   final int maxConcurrent;
-  
+
   /// Whether rate limiter is at capacity
   final bool isAtCapacity;
-  
+
   /// Retry-After delay in seconds (if server requested a delay)
   final int? retryAfterSeconds;
-  
+
   /// Time when retry-after expires (if applicable)
   final DateTime? retryAfterExpiry;
 
@@ -107,16 +107,16 @@ class RateLimitStatus {
 enum RateLimitLevel {
   /// Normal operation
   normal,
-  
+
   /// At capacity but no queue
   atCapacity,
-  
+
   /// Moderate queue (1-5 requests)
   moderate,
-  
+
   /// Heavy queue (6+ requests)
   heavy,
-  
+
   /// Server requested delay (429/503 with Retry-After)
   serverDelay,
 }

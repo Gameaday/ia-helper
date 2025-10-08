@@ -16,7 +16,7 @@ import 'package:internet_archive_helper/services/saved_search_service.dart';
 /// - MD3 animations and transitions
 class SavedSearchesScreen extends StatefulWidget {
   static const String routeName = '/saved-searches';
-  
+
   const SavedSearchesScreen({super.key});
 
   @override
@@ -82,13 +82,12 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
         // Filter by search text
         final searchText = _searchController.text.toLowerCase();
         if (searchText.isNotEmpty) {
-          final matchesName =
-              search.name.toLowerCase().contains(searchText);
-          final matchesDescription = search.description
-                  ?.toLowerCase()
-                  .contains(searchText) ??
-              false;
-          final matchesQuery = search.summary.toLowerCase().contains(searchText);
+          final matchesName = search.name.toLowerCase().contains(searchText);
+          final matchesDescription =
+              search.description?.toLowerCase().contains(searchText) ?? false;
+          final matchesQuery = search.summary.toLowerCase().contains(
+            searchText,
+          );
 
           if (!matchesName && !matchesDescription && !matchesQuery) {
             return false;
@@ -186,8 +185,9 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
 
   Future<void> _editSearch(SavedSearch search) async {
     final nameController = TextEditingController(text: search.name);
-    final descriptionController =
-        TextEditingController(text: search.description ?? '');
+    final descriptionController = TextEditingController(
+      text: search.description ?? '',
+    );
 
     final result = await showDialog<bool>(
       context: context,
@@ -199,9 +199,7 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Search Name',
-                ),
+                decoration: const InputDecoration(labelText: 'Search Name'),
                 autofocus: true,
               ),
               const SizedBox(height: 16),
@@ -295,10 +293,7 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -386,9 +381,7 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildBody() {
@@ -481,8 +474,8 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
                 ? 'Save searches to quickly access them later'
                 : 'Try adjusting your filters',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ),
         ],
       ),
@@ -532,7 +525,9 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
                   ),
                   IconButton(
                     icon: Icon(
-                      search.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                      search.isPinned
+                          ? Icons.push_pin
+                          : Icons.push_pin_outlined,
                     ),
                     onPressed: () => _togglePin(search),
                     tooltip: search.isPinned ? 'Unpin' : 'Pin',
@@ -587,8 +582,8 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
               Text(
                 search.summary,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -627,8 +622,8 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
                   Text(
                     search.lastUsedDisplay,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Icon(
@@ -640,8 +635,8 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
                   Text(
                     '${search.useCount} uses',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                 ],
               ),
@@ -725,18 +720,12 @@ class _TagManagementDialogState extends State<_TagManagementDialog> {
                     onSubmitted: (_) => _addNewTag(),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _addNewTag,
-                ),
+                IconButton(icon: const Icon(Icons.add), onPressed: _addNewTag),
               ],
             ),
             const SizedBox(height: 16),
             if (widget.allTags.isNotEmpty) ...[
-              Text(
-                'All Tags',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
+              Text('All Tags', style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -777,9 +766,4 @@ class _TagManagementDialogState extends State<_TagManagementDialog> {
 }
 
 /// Sort options for saved searches
-enum _SortOption {
-  alphabetical,
-  lastUsed,
-  createdDate,
-  useCount,
-}
+enum _SortOption { alphabetical, lastUsed, createdDate, useCount }

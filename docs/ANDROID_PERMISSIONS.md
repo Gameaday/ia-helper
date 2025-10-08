@@ -281,7 +281,7 @@ If added, may need:
 
 **Questions about permissions?**
 - Email: gameaday.project@gmail.com
-- GitHub Issues: github.com/gameaday/ia-get-cli/issues
+- GitHub Issues: github.com/gameaday/ia-helper/issues
 
 ---
 

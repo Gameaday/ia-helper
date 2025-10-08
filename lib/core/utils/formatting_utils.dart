@@ -6,9 +6,9 @@ import 'dart:math';
 /// Utility class for formatting various data types into human-readable strings
 class FormattingUtils {
   static const List<String> _byteSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-  
+
   /// Format bytes into human-readable string
-  /// 
+  ///
   /// Examples:
   /// - 1024 → "1.0 KB"
   /// - 1536 → "1.5 KB"
@@ -18,7 +18,10 @@ class FormattingUtils {
     if (bytes <= 0) return '0 B';
     if (bytes < 1024) return '$bytes B';
 
-    final i = (log(bytes) / log(1024)).floor().clamp(0, _byteSuffixes.length - 1);
+    final i = (log(bytes) / log(1024)).floor().clamp(
+      0,
+      _byteSuffixes.length - 1,
+    );
     final size = bytes / pow(1024, i);
 
     // Show 1 decimal place for values < 10, otherwise round to whole number
@@ -34,7 +37,10 @@ class FormattingUtils {
     if (bytesPerSecond <= 0) return '0 B/s';
     if (bytesPerSecond < 1024) return '${bytesPerSecond.toInt()} B/s';
 
-    final i = (log(bytesPerSecond) / log(1024)).floor().clamp(0, _byteSuffixes.length - 1);
+    final i = (log(bytesPerSecond) / log(1024)).floor().clamp(
+      0,
+      _byteSuffixes.length - 1,
+    );
     final speed = bytesPerSecond / pow(1024, i);
 
     return '${speed.toStringAsFixed(speed < 10 ? 1 : 0)} ${_byteSuffixes[i]}/s';
@@ -129,9 +135,9 @@ class FormattingUtils {
   /// - 1234567 → "1,234,567"
   static String formatCount(int count) {
     return count.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]},',
-        );
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
   }
 
   /// Format a date/time in relative format (e.g., "2 hours ago")
@@ -182,13 +188,15 @@ class FormattingUtils {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
 
     final month = months[dateTime.month - 1];
     final day = dateTime.day;
     final year = dateTime.year;
-    final hour = dateTime.hour > 12 ? dateTime.hour - 12 : (dateTime.hour == 0 ? 12 : dateTime.hour);
+    final hour = dateTime.hour > 12
+        ? dateTime.hour - 12
+        : (dateTime.hour == 0 ? 12 : dateTime.hour);
     final minute = dateTime.minute.toString().padLeft(2, '0');
     final period = dateTime.hour >= 12 ? 'PM' : 'AM';
 
@@ -207,7 +215,11 @@ class FormattingUtils {
   }
 
   /// Truncate a string with ellipsis if it exceeds max length
-  static String truncate(String text, int maxLength, {String ellipsis = '...'}) {
+  static String truncate(
+    String text,
+    int maxLength, {
+    String ellipsis = '...',
+  }) {
     if (text.length <= maxLength) return text;
     return '${text.substring(0, maxLength - ellipsis.length)}$ellipsis';
   }

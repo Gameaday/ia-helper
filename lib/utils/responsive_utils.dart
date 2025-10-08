@@ -41,7 +41,8 @@ class ResponsiveUtils {
   }
 
   /// Get number of columns for grid layouts based on screen size
-  static int getGridColumns(BuildContext context, {
+  static int getGridColumns(
+    BuildContext context, {
     int compactColumns = 1,
     int mediumColumns = 2,
     int expandedColumns = 3,
@@ -55,7 +56,7 @@ class ResponsiveUtils {
   /// Returns ratio for master panel (detail will be 1.0 - ratio)
   static double getMasterDetailRatio(BuildContext context) {
     if (isExpanded(context)) return 0.35; // 35% master, 65% detail
-    if (isMedium(context)) return 0.4;    // 40% master, 60% detail
+    if (isMedium(context)) return 0.4; // 40% master, 60% detail
     return 1.0; // Full screen for compact
   }
 
@@ -125,24 +126,15 @@ class ResponsiveUtils {
     }
 
     final ratio = getMasterDetailRatio(context);
-    
+
     return Row(
       children: [
         // Master panel (left)
-        Expanded(
-          flex: (ratio * 100).round(),
-          child: master,
-        ),
+        Expanded(flex: (ratio * 100).round(), child: master),
         // Divider
-        Container(
-          width: 1,
-          color: Theme.of(context).dividerColor,
-        ),
+        Container(width: 1, color: Theme.of(context).dividerColor),
         // Detail panel (right)
-        Expanded(
-          flex: ((1.0 - ratio) * 100).round(),
-          child: detail,
-        ),
+        Expanded(flex: ((1.0 - ratio) * 100).round(), child: detail),
       ],
     );
   }
@@ -158,24 +150,16 @@ class ResponsiveUtils {
   }) {
     if (!isTabletOrLarger(context)) {
       // Single column on phone
-      return Column(
-        children: [left, right],
-      );
+      return Column(children: [left, right]);
     }
 
     // Two columns on tablet+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: leftFlex?.round() ?? 1,
-          child: left,
-        ),
+        Expanded(flex: leftFlex?.round() ?? 1, child: left),
         SizedBox(width: getHorizontalSpacing(context)),
-        Expanded(
-          flex: rightFlex?.round() ?? 1,
-          child: right,
-        ),
+        Expanded(flex: rightFlex?.round() ?? 1, child: right),
       ],
     );
   }

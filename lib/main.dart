@@ -58,7 +58,8 @@ class IAGetMobileApp extends StatelessWidget {
       providers: [
         // Bandwidth Manager - needs to be created first for global access
         ChangeNotifierProvider<BandwidthManagerProvider>(
-          create: (_) => BandwidthManagerProvider()..initialize(BandwidthPreset.mb1),
+          create: (_) =>
+              BandwidthManagerProvider()..initialize(BandwidthPreset.mb1),
           lazy: false, // Initialize eagerly to set up bandwidth limits
         ),
         // History service - needs to be created first
@@ -96,10 +97,7 @@ class IAGetMobileApp extends StatelessWidget {
             bandwidthManager: context.read<BandwidthManagerProvider>(),
           ),
           update: (context, bandwidthManager, previous) =>
-              previous ??
-              DownloadProvider(
-                bandwidthManager: bandwidthManager,
-              ),
+              previous ?? DownloadProvider(bandwidthManager: bandwidthManager),
           lazy: true,
         ),
         // Background download service with archive storage integration
@@ -187,13 +185,11 @@ class IAGetMobileApp extends StatelessWidget {
             case SearchResultsScreen.routeName:
               // Pass SearchQuery through settings.arguments
               final args = settings.arguments as Map<String, dynamic>?;
-              final query = args?['query'] as SearchQuery? ?? const SearchQuery();
+              final query =
+                  args?['query'] as SearchQuery? ?? const SearchQuery();
               final title = args?['title'] as String?;
               return MD3PageTransitions.fadeThrough(
-                page: SearchResultsScreen(
-                  query: query,
-                  title: title,
-                ),
+                page: SearchResultsScreen(query: query, title: title),
                 settings: settings,
               );
             default:
@@ -294,53 +290,61 @@ class _AppInitializerState extends State<AppInitializer> {
         if (!mounted) return;
 
         final archiveService = context.read<ArchiveService>();
-        
+
         // Fetch metadata first
-        archiveService.fetchMetadata(identifier).then((_) {
-          // After metadata is fetched successfully, navigate to detail screen
-          if (!mounted) return;
-          
-          if (archiveService.currentMetadata != null && archiveService.error == null) {
-            // Navigate to detail screen
-            // Use pushReplacement if we're on home screen, otherwise push normally
-            Navigator.of(context).push(
-              MD3PageTransitions.fadeThrough(
-                page: const ArchiveDetailScreen(),
-                settings: const RouteSettings(name: ArchiveDetailScreen.routeName),
-              ),
-            );
-          } else if (archiveService.error != null) {
-            // Show error message if fetch failed
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to load archive: ${archiveService.error}'),
-                backgroundColor: Theme.of(context).colorScheme.error,
-                action: SnackBarAction(
-                  label: 'Retry',
-                  textColor: Colors.white,
-                  onPressed: () {
-                    archiveService.fetchMetadata(identifier);
-                  },
+        archiveService
+            .fetchMetadata(identifier)
+            .then((_) {
+              // After metadata is fetched successfully, navigate to detail screen
+              if (!mounted) return;
+
+              if (archiveService.currentMetadata != null &&
+                  archiveService.error == null) {
+                // Navigate to detail screen
+                // Use pushReplacement if we're on home screen, otherwise push normally
+                Navigator.of(context).push(
+                  MD3PageTransitions.fadeThrough(
+                    page: const ArchiveDetailScreen(),
+                    settings: const RouteSettings(
+                      name: ArchiveDetailScreen.routeName,
+                    ),
+                  ),
+                );
+              } else if (archiveService.error != null) {
+                // Show error message if fetch failed
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Failed to load archive: ${archiveService.error}',
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    action: SnackBarAction(
+                      label: 'Retry',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        archiveService.fetchMetadata(identifier);
+                      },
+                    ),
+                  ),
+                );
+              }
+            })
+            .catchError((error) {
+              if (!mounted) return;
+
+              // Show error message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to open link: $error'),
+                  backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-              ),
-            );
-          }
-        }).catchError((error) {
-          if (!mounted) return;
-          
-          // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to open link: $error'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        });
+              );
+            });
       };
 
       // Request notification permissions (non-blocking)
       _requestNotificationPermissions();
-      
+
       // Show What's New dialog if this is a new version
       _showWhatsNewIfNeeded();
     } catch (e) {
@@ -352,15 +356,15 @@ class _AppInitializerState extends State<AppInitializer> {
   /// Show What's New dialog for new app versions (non-blocking)
   Future<void> _showWhatsNewIfNeeded() async {
     if (!mounted) return;
-    
+
     try {
       // Check if What's New should be shown
       final shouldShow = await WhatsNewDialog.shouldShow();
-      
+
       if (shouldShow && mounted) {
         // Wait a moment for the home screen to settle
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         if (mounted) {
           showDialog(
             context: context,
@@ -429,9 +433,11 @@ class _AppInitializerState extends State<AppInitializer> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, 
-                size: 64, 
-                color: Theme.of(context).colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Initialization Error',

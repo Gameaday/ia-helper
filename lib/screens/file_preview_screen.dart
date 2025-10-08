@@ -43,14 +43,16 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
       final fileSize = widget.file.size ?? 0;
       if (fileSize > 10 * 1024 * 1024) {
         setState(() {
-          _error = 'File too large for preview (${(fileSize / 1024 / 1024).toStringAsFixed(1)}MB). Maximum is 10MB.';
+          _error =
+              'File too large for preview (${(fileSize / 1024 / 1024).toStringAsFixed(1)}MB). Maximum is 10MB.';
           _isLoading = false;
         });
         return;
       }
 
       // Fetch file data in memory with timeout
-      final response = await http.get(Uri.parse(widget.file.downloadUrl!))
+      final response = await http
+          .get(Uri.parse(widget.file.downloadUrl!))
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
@@ -81,20 +83,52 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
   bool _isTextFormat() {
     if (widget.file.format == null) return false;
     final format = widget.file.format!.toLowerCase();
-    return ['txt', 'json', 'xml', 'html', 'htm', 'md', 'markdown', 'log', 
-            'csv', 'yaml', 'yml', 'ini', 'conf', 'cfg'].contains(format);
+    return [
+      'txt',
+      'json',
+      'xml',
+      'html',
+      'htm',
+      'md',
+      'markdown',
+      'log',
+      'csv',
+      'yaml',
+      'yml',
+      'ini',
+      'conf',
+      'cfg',
+    ].contains(format);
   }
 
   bool _isVideoFormat() {
     if (widget.file.format == null) return false;
     final format = widget.file.format!.toLowerCase();
-    return ['mp4', 'webm', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'm4v'].contains(format);
+    return [
+      'mp4',
+      'webm',
+      'mkv',
+      'avi',
+      'mov',
+      'flv',
+      'wmv',
+      'm4v',
+    ].contains(format);
   }
 
   bool _isAudioFormat() {
     if (widget.file.format == null) return false;
     final format = widget.file.format!.toLowerCase();
-    return ['mp3', 'wav', 'flac', 'aac', 'm4a', 'ogg', 'wma', 'opus'].contains(format);
+    return [
+      'mp3',
+      'wav',
+      'flac',
+      'aac',
+      'm4a',
+      'ogg',
+      'wma',
+      'opus',
+    ].contains(format);
   }
 
   bool _isPDFFormat() {

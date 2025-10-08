@@ -21,19 +21,19 @@ class SearchResult {
   }
 
   /// Helper method to extract a string value from either a string or list
-  /// 
+  ///
   /// The Internet Archive API sometimes returns fields as:
   /// - A single string: "Example Title"
   /// - A list of strings: ["Example Title", "Alternative Title"]
-  /// 
+  ///
   /// This method handles both cases, taking the first element if it's a list.
   static String _extractString(dynamic value, String defaultValue) {
     if (value == null) return defaultValue;
-    
+
     if (value is List) {
       return value.isNotEmpty ? value.first.toString() : defaultValue;
     }
-    
+
     return value.toString();
   }
 

@@ -48,20 +48,20 @@ extension DownloadStatusExtension on DownloadStatus {
         return 'cancelled';
     }
   }
-  
+
   /// Check if download is in progress
   bool get isActive {
     return this == DownloadStatus.fetchingMetadata ||
-           this == DownloadStatus.downloading ||
-           this == DownloadStatus.validating ||
-           this == DownloadStatus.extracting;
+        this == DownloadStatus.downloading ||
+        this == DownloadStatus.validating ||
+        this == DownloadStatus.extracting;
   }
-  
+
   /// Check if download has finished (success or failure)
   bool get isFinished {
     return this == DownloadStatus.complete ||
-           this == DownloadStatus.error ||
-           this == DownloadStatus.cancelled;
+        this == DownloadStatus.error ||
+        this == DownloadStatus.cancelled;
   }
 }
 
@@ -86,7 +86,7 @@ class DownloadState {
     this.startTime,
     this.endTime,
   }) : fileProgress = fileProgress ?? {};
-  
+
   /// Get status as string for backward compatibility
   String get status => downloadStatus.value;
 
@@ -96,7 +96,7 @@ class DownloadState {
     Map<String, DownloadProgress>? fileProgress,
     DownloadStatus? downloadStatus,
     DownloadPriority? priority,
-    String? status,  // Deprecated, use downloadStatus
+    String? status, // Deprecated, use downloadStatus
     String? error,
     DateTime? startTime,
     DateTime? endTime,
@@ -105,15 +105,16 @@ class DownloadState {
       identifier: identifier ?? this.identifier,
       metadata: metadata ?? this.metadata,
       fileProgress: fileProgress ?? this.fileProgress,
-      downloadStatus: downloadStatus ?? 
-                      (status != null ? _parseStatus(status) : this.downloadStatus),
+      downloadStatus:
+          downloadStatus ??
+          (status != null ? _parseStatus(status) : this.downloadStatus),
       priority: priority ?? this.priority,
       error: error ?? this.error,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
     );
   }
-  
+
   /// Parse status string to enum for backward compatibility
   static DownloadStatus _parseStatus(String status) {
     switch (status) {
@@ -138,11 +139,11 @@ class DownloadState {
 
   double get overallProgress {
     if (fileProgress.isEmpty) return 0.0;
-    
+
     final totalPercentage = fileProgress.values
         .map((p) => p.percentage)
         .reduce((a, b) => a + b);
-    
+
     return totalPercentage / fileProgress.length;
   }
 
@@ -153,9 +154,7 @@ class DownloadState {
   }
 
   int get totalSize {
-    return fileProgress.values
-        .map((p) => p.total)
-        .fold(0, (a, b) => a + b);
+    return fileProgress.values.map((p) => p.total).fold(0, (a, b) => a + b);
   }
 
   /// Calculate enhanced progress info for UI display
@@ -187,26 +186,26 @@ class DownloadState {
 class DownloadProvider extends ChangeNotifier {
   final ArchiveService _service = ArchiveService();
   final BandwidthManagerProvider? _bandwidthManager;
-  
+
   // State management - all in Dart!
   final Map<String, DownloadState> _downloads = {};
   final List<String> _downloadHistory = [];
-  
+
   // Enhanced: Metadata caching for better performance
   final Map<String, ArchiveMetadata> _metadataCache = {};
-  
+
   // Enhanced: Concurrent download configuration
   int maxConcurrentDownloads = 3;
   int _activeDownloads = 0;
-  
+
   // Download queue for managing concurrent downloads
   final List<_QueuedDownload> _downloadQueue = [];
   bool _isProcessingQueue = false;
-  
+
   // Enhanced: Automatic retry configuration
   int maxRetryAttempts = 3;
   Duration initialRetryDelay = const Duration(seconds: 2);
-  
+
   // Enhanced: Download statistics
   int _totalDownloadsStarted = 0;
   final int _totalDownloadsCompleted = 0;
@@ -215,46 +214,52 @@ class DownloadProvider extends ChangeNotifier {
 
   /// Constructor with optional bandwidth manager injection
   DownloadProvider({BandwidthManagerProvider? bandwidthManager})
-      : _bandwidthManager = bandwidthManager;
+    : _bandwidthManager = bandwidthManager;
 
   /// Get all downloads
   Map<String, DownloadState> get downloads => Map.unmodifiable(_downloads);
 
   /// Get download history
   List<String> get downloadHistory => List.unmodifiable(_downloadHistory);
-  
+
   /// Get active download count
   int get activeDownloadCount => _activeDownloads;
-  
+
   /// Get queued download count
   int get queuedDownloadCount => _downloadQueue.length;
-  
+
   /// Get download statistics
   int get totalDownloadsStarted => _totalDownloadsStarted;
   int get totalDownloadsCompleted => _totalDownloadsCompleted;
   int get totalDownloadsFailed => _totalDownloadsFailed;
   int get totalBytesDownloaded => _totalBytesDownloaded;
-  
+
   /// Calculate average download speed (bytes per second)
   double get averageDownloadSpeed {
-    final activeDownloads = _downloads.values.where((d) => d.downloadStatus.isActive);
+    final activeDownloads = _downloads.values.where(
+      (d) => d.downloadStatus.isActive,
+    );
     if (activeDownloads.isEmpty) return 0.0;
-    
+
     double totalSpeed = 0.0;
     int count = 0;
-    
+
     for (final download in activeDownloads) {
       if (download.startTime != null) {
-        final elapsed = DateTime.now().difference(download.startTime!).inSeconds;
+        final elapsed = DateTime.now()
+            .difference(download.startTime!)
+            .inSeconds;
         if (elapsed > 0) {
-          final totalBytes = download.fileProgress.values
-              .fold<int>(0, (sum, progress) => sum + progress.downloaded);
+          final totalBytes = download.fileProgress.values.fold<int>(
+            0,
+            (sum, progress) => sum + progress.downloaded,
+          );
           totalSpeed += totalBytes / elapsed;
           count++;
         }
       }
     }
-    
+
     return count > 0 ? totalSpeed / count : 0.0;
   }
 
@@ -262,12 +267,12 @@ class DownloadProvider extends ChangeNotifier {
   DownloadState? getDownload(String identifier) {
     return _downloads[identifier];
   }
-  
+
   /// Get cached metadata if available
   ArchiveMetadata? getCachedMetadata(String identifier) {
     return _metadataCache[identifier];
   }
-  
+
   /// Clear metadata cache
   void clearMetadataCache() {
     _metadataCache.clear();
@@ -275,9 +280,9 @@ class DownloadProvider extends ChangeNotifier {
   }
 
   /// Start downloading an archive
-  /// 
+  ///
   /// If maxConcurrentDownloads is reached, the download will be queued.
-  /// 
+  ///
   /// [fileFilters] (deprecated): Use [filter] parameter instead for advanced filtering
   /// [filter]: Advanced FileFilter object supporting subfolders, regex, size ranges, etc.
   /// [priority]: Download priority (low/normal/high) affects queue order and server priority
@@ -297,17 +302,21 @@ class DownloadProvider extends ChangeNotifier {
     // Check if we can start immediately or need to queue
     if (_activeDownloads >= maxConcurrentDownloads) {
       // Queue the download
-      _downloadQueue.add(_QueuedDownload(
-        identifier: identifier,
-        outputDir: outputDir,
-        fileFilters: fileFilters,
-        filter: filter,
-        priority: priority,
-      ));
-      
+      _downloadQueue.add(
+        _QueuedDownload(
+          identifier: identifier,
+          outputDir: outputDir,
+          fileFilters: fileFilters,
+          filter: filter,
+          priority: priority,
+        ),
+      );
+
       // Sort queue by priority (high priority first)
-      _downloadQueue.sort((a, b) => b.priority.queueWeight.compareTo(a.priority.queueWeight));
-      
+      _downloadQueue.sort(
+        (a, b) => b.priority.queueWeight.compareTo(a.priority.queueWeight),
+      );
+
       // Initialize as queued state
       _downloads[identifier] = DownloadState(
         identifier: identifier,
@@ -316,14 +325,22 @@ class DownloadProvider extends ChangeNotifier {
         startTime: DateTime.now(),
       );
       notifyListeners();
-      
+
       if (kDebugMode) {
-        print('Download queued: $identifier (${_downloadQueue.length} in queue)');
+        print(
+          'Download queued: $identifier (${_downloadQueue.length} in queue)',
+        );
       }
       return;
     }
 
-    await _executeDownload(identifier, outputDir, fileFilters, filter, priority);
+    await _executeDownload(
+      identifier,
+      outputDir,
+      fileFilters,
+      filter,
+      priority,
+    );
   }
 
   /// Execute a download
@@ -334,7 +351,6 @@ class DownloadProvider extends ChangeNotifier {
     FileFilter? filter,
     DownloadPriority priority,
   ) async {
-
     // Initialize download state
     _downloads[identifier] = DownloadState(
       identifier: identifier,
@@ -348,7 +364,7 @@ class DownloadProvider extends ChangeNotifier {
     try {
       // Create bandwidth throttle for this download
       _bandwidthManager?.createThrottle(identifier);
-      
+
       // Fetch metadata with caching
       ArchiveMetadata metadata;
       if (_metadataCache.containsKey(identifier)) {
@@ -359,7 +375,7 @@ class DownloadProvider extends ChangeNotifier {
         metadata = await _service.fetchMetadata(identifier);
         _metadataCache[identifier] = metadata;
       }
-      
+
       _downloads[identifier] = _downloads[identifier]!.copyWith(
         metadata: metadata,
         downloadStatus: DownloadStatus.downloading,
@@ -368,7 +384,7 @@ class DownloadProvider extends ChangeNotifier {
 
       // Enhanced: Improved file filtering with multiple patterns and advanced options
       var filesToDownload = metadata.files;
-      
+
       // Use advanced filter if provided, otherwise fall back to simple fileFilters
       if (filter != null && filter.hasActiveCriteria) {
         filesToDownload = _applyAdvancedFilter(filesToDownload, filter);
@@ -396,10 +412,10 @@ class DownloadProvider extends ChangeNotifier {
 
       // Download each file
       final downloadDir = outputDir ?? '/sdcard/Download/ia-get/$identifier';
-      
+
       // Track active downloads for concurrency control
       _activeDownloads++;
-      
+
       for (final file in filesToDownload) {
         final url = IAUtils.buildDownloadUrl(identifier, file.name);
         final outputPath = '$downloadDir/${file.name}';
@@ -414,7 +430,7 @@ class DownloadProvider extends ChangeNotifier {
           percentage: 0.0,
           status: 'starting',
         );
-        
+
         _downloads[identifier] = _downloads[identifier]!.copyWith(
           fileProgress: fileProgress,
         );
@@ -434,7 +450,7 @@ class DownloadProvider extends ChangeNotifier {
               percentage: total > 0 ? (downloaded / total) * 100 : 0.0,
               status: 'downloading',
             );
-            
+
             _downloads[identifier] = _downloads[identifier]!.copyWith(
               fileProgress: updatedProgress,
             );
@@ -450,7 +466,7 @@ class DownloadProvider extends ChangeNotifier {
           progress: 1.0,
           status: progress_model.DownloadStatus.completed,
         );
-        
+
         _downloads[identifier] = _downloads[identifier]!.copyWith(
           fileProgress: updatedProgress,
         );
@@ -486,9 +502,11 @@ class DownloadProvider extends ChangeNotifier {
               outputPath,
               downloadDir,
             );
-            
+
             if (kDebugMode) {
-              print('Extracted ${extractedFiles.length} files from ${file.name}');
+              print(
+                'Extracted ${extractedFiles.length} files from ${file.name}',
+              );
             }
           } catch (e) {
             if (kDebugMode) {
@@ -503,7 +521,7 @@ class DownloadProvider extends ChangeNotifier {
         downloadStatus: DownloadStatus.complete,
         endTime: DateTime.now(),
       );
-      
+
       // Add to history
       if (!_downloadHistory.contains(identifier)) {
         _downloadHistory.insert(0, identifier);
@@ -511,7 +529,7 @@ class DownloadProvider extends ChangeNotifier {
           _downloadHistory.removeLast();
         }
       }
-      
+
       notifyListeners();
     } catch (e, stackTrace) {
       if (kDebugMode) {
@@ -523,9 +541,11 @@ class DownloadProvider extends ChangeNotifier {
       String errorMessage = e.toString();
       if (errorMessage.contains('network') || errorMessage.contains('HTTP')) {
         errorMessage = 'Network error: Please check your internet connection';
-      } else if (errorMessage.contains('permission') || errorMessage.contains('denied')) {
+      } else if (errorMessage.contains('permission') ||
+          errorMessage.contains('denied')) {
         errorMessage = 'Permission error: Cannot write to destination';
-      } else if (errorMessage.contains('space') || errorMessage.contains('full')) {
+      } else if (errorMessage.contains('space') ||
+          errorMessage.contains('full')) {
         errorMessage = 'Storage error: Insufficient disk space';
       }
 
@@ -541,37 +561,37 @@ class DownloadProvider extends ChangeNotifier {
     } finally {
       // Remove bandwidth throttle for this download
       _bandwidthManager?.removeThrottle(identifier);
-      
+
       // Ensure active download count is decremented
       if (_activeDownloads > 0) {
         _activeDownloads--;
       }
-      
+
       // Process queue if there are pending downloads
       _processQueue();
     }
   }
-  
+
   /// Retry a failed download
-  /// 
+  ///
   /// Automatically called for transient errors, but can also be manually triggered
   Future<void> retryDownload(String identifier) async {
     final downloadState = _downloads[identifier];
     if (downloadState == null) {
       throw Exception('Download not found: $identifier');
     }
-    
+
     if (downloadState.downloadStatus != DownloadStatus.error) {
       throw Exception('Can only retry failed downloads');
     }
-    
+
     // Reset download state
     _downloads[identifier] = downloadState.copyWith(
       downloadStatus: DownloadStatus.idle,
       error: null,
     );
     notifyListeners();
-    
+
     // Restart the download
     await startDownload(
       identifier,
@@ -589,11 +609,14 @@ class DownloadProvider extends ChangeNotifier {
     _isProcessingQueue = true;
 
     try {
-      while (_downloadQueue.isNotEmpty && _activeDownloads < maxConcurrentDownloads) {
+      while (_downloadQueue.isNotEmpty &&
+          _activeDownloads < maxConcurrentDownloads) {
         final queued = _downloadQueue.removeAt(0);
-        
+
         if (kDebugMode) {
-          print('Processing queued download: ${queued.identifier} (priority: ${queued.priority.displayName})');
+          print(
+            'Processing queued download: ${queued.identifier} (priority: ${queued.priority.displayName})',
+          );
         }
 
         // Execute the queued download (fire and forget to allow queue processing)
@@ -613,9 +636,9 @@ class DownloadProvider extends ChangeNotifier {
       _isProcessingQueue = false;
     }
   }
-  
+
   /// Download multiple files from the same archive (batch operation)
-  /// 
+  ///
   /// Efficiently downloads selected files with concurrent processing
   Future<void> batchDownload(
     String identifier,
@@ -625,11 +648,13 @@ class DownloadProvider extends ChangeNotifier {
     if (fileNames.isEmpty) {
       throw Exception('No files selected for batch download');
     }
-    
+
     if (kDebugMode) {
-      print('Starting batch download: $identifier with ${fileNames.length} files');
+      print(
+        'Starting batch download: $identifier with ${fileNames.length} files',
+      );
     }
-    
+
     // Use the file filters to download only selected files
     await startDownload(
       identifier,
@@ -670,9 +695,12 @@ class DownloadProvider extends ChangeNotifier {
     _downloadHistory.clear();
     notifyListeners();
   }
-  
+
   /// Apply advanced filter to list of files
-  List<ArchiveFile> _applyAdvancedFilter(List<ArchiveFile> files, FileFilter filter) {
+  List<ArchiveFile> _applyAdvancedFilter(
+    List<ArchiveFile> files,
+    FileFilter filter,
+  ) {
     return files.where((file) {
       // Source type filtering
       if (file.source != null) {
@@ -681,7 +709,7 @@ class DownloadProvider extends ChangeNotifier {
         if (source == 'derivative' && !filter.includeDerivative) return false;
         if (source == 'metadata' && !filter.includeMetadata) return false;
       }
-      
+
       // Format filtering
       if (filter.includeFormats.isNotEmpty && file.format != null) {
         if (!filter.includeFormats.contains(file.format!.toLowerCase())) {
@@ -693,53 +721,57 @@ class DownloadProvider extends ChangeNotifier {
           return false;
         }
       }
-      
+
       // Size filtering
       if (file.size != null) {
-        if (filter.minSize != null && file.size! < filter.minSize!) return false;
-        if (filter.maxSize != null && file.size! > filter.maxSize!) return false;
+        if (filter.minSize != null && file.size! < filter.minSize!) {
+          return false;
+        }
+        if (filter.maxSize != null && file.size! > filter.maxSize!) {
+          return false;
+        }
       }
-      
+
       // Subfolder filtering
       if (filter.includeSubfolders.isNotEmpty) {
-        bool matchesSubfolder = filter.includeSubfolders.any((subfolder) => 
-          file.isInSubfolder(subfolder)
+        bool matchesSubfolder = filter.includeSubfolders.any(
+          (subfolder) => file.isInSubfolder(subfolder),
         );
         if (!matchesSubfolder) return false;
       }
       if (filter.excludeSubfolders.isNotEmpty) {
-        bool matchesExcluded = filter.excludeSubfolders.any((subfolder) => 
-          file.isInSubfolder(subfolder)
+        bool matchesExcluded = filter.excludeSubfolders.any(
+          (subfolder) => file.isInSubfolder(subfolder),
         );
         if (matchesExcluded) return false;
       }
-      
+
       // Pattern filtering (filename-based)
       final fullPath = file.name.toLowerCase();
-      
+
       if (filter.includePatterns.isNotEmpty) {
         bool matchesPattern = filter.includePatterns.any((pattern) {
           return _matchesPattern(fullPath, pattern, filter.useRegex);
         });
         if (!matchesPattern) return false;
       }
-      
+
       if (filter.excludePatterns.isNotEmpty) {
         bool matchesExcluded = filter.excludePatterns.any((pattern) {
           return _matchesPattern(fullPath, pattern, filter.useRegex);
         });
         if (matchesExcluded) return false;
       }
-      
+
       return true;
     }).toList();
   }
-  
+
   /// Match a filename against a pattern (wildcard or regex)
   bool _matchesPattern(String filename, String pattern, bool useRegex) {
     final filenameLower = filename.toLowerCase();
     final patternLower = pattern.toLowerCase();
-    
+
     if (useRegex) {
       // Treat pattern as regex
       try {
@@ -771,7 +803,7 @@ class DownloadProvider extends ChangeNotifier {
   }
 
   /// Change priority of a download
-  /// 
+  ///
   /// If download is active, priority change takes effect immediately.
   /// If download is queued, it will be re-sorted in the queue.
   void changePriority(String identifier, DownloadPriority newPriority) {
@@ -784,7 +816,9 @@ class DownloadProvider extends ChangeNotifier {
     _downloads[identifier] = download.copyWith(priority: newPriority);
 
     // If download is queued, update queue and re-sort
-    final queueIndex = _downloadQueue.indexWhere((q) => q.identifier == identifier);
+    final queueIndex = _downloadQueue.indexWhere(
+      (q) => q.identifier == identifier,
+    );
     if (queueIndex != -1) {
       final queued = _downloadQueue[queueIndex];
       _downloadQueue[queueIndex] = _QueuedDownload(
@@ -794,12 +828,16 @@ class DownloadProvider extends ChangeNotifier {
         filter: queued.filter,
         priority: newPriority,
       );
-      
+
       // Re-sort queue by priority
-      _downloadQueue.sort((a, b) => b.priority.queueWeight.compareTo(a.priority.queueWeight));
-      
+      _downloadQueue.sort(
+        (a, b) => b.priority.queueWeight.compareTo(a.priority.queueWeight),
+      );
+
       if (kDebugMode) {
-        print('Download priority changed: $identifier -> ${newPriority.displayName}');
+        print(
+          'Download priority changed: $identifier -> ${newPriority.displayName}',
+        );
       }
     }
 

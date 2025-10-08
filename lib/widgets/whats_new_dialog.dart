@@ -48,20 +48,21 @@ class WhatsNewDialog extends StatelessWidget {
             Text(
               'We\'ve been busy improving your experience!',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 20),
-            
+
             _buildFeatureItem(
               context,
               icon: Icons.speed,
               iconColor: SemanticColors.info,
               title: 'Real-Time Progress',
-              description: 'Watch your downloads with live speed and time remaining',
+              description:
+                  'Watch your downloads with live speed and time remaining',
             ),
             const SizedBox(height: 16),
-            
+
             _buildFeatureItem(
               context,
               icon: Icons.folder_open,
@@ -70,16 +71,17 @@ class WhatsNewDialog extends StatelessWidget {
               description: 'Tap files to open them instantly from the app',
             ),
             const SizedBox(height: 16),
-            
+
             _buildFeatureItem(
               context,
               icon: Icons.link,
               iconColor: SemanticColors.primary(context),
               title: 'Deep Links',
-              description: 'Click archive.org links anywhere - they open in the app!',
+              description:
+                  'Click archive.org links anywhere - they open in the app!',
             ),
             const SizedBox(height: 16),
-            
+
             _buildFeatureItem(
               context,
               icon: Icons.tune,
@@ -88,7 +90,7 @@ class WhatsNewDialog extends StatelessWidget {
               description: 'Limit download speed in Settings to save data',
             ),
             const SizedBox(height: 20),
-            
+
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -107,8 +109,8 @@ class WhatsNewDialog extends StatelessWidget {
                     child: Text(
                       'Explore Settings for more customization options',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          ),
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
                     ),
                   ),
                 ],
@@ -147,11 +149,7 @@ class WhatsNewDialog extends StatelessWidget {
             color: iconColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: 24,
-          ),
+          child: Icon(icon, color: iconColor, size: 24),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -160,16 +158,16 @@ class WhatsNewDialog extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

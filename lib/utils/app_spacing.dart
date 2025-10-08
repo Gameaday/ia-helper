@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Material Design 3 Spacing System
-/// 
+///
 /// Provides standardized spacing constants following the Material Design 8dp grid system.
 /// All spacing values are multiples of 4dp (half of 8dp) or 8dp to maintain visual consistency.
 ///
@@ -82,9 +82,18 @@ class AppSpacing {
   // Common combined padding patterns
   static const EdgeInsets cardPadding = EdgeInsets.all(lg); // 16dp all sides
   static const EdgeInsets dialogPadding = EdgeInsets.all(xl); // 24dp all sides
-  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(horizontal: xl, vertical: md); // 24h × 12v
-  static const EdgeInsets chipPadding = EdgeInsets.symmetric(horizontal: sm, vertical: xs); // 8h × 4v
-  static const EdgeInsets listItemPadding = EdgeInsets.symmetric(horizontal: lg, vertical: sm); // 16h × 8v
+  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(
+    horizontal: xl,
+    vertical: md,
+  ); // 24h × 12v
+  static const EdgeInsets chipPadding = EdgeInsets.symmetric(
+    horizontal: sm,
+    vertical: xs,
+  ); // 8h × 4v
+  static const EdgeInsets listItemPadding = EdgeInsets.symmetric(
+    horizontal: lg,
+    vertical: sm,
+  ); // 16h × 8v
   static const EdgeInsets screenPadding = EdgeInsets.all(lg); // 16dp all sides
   static const EdgeInsets sectionPadding = EdgeInsets.all(xl); // 24dp all sides
 
@@ -155,8 +164,14 @@ class AppSpacing {
   /// - Filled buttons: 24h × 12v
   /// - Outlined buttons: 24h × 12v
   /// - Text buttons: 12h × 8v (tighter)
-  static const EdgeInsets filledButtonPadding = EdgeInsets.symmetric(horizontal: xl, vertical: md);
-  static const EdgeInsets textButtonPadding = EdgeInsets.symmetric(horizontal: md, vertical: sm);
+  static const EdgeInsets filledButtonPadding = EdgeInsets.symmetric(
+    horizontal: xl,
+    vertical: md,
+  );
+  static const EdgeInsets textButtonPadding = EdgeInsets.symmetric(
+    horizontal: md,
+    vertical: sm,
+  );
 
   /// Card spacing
   /// - Card padding: 16dp all sides
@@ -167,8 +182,14 @@ class AppSpacing {
   /// List item spacing
   /// - List item padding: 16h × 8v
   /// - List item content padding: 8h × 4v (for nested content)
-  static const EdgeInsets listItemContentPadding = EdgeInsets.symmetric(horizontal: lg, vertical: sm);
-  static const EdgeInsets listItemNestedPadding = EdgeInsets.symmetric(horizontal: sm, vertical: xs);
+  static const EdgeInsets listItemContentPadding = EdgeInsets.symmetric(
+    horizontal: lg,
+    vertical: sm,
+  );
+  static const EdgeInsets listItemNestedPadding = EdgeInsets.symmetric(
+    horizontal: sm,
+    vertical: xs,
+  );
 
   /// Dialog spacing
   /// - Dialog padding: 24dp all sides
@@ -176,7 +197,10 @@ class AppSpacing {
   /// - Dialog content padding: 24h × 16v
   static const EdgeInsets dialogContentPadding = EdgeInsets.all(xl);
   static const EdgeInsets dialogTitlePadding = EdgeInsets.all(xl);
-  static const EdgeInsets dialogActionPadding = EdgeInsets.symmetric(horizontal: xl, vertical: lg);
+  static const EdgeInsets dialogActionPadding = EdgeInsets.symmetric(
+    horizontal: xl,
+    vertical: lg,
+  );
 
   /// Screen/Page spacing
   /// - Screen edge padding: 16dp (mobile), 24dp (tablet)
@@ -192,7 +216,10 @@ class AppSpacing {
   /// Input field spacing
   /// - Text field content padding: 16h × 12v
   /// - Text field horizontal padding: 16dp
-  static const EdgeInsets textFieldPadding = EdgeInsets.symmetric(horizontal: lg, vertical: md);
+  static const EdgeInsets textFieldPadding = EdgeInsets.symmetric(
+    horizontal: lg,
+    vertical: md,
+  );
 
   // ============================================================================
   // USAGE EXAMPLES

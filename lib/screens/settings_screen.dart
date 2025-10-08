@@ -150,246 +150,249 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ? const Center(child: CircularProgressIndicator())
         : ListView(
             children: [
-                // Download Settings Section
-                _buildSectionHeader('Download Settings'),
+              // Download Settings Section
+              _buildSectionHeader('Download Settings'),
 
-                ListTile(
-                  leading: const Icon(Icons.folder),
-                  title: const Text('Download Location'),
-                  subtitle: Text(_downloadPath),
-                  trailing: const Icon(Icons.edit),
-                  onTap: _showDownloadPathDialog,
+              ListTile(
+                leading: const Icon(Icons.folder),
+                title: const Text('Download Location'),
+                subtitle: Text(_downloadPath),
+                trailing: const Icon(Icons.edit),
+                onTap: _showDownloadPathDialog,
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.file_download),
+                title: const Text('Concurrent Downloads'),
+                subtitle: Text('$_concurrentDownloads files at a time'),
+                trailing: SizedBox(
+                  width: 100,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove),
+                        tooltip: 'Decrease concurrent downloads',
+                        onPressed: _concurrentDownloads > 1
+                            ? () => _saveConcurrentDownloads(
+                                _concurrentDownloads - 1,
+                              )
+                            : null,
+                      ),
+                      Text('$_concurrentDownloads'),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        tooltip: 'Increase concurrent downloads',
+                        onPressed: _concurrentDownloads < 10
+                            ? () => _saveConcurrentDownloads(
+                                _concurrentDownloads + 1,
+                              )
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SwitchListTile(
+                secondary: const Icon(Icons.archive),
+                title: const Text('Auto-decompress Archives'),
+                subtitle: const Text(
+                  'Automatically extract ZIP, TAR, and other archives',
+                ),
+                value: _autoDecompress,
+                onChanged: _saveAutoDecompress,
+              ),
+
+              SwitchListTile(
+                secondary: const Icon(Icons.verified),
+                title: const Text('Verify Checksums'),
+                subtitle: const Text(
+                  'Verify MD5/SHA1 checksums after download',
+                ),
+                value: _verifyChecksums,
+                onChanged: _saveVerifyChecksums,
+              ),
+
+              const Divider(),
+
+              // Bandwidth Settings Section
+              _buildSectionHeader('Bandwidth & Speed'),
+
+              ListTile(
+                leading: const Icon(Icons.speed),
+                title: Row(
+                  children: [
+                    const Text('Bandwidth Limit'),
+                    const SizedBox(width: 8),
+                    Tooltip(
+                      message:
+                          'Control download speed to save data and be a good citizen',
+                      child: Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                subtitle: const Text(
+                  'Configure speed limits on Downloads screen',
+                ),
+                trailing: const Icon(Icons.arrow_forward),
+                onTap: () {
+                  // Navigate to downloads screen where bandwidth controls are
+                  Navigator.pushNamed(context, '/downloads');
+                },
+              ),
+
+              const Divider(),
+
+              // File Browser Settings Section
+              _buildSectionHeader('File Browser'),
+
+              SwitchListTile(
+                secondary: const Icon(Icons.visibility),
+                title: const Text('Show Hidden Files'),
+                subtitle: const Text('Show files starting with . or _'),
+                value: _showHiddenFiles,
+                onChanged: _saveShowHiddenFiles,
+              ),
+
+              const Divider(),
+
+              // Cache Settings Section
+              _buildSectionHeader('Offline Cache'),
+
+              // Cache Statistics Card with enhanced widget
+              if (_cacheStats != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: CacheStatisticsWidget(
+                    stats: _cacheStats!,
+                    onClearCache: _showClearAllCacheDialog,
+                    onPurgeStale: _purgeStaleCaches,
+                  ),
                 ),
 
-                ListTile(
-                  leading: const Icon(Icons.file_download),
-                  title: const Text('Concurrent Downloads'),
-                  subtitle: Text('$_concurrentDownloads files at a time'),
-                  trailing: SizedBox(
-                    width: 100,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+              ListTile(
+                leading: const Icon(Icons.schedule_outlined),
+                title: const Text('Cache Retention Period'),
+                subtitle: Text('$_cacheRetentionDays days'),
+                trailing: const Icon(Icons.edit),
+                onTap: _showRetentionPeriodDialog,
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.sync),
+                title: const Text('Sync Frequency'),
+                subtitle: Text(_getSyncFrequencyLabel(_cacheSyncFrequencyDays)),
+                trailing: const Icon(Icons.edit),
+                onTap: _showSyncFrequencyDialog,
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.data_usage),
+                title: const Text('Max Cache Size'),
+                subtitle: Text(
+                  _cacheMaxSizeMB == 0 ? 'Unlimited' : '$_cacheMaxSizeMB MB',
+                ),
+                trailing: const Icon(Icons.edit),
+                onTap: _showMaxCacheSizeDialog,
+              ),
+
+              SwitchListTile(
+                secondary: const Icon(Icons.cloud_sync),
+                title: const Text('Auto-Sync'),
+                subtitle: const Text('Automatically sync stale metadata'),
+                value: _cacheAutoSync,
+                onChanged: _saveCacheAutoSync,
+              ),
+
+              const SizedBox(height: 8),
+
+              // Cache Management Buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          tooltip: 'Decrease concurrent downloads',
-                          onPressed: _concurrentDownloads > 1
-                              ? () => _saveConcurrentDownloads(
-                                  _concurrentDownloads - 1,
-                                )
-                              : null,
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _refreshCacheStats,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Refresh Stats'),
+                          ),
                         ),
-                        Text('$_concurrentDownloads'),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          tooltip: 'Increase concurrent downloads',
-                          onPressed: _concurrentDownloads < 10
-                              ? () => _saveConcurrentDownloads(
-                                  _concurrentDownloads + 1,
-                                )
-                              : null,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _purgeStaleCaches,
+                            icon: const Icon(Icons.cleaning_services),
+                            label: const Text('Purge Stale'),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-
-                SwitchListTile(
-                  secondary: const Icon(Icons.archive),
-                  title: const Text('Auto-decompress Archives'),
-                  subtitle: const Text(
-                    'Automatically extract ZIP, TAR, and other archives',
-                  ),
-                  value: _autoDecompress,
-                  onChanged: _saveAutoDecompress,
-                ),
-
-                SwitchListTile(
-                  secondary: const Icon(Icons.verified),
-                  title: const Text('Verify Checksums'),
-                  subtitle: const Text(
-                    'Verify MD5/SHA1 checksums after download',
-                  ),
-                  value: _verifyChecksums,
-                  onChanged: _saveVerifyChecksums,
-                ),
-
-                const Divider(),
-
-                // Bandwidth Settings Section
-                _buildSectionHeader('Bandwidth & Speed'),
-
-                ListTile(
-                  leading: const Icon(Icons.speed),
-                  title: Row(
-                    children: [
-                      const Text('Bandwidth Limit'),
-                      const SizedBox(width: 8),
-                      Tooltip(
-                        message: 'Control download speed to save data and be a good citizen',
-                        child: Icon(
-                          Icons.info_outline,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                  subtitle: const Text('Configure speed limits on Downloads screen'),
-                  trailing: const Icon(Icons.arrow_forward),
-                  onTap: () {
-                    // Navigate to downloads screen where bandwidth controls are
-                    Navigator.pushNamed(context, '/downloads');
-                  },
-                ),
-
-                const Divider(),
-
-                // File Browser Settings Section
-                _buildSectionHeader('File Browser'),
-
-                SwitchListTile(
-                  secondary: const Icon(Icons.visibility),
-                  title: const Text('Show Hidden Files'),
-                  subtitle: const Text('Show files starting with . or _'),
-                  value: _showHiddenFiles,
-                  onChanged: _saveShowHiddenFiles,
-                ),
-
-                const Divider(),
-
-                // Cache Settings Section
-                _buildSectionHeader('Offline Cache'),
-
-                // Cache Statistics Card with enhanced widget
-                if (_cacheStats != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: CacheStatisticsWidget(
-                      stats: _cacheStats!,
-                      onClearCache: _showClearAllCacheDialog,
-                      onPurgeStale: _purgeStaleCaches,
-                    ),
-                  ),
-
-                ListTile(
-                  leading: const Icon(Icons.schedule_outlined),
-                  title: const Text('Cache Retention Period'),
-                  subtitle: Text('$_cacheRetentionDays days'),
-                  trailing: const Icon(Icons.edit),
-                  onTap: _showRetentionPeriodDialog,
-                ),
-
-                ListTile(
-                  leading: const Icon(Icons.sync),
-                  title: const Text('Sync Frequency'),
-                  subtitle: Text(
-                    _getSyncFrequencyLabel(_cacheSyncFrequencyDays),
-                  ),
-                  trailing: const Icon(Icons.edit),
-                  onTap: _showSyncFrequencyDialog,
-                ),
-
-                ListTile(
-                  leading: const Icon(Icons.data_usage),
-                  title: const Text('Max Cache Size'),
-                  subtitle: Text(
-                    _cacheMaxSizeMB == 0 ? 'Unlimited' : '$_cacheMaxSizeMB MB',
-                  ),
-                  trailing: const Icon(Icons.edit),
-                  onTap: _showMaxCacheSizeDialog,
-                ),
-
-                SwitchListTile(
-                  secondary: const Icon(Icons.cloud_sync),
-                  title: const Text('Auto-Sync'),
-                  subtitle: const Text('Automatically sync stale metadata'),
-                  value: _cacheAutoSync,
-                  onChanged: _saveCacheAutoSync,
-                ),
-
-                const SizedBox(height: 8),
-
-                // Cache Management Buttons
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _refreshCacheStats,
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Refresh Stats'),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _purgeStaleCaches,
-                              icon: const Icon(Icons.cleaning_services),
-                              label: const Text('Purge Stale'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _clearUnpinnedCache,
-                              icon: const Icon(Icons.delete_sweep),
-                              label: const Text('Clear Unpinned'),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _vacuumDatabase,
-                              icon: const Icon(Icons.compress),
-                              label: const Text('Vacuum DB'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _showClearAllCacheDialog,
-                          icon: const Icon(Icons.delete_forever),
-                          label: const Text('Clear All Cache'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                            foregroundColor: Theme.of(context).colorScheme.onError,
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _clearUnpinnedCache,
+                            icon: const Icon(Icons.delete_sweep),
+                            label: const Text('Clear Unpinned'),
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _vacuumDatabase,
+                            icon: const Icon(Icons.compress),
+                            label: const Text('Vacuum DB'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _showClearAllCacheDialog,
+                        icon: const Icon(Icons.delete_forever),
+                        label: const Text('Clear All Cache'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.error,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onError,
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
 
-                const Divider(),
+              const Divider(),
 
-                // Reset Settings
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: OutlinedButton.icon(
-                    onPressed: _showResetDialog,
-                    icon: const Icon(Icons.restore),
-                    label: const Text('Reset to Defaults'),
-                  ),
+              // Reset Settings
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: OutlinedButton.icon(
+                  onPressed: _showResetDialog,
+                  icon: const Icon(Icons.restore),
+                  label: const Text('Reset to Defaults'),
                 ),
+              ),
 
-                const SizedBox(height: 32),
-              ],
-            );
+              const SizedBox(height: 32),
+            ],
+          );
 
     // Wrap content with responsive constraints for tablets
     return Scaffold(
@@ -410,9 +413,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Theme.of(context).primaryColor,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.labelLarge?.copyWith(color: Theme.of(context).primaryColor),
       ),
     );
   }

@@ -1,5 +1,5 @@
 /// Download statistics model for tracking overall download performance
-/// 
+///
 /// Provides a type-safe interface for download statistics data that was
 /// previously returned as `Map<String, dynamic>`.
 class DownloadStatistics {
@@ -39,7 +39,7 @@ class DownloadStatistics {
   /// Format average speed as a human-readable string
   String formatAverageSpeed() {
     if (averageSpeed <= 0) return '-';
-    
+
     if (averageSpeed < 1024) {
       return '${averageSpeed.toStringAsFixed(0)} B/s';
     } else if (averageSpeed < 1024 * 1024) {

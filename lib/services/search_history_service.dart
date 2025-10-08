@@ -121,9 +121,7 @@ class SearchHistoryService extends ChangeNotifier {
       );
 
       // Update in-memory list
-      final index = _history.indexWhere(
-        (e) => e.query == entry.query,
-      );
+      final index = _history.indexWhere((e) => e.query == entry.query);
       if (index >= 0) {
         _history[index] = SearchHistoryEntry(
           id: existing.first['id'] as int,
@@ -171,11 +169,7 @@ class SearchHistoryService extends ChangeNotifier {
   /// Remove a specific history entry
   Future<void> removeEntry(int id) async {
     final db = await _dbHelper.database;
-    await db.delete(
-      _tableName,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.delete(_tableName, where: 'id = ?', whereArgs: [id]);
 
     _history.removeWhere((entry) => entry.id == id);
     notifyListeners();
@@ -184,11 +178,7 @@ class SearchHistoryService extends ChangeNotifier {
   /// Remove all history entries matching a query
   Future<void> removeByQuery(String query) async {
     final db = await _dbHelper.database;
-    await db.delete(
-      _tableName,
-      where: 'query = ?',
-      whereArgs: [query],
-    );
+    await db.delete(_tableName, where: 'query = ?', whereArgs: [query]);
 
     _history.removeWhere((entry) => entry.query == query);
     notifyListeners();
@@ -208,7 +198,9 @@ class SearchHistoryService extends ChangeNotifier {
   /// Removes entries older than [_maxAgeDays] days
   Future<int> cleanupOldEntries() async {
     final db = await _dbHelper.database;
-    final cutoffDate = DateTime.now().subtract(const Duration(days: _maxAgeDays));
+    final cutoffDate = DateTime.now().subtract(
+      const Duration(days: _maxAgeDays),
+    );
     final cutoffTimestamp = cutoffDate.millisecondsSinceEpoch;
 
     final count = await db.delete(
@@ -240,7 +232,8 @@ class SearchHistoryService extends ChangeNotifier {
   Future<List<SearchHistoryEntry>> getPopularSearches({int limit = 10}) async {
     final db = await _dbHelper.database;
 
-    final result = await db.rawQuery('''
+    final result = await db.rawQuery(
+      '''
       SELECT 
         query,
         MAX(timestamp) as latest_timestamp,
@@ -251,12 +244,16 @@ class SearchHistoryService extends ChangeNotifier {
       GROUP BY query
       ORDER BY frequency DESC, latest_timestamp DESC
       LIMIT ?
-    ''', [limit]);
+    ''',
+      [limit],
+    );
 
     return result.map((map) {
       return SearchHistoryEntry(
         query: map['query'] as String,
-        timestamp: DateTime.fromMillisecondsSinceEpoch(map['latest_timestamp'] as int),
+        timestamp: DateTime.fromMillisecondsSinceEpoch(
+          map['latest_timestamp'] as int,
+        ),
         resultCount: map['result_count'] as int?,
         mediatype: map['mediatype'] as String?,
       );
@@ -264,7 +261,9 @@ class SearchHistoryService extends ChangeNotifier {
   }
 
   /// Get recent searches with a specific mediatype
-  Future<List<SearchHistoryEntry>> getHistoryByMediatype(String mediatype) async {
+  Future<List<SearchHistoryEntry>> getHistoryByMediatype(
+    String mediatype,
+  ) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       _tableName,

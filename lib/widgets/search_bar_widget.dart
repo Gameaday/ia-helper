@@ -63,8 +63,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                           ? null
                           : () => _searchArchive(_controller.text)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isLoading && canCancel 
-                      ? Theme.of(context).colorScheme.error 
+                  backgroundColor: isLoading && canCancel
+                      ? Theme.of(context).colorScheme.error
                       : null,
                 ),
                 child: isLoading
