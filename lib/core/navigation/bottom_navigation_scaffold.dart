@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../screens/home_screen.dart';
 import '../../screens/library_screen.dart';
 import '../../screens/favorites_screen.dart';
+import '../../screens/transfers_screen.dart';
 import '../../screens/settings_screen.dart';
 import '../../utils/animation_constants.dart';
 import 'navigation_state.dart';
@@ -72,7 +73,7 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
         ),
         _TabNavigator(
           navigatorKey: navigationState.getNavigatorKey(3),
-          rootScreen: _buildTransfersPlaceholder(),
+          rootScreen: const TransfersScreen(),
         ),
         _TabNavigator(
           navigatorKey: navigationState.getNavigatorKey(4),
@@ -125,31 +126,6 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
           tooltip: 'App configuration',
         ),
       ],
-    );
-  }
-
-  // Temporary placeholder until we create the Transfers screen
-  Widget _buildTransfersPlaceholder() {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Transfers')),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.swap_vert, size: 80, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'Transfers Screen',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Coming soon in Phase 2',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
