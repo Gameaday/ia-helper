@@ -30,14 +30,15 @@ void main() {
       await client.get(Uri.parse('https://archive.org/test'));
 
       expect(capturedUserAgent, isNotNull);
-      expect(capturedUserAgent, contains('InternetArchiveHelper'));
-      expect(capturedUserAgent, contains('1.6.0'));
-      expect(capturedUserAgent, contains('support@internetarchivehelper.app'));
+      // User-Agent now comes from HttpHeadersAdapter
+      expect(capturedUserAgent, contains('IA-Helper'));
+      expect(capturedUserAgent, contains('Flutter'));
+      expect(capturedUserAgent, contains('Dart'));
 
       client.close();
     });
 
-    test('should allow custom User-Agent', () async {
+    test('should use platform-specific User-Agent (cannot be customized)', () async {
       String? capturedUserAgent;
 
       final mockClient = MockClient((request) async {
@@ -46,14 +47,17 @@ void main() {
       });
 
       final client = IAHttpClient(
-        userAgent: 'CustomAgent/1.0',
+        userAgent: 'CustomAgent/1.0', // This parameter is no longer used
         innerClient: mockClient,
         rateLimiter: testRateLimiter,
       );
 
       await client.get(Uri.parse('https://archive.org/test'));
 
-      expect(capturedUserAgent, 'CustomAgent/1.0');
+      // User-Agent comes from HttpHeadersAdapter, not the constructor parameter
+      expect(capturedUserAgent, contains('IA-Helper'));
+      expect(capturedUserAgent, contains('Flutter'));
+      expect(capturedUserAgent, isNot(contains('CustomAgent')));
 
       client.close();
     });
