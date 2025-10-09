@@ -11,6 +11,8 @@ import 'package:internet_archive_helper/services/favorites_service.dart';
 import 'package:internet_archive_helper/services/local_archive_storage.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
 import 'package:internet_archive_helper/core/utils/formatting_utils.dart';
+import 'package:internet_archive_helper/utils/snackbar_helper.dart';
+import 'package:internet_archive_helper/widgets/error_card.dart';
 import 'package:provider/provider.dart';
 
 /// Material Design 3 Library screen consolidating downloads, collections, and favorites
@@ -174,7 +176,10 @@ class _LibraryScreenState extends State<LibraryScreen>
     }
 
     if (_error != null) {
-      return _buildErrorState();
+      return ErrorCard(
+        error: Exception(_error!),
+        onRetry: _loadData,
+      );
     }
 
     return TabBarView(
@@ -185,42 +190,6 @@ class _LibraryScreenState extends State<LibraryScreen>
         _buildFavoritesTab(),
         _buildRecentTab(),
       ],
-    );
-  }
-
-  Widget _buildErrorState() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 80, color: colorScheme.error),
-            const SizedBox(height: 24),
-            Text(
-              'Error loading library',
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _error!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -280,11 +249,9 @@ class _LibraryScreenState extends State<LibraryScreen>
           // Navigate to Discover tab (index 2 in bottom nav)
           // This would require access to the parent navigation state
           // For now, we'll just show a snackbar
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Go to Discover tab to find content to favorite'),
-              behavior: SnackBarBehavior.floating,
-            ),
+          SnackBarHelper.showInfo(
+            context,
+            'Go to Discover tab to find content to favorite',
           );
         },
       );
@@ -380,12 +347,7 @@ class _LibraryScreenState extends State<LibraryScreen>
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading archive: $e'),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -966,8 +928,6 @@ class _LibraryScreenState extends State<LibraryScreen>
           FilledButton(
             onPressed: () async {
               if (controller.text.trim().isNotEmpty) {
-                final navigator = Navigator.of(context);
-                final messenger = ScaffoldMessenger.of(context);
                 final collectionName = controller.text.trim();
 
                 try {
@@ -975,27 +935,17 @@ class _LibraryScreenState extends State<LibraryScreen>
                     name: collectionName,
                     description: null,
                   );
-                  if (mounted) {
-                    navigator.pop();
-                    _loadData(); // Reload to show new collection
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Created "$collectionName"'),
-                        behavior: SnackBarBehavior.floating,
-                        duration: MD3Durations.short,
-                      ),
-                    );
-                  }
+                  if (!context.mounted) return;
+                  
+                  Navigator.of(context).pop();
+                  _loadData(); // Reload to show new collection
+                  SnackBarHelper.showSuccess(
+                    context,
+                    'Created "$collectionName"',
+                  );
                 } catch (e) {
-                  if (mounted) {
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                        behavior: SnackBarBehavior.floating,
-                        duration: MD3Durations.medium,
-                      ),
-                    );
-                  }
+                  if (!context.mounted) return;
+                  SnackBarHelper.showError(context, e);
                 }
               }
             },
@@ -1036,8 +986,6 @@ class _LibraryScreenState extends State<LibraryScreen>
                           ? Text(collection.description!)
                           : null,
                       onTap: () async {
-                        final navigator = Navigator.of(context);
-                        final messenger = ScaffoldMessenger.of(context);
                         final archiveId = archive.identifier;
                         final collName = collection.name;
 
@@ -1046,28 +994,16 @@ class _LibraryScreenState extends State<LibraryScreen>
                             collectionId: collection.id!,
                             identifier: archiveId,
                           );
-                          if (mounted) {
-                            navigator.pop();
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Added "$archiveId" to $collName',
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                                duration: MD3Durations.short,
-                              ),
-                            );
-                          }
+                          if (!context.mounted) return;
+                          
+                          Navigator.of(context).pop();
+                          SnackBarHelper.showSuccess(
+                            context,
+                            'Added "$archiveId" to $collName',
+                          );
                         } catch (e) {
-                          if (mounted) {
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text('Error: $e'),
-                                behavior: SnackBarBehavior.floating,
-                                duration: MD3Durations.medium,
-                              ),
-                            );
-                          }
+                          if (!context.mounted) return;
+                          SnackBarHelper.showError(context, e);
                         }
                       },
                     );
@@ -1100,20 +1036,15 @@ class _LibraryScreenState extends State<LibraryScreen>
           ),
           FilledButton(
             onPressed: () async {
-              final navigator = Navigator.of(context);
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
-              navigator.pop();
+              Navigator.of(context).pop();
               await _localArchiveStorage.removeArchive(archive.identifier);
               await _loadData();
-              if (mounted) {
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Archive deleted from library'),
-                    behavior: SnackBarBehavior.floating,
-                    duration: MD3Durations.short,
-                  ),
-                );
-              }
+              if (!context.mounted) return;
+              
+              SnackBarHelper.showSuccess(
+                context,
+                'Archive deleted from library',
+              );
             },
             child: const Text('Delete'),
           ),

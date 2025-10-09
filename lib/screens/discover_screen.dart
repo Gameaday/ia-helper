@@ -8,6 +8,7 @@ import '../services/advanced_search_service.dart';
 import '../services/archive_service.dart';
 import '../services/favorites_service.dart';
 import '../utils/animation_constants.dart';
+import '../utils/snackbar_helper.dart';
 import 'advanced_search_screen.dart';
 import 'archive_detail_screen.dart';
 import 'search_results_screen.dart';
@@ -84,12 +85,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         setState(() {
           _isLoadingTrending = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load trending content: $e'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        SnackBarHelper.showError(context, e);
       }
     }
   }
@@ -501,12 +497,7 @@ class _TrendingCard extends StatelessWidget {
           } catch (e) {
             if (!context.mounted) return;
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error loading archive: $e'),
-                duration: const Duration(seconds: 3),
-              ),
-            );
+            SnackBarHelper.showError(context, e);
           }
         },
         child: Column(

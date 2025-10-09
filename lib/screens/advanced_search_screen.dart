@@ -6,6 +6,7 @@ import 'package:internet_archive_helper/models/search_query.dart';
 import 'package:internet_archive_helper/models/sort_option.dart';
 import 'package:internet_archive_helper/services/saved_search_service.dart';
 import 'package:internet_archive_helper/services/search_history_service.dart';
+import 'package:internet_archive_helper/utils/snackbar_helper.dart';
 
 /// Material Design 3 compliant advanced search screen
 ///
@@ -160,7 +161,10 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         _currentQuery.fieldQueries.isEmpty &&
         _currentQuery.mediatypes.isEmpty &&
         _currentQuery.dateRange == null) {
-      _showSnackBar('Please enter a search query or select filters');
+      SnackBarHelper.showWarning(
+        context,
+        'Please enter a search query or select filters',
+      );
       return;
     }
 
@@ -202,7 +206,10 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     _buildQuery();
 
     if (_currentQuery.query == null && _currentQuery.fieldQueries.isEmpty) {
-      _showSnackBar('Please enter a search query first');
+      SnackBarHelper.showWarning(
+        context,
+        'Please enter a search query first',
+      );
       return;
     }
 
@@ -272,11 +279,11 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       try {
         await _savedSearchService.createSavedSearch(savedSearch);
         if (mounted) {
-          _showSnackBar('Search saved successfully');
+          SnackBarHelper.showSuccess(context, 'Search saved successfully');
         }
       } catch (e) {
         if (mounted) {
-          _showSnackBar('Error saving search: $e');
+          SnackBarHelper.showError(context, e);
         }
       }
     }
@@ -308,14 +315,9 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     // Mark as used
     await _savedSearchService.markSearchUsed(savedSearch.id!);
 
-    _showSnackBar('Loaded: ${savedSearch.name}');
-  }
-
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
+    if (mounted) {
+      SnackBarHelper.showInfo(context, 'Loaded: ${savedSearch.name}');
+    }
   }
 
   void _clearFilters() {
@@ -791,7 +793,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
 
       final label =
           'Custom: ${startDate!.year}-${startDate!.month.toString().padLeft(2, '0')}-${startDate!.day.toString().padLeft(2, '0')} to ${endDate!.year}-${endDate!.month.toString().padLeft(2, '0')}-${endDate!.day.toString().padLeft(2, '0')}';
-      _showSnackBar(label);
+      SnackBarHelper.showInfo(context, label);
     }
   }
 
