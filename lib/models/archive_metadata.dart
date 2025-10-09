@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Archive metadata model
 class ArchiveMetadata {
   final String identifier;
@@ -82,9 +84,14 @@ class ArchiveMetadata {
       // Cover image is usually the full-size version
       coverImageUrl = thumbnailUrl.replaceAll('__ia_thumb.jpg', '.jpg');
     }
-    // Fallback to generated thumbnail URL
+    // Fallback to generated thumbnail URL (web-friendly on web platform)
     else {
-      thumbnailUrl = 'https://archive.org/services/img/$identifier';
+      // Use CORS-friendly endpoint on web, standard endpoint on native
+      if (kIsWeb) {
+        thumbnailUrl = 'https://archive.org/download/$identifier/__ia_thumb.jpg';
+      } else {
+        thumbnailUrl = 'https://archive.org/services/img/$identifier';
+      }
       coverImageUrl = thumbnailUrl;
     }
 

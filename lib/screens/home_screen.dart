@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import '../models/search_query.dart';
+import '../models/search_history_entry.dart';
 import '../services/archive_service.dart';
 import '../services/history_service.dart';
+import '../services/search_history_service.dart';
 import '../utils/semantic_colors.dart';
 import '../utils/responsive_utils.dart';
 import '../utils/animation_constants.dart';
-import '../widgets/search_bar_widget.dart';
+import '../widgets/intelligent_search_bar.dart';
 import '../widgets/search_suggestion_card.dart';
 import '../widgets/download_manager_widget.dart';
 import '../widgets/archive_info_widget.dart';
 import '../widgets/file_list_widget.dart';
 import '../widgets/download_controls_widget.dart';
-import '../widgets/search_history_sheet.dart';
-import '../widgets/advanced_filters_sheet.dart';
 import 'advanced_search_screen.dart';
 import 'archive_detail_screen.dart';
+import 'search_results_screen.dart';
 import 'help_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -98,20 +101,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search'),
+        title: const Text('Internet Archive Helper'),
         actions: [
-          // Search History modal
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () => _showSearchHistory(context),
-            tooltip: 'Search History',
-          ),
-          // Advanced Filters modal
-          IconButton(
-            icon: const Icon(Icons.tune),
-            onPressed: () => _showAdvancedFilters(context),
-            tooltip: 'Filters',
-          ),
           // Help screen
           IconButton(
             icon: const Icon(Icons.help_outline),
@@ -125,6 +116,42 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             tooltip: 'Help',
+          ),
+          // Overflow menu for less-used actions
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'history':
+                  _navigateToHistory();
+                  break;
+                case 'advanced':
+                  _navigateToAdvancedSearch();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'history',
+                child: Row(
+                  children: [
+                    Icon(Icons.history),
+                    SizedBox(width: 12),
+                    Text('Search History'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'advanced',
+                child: Row(
+                  children: [
+                    Icon(Icons.tune),
+                    SizedBox(width: 12),
+                    Text('Advanced Search'),
+                  ],
+                ),
+              ),
+            ],
+            tooltip: 'More',
           ),
         ],
       ),
@@ -233,8 +260,87 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Column(
       children: [
-        // Search bar
-        const SearchBarWidget(),
+        // Intelligent search bar
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: IntelligentSearchBar(
+            onSearch: _handleSearch,
+            hintText: 'Search Internet Archive',
+          ),
+        ),
+
+        // Recent searches chips (from history)
+        Consumer<HistoryService>(
+          builder: (context, historyService, child) {
+            final recentSearches = historyService.history.take(5).toList();
+            
+            if (recentSearches.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recent Searches',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: recentSearches.map((entry) {
+                      return ActionChip(
+                        label: Text(
+                          entry.identifier,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onPressed: () => _handleSearch(entry.identifier, SearchType.identifier),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            );
+          },
+        ),
+
+        // Quick action buttons
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // Navigate to Discover tab (index 2)
+                    // This would require NavigationState from main.dart
+                    // For now, show a message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Navigate to Discover tab')),
+                    );
+                  },
+                  icon: const Icon(Icons.explore),
+                  label: const Text('Discover'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _navigateToAdvancedSearch,
+                  icon: const Icon(Icons.tune),
+                  label: const Text('Advanced'),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
 
         // Error display
         if (service.error != null)
@@ -309,29 +415,55 @@ class _HomeScreenState extends State<HomeScreen> {
             service.error == null)
           Expanded(
             child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.search,
-                    size: 64,
-                    color: SemanticColors.disabled(context),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Search for an Internet Archive identifier',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: SemanticColors.subtitle(context),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search,
+                      size: 64,
+                      color: SemanticColors.disabled(context),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'e.g., "commute_test" or "nasa_images"',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: SemanticColors.hint(context),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Search Internet Archive',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: SemanticColors.subtitle(context),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.lightbulb_outline,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Search Tips',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _buildTipRow(context, Icons.tag, 'Enter an archive identifier:', 'nasa_images'),
+                            const SizedBox(height: 8),
+                            _buildTipRow(context, Icons.search, 'Search by keywords:', 'classic books'),
+                            const SizedBox(height: 8),
+                            _buildTipRow(context, Icons.filter_alt, 'Use advanced search:', 'title:space AND mediatype:movies'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -405,35 +537,109 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Show search history modal
-  Future<void> _showSearchHistory(BuildContext context) async {
-    final query = await SearchHistorySheet.show(context);
-    if (query != null && mounted) {
-      // User selected a search from history - perform the search
-      if (!context.mounted) return;
-      final archiveService = context.read<ArchiveService>();
-      archiveService.fetchMetadata(query);
+  /// Handle search from IntelligentSearchBar
+  void _handleSearch(String query, SearchType type) {
+    if (query.trim().isEmpty) return;
+
+    final archiveService = context.read<ArchiveService>();
+
+    // Save search to history
+    _saveSearchToHistory(query);
+
+    switch (type) {
+      case SearchType.identifier:
+        // Direct identifier search - fetch metadata
+        archiveService.clearMetadata();
+        archiveService.fetchMetadata(query);
+        break;
+
+      case SearchType.keyword:
+      case SearchType.advanced:
+        // Navigate to search results screen
+        Navigator.push(
+          context,
+          MD3PageTransitions.sharedAxis(
+            page: SearchResultsScreen(query: SearchQuery.simple(query)),
+            settings: const RouteSettings(name: '/search-results'),
+          ),
+        );
+        break;
+
+      case SearchType.empty:
+        // Do nothing for empty search
+        break;
     }
   }
 
-  /// Show advanced filters modal
-  Future<void> _showAdvancedFilters(BuildContext context) async {
-    final result = await AdvancedFiltersSheet.show(context);
-    if (result != null && mounted) {
-      if (!context.mounted) return;
-
-      // Navigate to advanced search screen with filters pre-applied
-      Navigator.push(
-        context,
-        MD3PageTransitions.sharedAxis(
-          page: const AdvancedSearchScreen(),
-          settings: const RouteSettings(name: AdvancedSearchScreen.routeName),
-        ),
-      );
-
-      // Note: The AdvancedSearchScreen will need to accept initial filters
-      // in a future enhancement. For now, we navigate to the screen where
-      // users can apply these filters.
+  /// Save search query to SearchHistoryService
+  Future<void> _saveSearchToHistory(String query) async {
+    try {
+      final entry = SearchHistoryEntry.create(query: query);
+      await SearchHistoryService.instance.addEntry(entry);
+      
+      if (kDebugMode) {
+        debugPrint('[HomeScreen] Saved search to history: $query');
+      }
+    } catch (e) {
+      // Don't fail the search if history save fails
+      if (kDebugMode) {
+        debugPrint('[HomeScreen] Failed to save search to history: $e');
+      }
     }
+  }
+
+  /// Build a tip row for the empty state
+  Widget _buildTipRow(BuildContext context, IconData icon, String label, String example) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: SemanticColors.subtitle(context),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: SemanticColors.subtitle(context),
+              ),
+              children: [
+                TextSpan(text: label),
+                const TextSpan(text: ' '),
+                TextSpan(
+                  text: example,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Navigate to History screen
+  void _navigateToHistory() {
+    // Navigate to History tab (index 1 in bottom nav)
+    // This would require NavigationState from main.dart
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Navigate to History tab')),
+    );
+  }
+
+  /// Navigate to Advanced Search screen
+  void _navigateToAdvancedSearch() {
+    Navigator.push(
+      context,
+      MD3PageTransitions.sharedAxis(
+        page: const AdvancedSearchScreen(),
+        settings: const RouteSettings(name: AdvancedSearchScreen.routeName),
+      ),
+    );
   }
 }
