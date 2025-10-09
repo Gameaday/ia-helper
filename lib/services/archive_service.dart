@@ -78,6 +78,64 @@ class ArchiveService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Validate if an identifier exists on Archive.org
+  ///
+  /// Uses a lightweight HEAD request to check existence without fetching full metadata.
+  /// This is much faster than fetchMetadata() and doesn't affect cache or state.
+  ///
+  /// Returns:
+  /// - true if identifier exists (HTTP 200)
+  /// - false if identifier doesn't exist (HTTP 404 or other errors)
+  ///
+  /// Example:
+  /// ```dart
+  /// final exists = await archiveService.validateIdentifier('commute_test');
+  /// if (exists) {
+  ///   // Show "Open Archive" button
+  /// }
+  /// ```
+  Future<bool> validateIdentifier(String identifier) async {
+    final trimmedIdentifier = identifier.trim();
+    if (trimmedIdentifier.isEmpty) {
+      return false;
+    }
+
+    try {
+      // Use metadata endpoint for validation
+      final url = 'https://archive.org/metadata/$trimmedIdentifier';
+      
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Validating identifier: $trimmedIdentifier');
+      }
+
+      // Use HEAD request for minimal overhead
+      final response = await http.head(
+        Uri.parse(url),
+      ).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          if (kDebugMode) {
+            debugPrint('[ArchiveService] Validation timeout for: $trimmedIdentifier');
+          }
+          return http.Response('Timeout', 408);
+        },
+      );
+
+      final exists = response.statusCode == 200;
+      
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Identifier validation: $trimmedIdentifier = $exists (${response.statusCode})');
+      }
+
+      return exists;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Validation error for $trimmedIdentifier: $e');
+      }
+      return false;
+    }
+  }
+
   /// Fetch metadata for an archive (cache-first strategy)
   ///
   /// Respects API intensity settings:

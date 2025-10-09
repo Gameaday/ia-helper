@@ -80,22 +80,13 @@ class ArchiveMetadata {
     String? thumbnailUrl;
     String? coverImageUrl;
 
-    // Check for misc.image field (common in API responses)
-    if (json['misc']?['image'] != null) {
-      final imagePath = json['misc']['image'] as String;
-      thumbnailUrl = 'https://archive.org$imagePath';
-      
-      // CORS FIX: Use centralized URL service to rewrite CDN URLs
-      thumbnailUrl = urlService.fixCorsUrl(thumbnailUrl, identifier);
-      
-      // Cover image is usually the full-size version
-      coverImageUrl = thumbnailUrl.replaceAll('__ia_thumb.jpg', '.jpg');
-    }
-    // Fallback to generated thumbnail URL (platform-appropriate)
-    else {
-      thumbnailUrl = urlService.getThumbnailUrl(identifier);
-      coverImageUrl = thumbnailUrl;
-    }
+    // ALWAYS use standardized /download/ endpoint for thumbnails
+    // This avoids CORS issues on ALL platforms by using the official API
+    // The misc.image field from API contains CDN redirect paths that cause CORS errors
+    thumbnailUrl = urlService.getThumbnailUrl(identifier);
+    
+    // Cover image is the full-size version (remove _thumb suffix)
+    coverImageUrl = thumbnailUrl.replaceAll('__ia_thumb.jpg', '.jpg');
 
     // Extract rating (can be in reviews or metadata)
     // Handle both numeric and string formats gracefully

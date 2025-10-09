@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/search_history_service.dart';
+import '../services/archive_service.dart';
 import '../utils/animation_constants.dart';
+import 'dart:async';
 
 /// Search type detected from user input
 enum SearchType {
@@ -42,6 +45,11 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   String? _didYouMean;
+  
+  // Identifier validation state
+  bool _isValidatingIdentifier = false;
+  bool? _isValidIdentifier;
+  Timer? _validationDebounce;
 
   @override
   void initState() {
@@ -74,6 +82,7 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
     _controller.dispose();
     _focusNode.dispose();
     _iconAnimationController.dispose();
+    _validationDebounce?.cancel();
     super.dispose();
   }
 
@@ -117,6 +126,8 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
       newType = SearchType.empty;
     } else if (_isIdentifierPattern(trimmed)) {
       newType = SearchType.identifier;
+      // Validate identifier with debouncing
+      _scheduleIdentifierValidation(trimmed);
     } else if (_isAdvancedQuery(trimmed)) {
       newType = SearchType.advanced;
     } else {
@@ -124,8 +135,56 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
     }
 
     if (newType != _currentSearchType) {
-      setState(() => _currentSearchType = newType);
+      setState(() {
+        _currentSearchType = newType;
+        // Reset validation when type changes away from identifier
+        if (newType != SearchType.identifier) {
+          _isValidatingIdentifier = false;
+          _isValidIdentifier = null;
+        }
+      });
       _iconAnimationController.forward(from: 0.0);
+    }
+  }
+
+  /// Schedule identifier validation with debouncing
+  void _scheduleIdentifierValidation(String identifier) {
+    // Cancel previous validation timer
+    _validationDebounce?.cancel();
+    
+    // Reset validation state
+    setState(() {
+      _isValidatingIdentifier = true;
+      _isValidIdentifier = null;
+    });
+    
+    // Schedule new validation after 500ms
+    _validationDebounce = Timer(const Duration(milliseconds: 500), () {
+      _validateIdentifier(identifier);
+    });
+  }
+
+  /// Validate identifier using ArchiveService
+  Future<void> _validateIdentifier(String identifier) async {
+    if (!mounted) return;
+    
+    try {
+      final archiveService = context.read<ArchiveService>();
+      final isValid = await archiveService.validateIdentifier(identifier);
+      
+      if (mounted) {
+        setState(() {
+          _isValidatingIdentifier = false;
+          _isValidIdentifier = isValid;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isValidatingIdentifier = false;
+          _isValidIdentifier = false;
+        });
+      }
     }
   }
 
@@ -304,6 +363,7 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -367,47 +427,102 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
             !_showSuggestions)
           Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Open Archive button (primary action)
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      final query = _controller.text.trim();
-                      widget.onSearch?.call(query, SearchType.identifier);
-                      _focusNode.unfocus();
-                    },
-                    icon: const Icon(Icons.open_in_new, size: 18),
-                    label: const Text('Open Archive'),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
+                // Validation status indicator
+                if (_isValidatingIdentifier || _isValidIdentifier != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        // Loading or status icon
+                        if (_isValidatingIdentifier)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else if (_isValidIdentifier == true)
+                          Icon(
+                            Icons.check_circle,
+                            size: 16,
+                            color: colorScheme.primary,
+                          )
+                        else if (_isValidIdentifier == false)
+                          Icon(
+                            Icons.error_outline,
+                            size: 16,
+                            color: colorScheme.error,
+                          ),
+                        const SizedBox(width: 8),
+                        // Status text
+                        Expanded(
+                          child: Text(
+                            _isValidatingIdentifier
+                                ? 'Checking if archive exists...'
+                                : _isValidIdentifier == true
+                                    ? 'Valid archive identifier'
+                                    : 'Archive not found on Archive.org',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: _isValidatingIdentifier
+                                  ? colorScheme.onSurfaceVariant
+                                  : _isValidIdentifier == true
+                                      ? colorScheme.primary
+                                      : colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Search for term button (secondary action)
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      final query = _controller.text.trim();
-                      widget.onSearch?.call(query, SearchType.keyword);
-                      _focusNode.unfocus();
-                    },
-                    icon: const Icon(Icons.search, size: 18),
-                    label: Text(
-                      'Search for "${_controller.text.trim().length > 12 ? '${_controller.text.trim().substring(0, 12)}...' : _controller.text.trim()}"',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                
+                // Action buttons
+                Row(
+                  children: [
+                    // Open Archive button (primary action) - only enabled if validated
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: _isValidIdentifier == true
+                            ? () {
+                                final query = _controller.text.trim();
+                                widget.onSearch?.call(query, SearchType.identifier);
+                                _focusNode.unfocus();
+                              }
+                            : null, // Disabled until validation succeeds
+                        icon: const Icon(Icons.open_in_new, size: 18),
+                        label: const Text('Open Archive'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    // Search for term button (secondary action) - always enabled
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          final query = _controller.text.trim();
+                          widget.onSearch?.call(query, SearchType.keyword);
+                          _focusNode.unfocus();
+                        },
+                        icon: const Icon(Icons.search, size: 18),
+                        label: Text(
+                          'Search for "${_controller.text.trim().length > 12 ? '${_controller.text.trim().substring(0, 12)}...' : _controller.text.trim()}"',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
