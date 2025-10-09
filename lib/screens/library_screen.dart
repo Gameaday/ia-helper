@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:internet_archive_helper/models/collection.dart';
 import 'package:internet_archive_helper/models/downloaded_archive.dart';
+import 'package:internet_archive_helper/models/favorite.dart';
 import 'package:internet_archive_helper/models/search_query.dart';
 import 'package:internet_archive_helper/screens/archive_detail_screen.dart';
 import 'package:internet_archive_helper/screens/search_results_screen.dart';
+import 'package:internet_archive_helper/services/archive_service.dart';
 import 'package:internet_archive_helper/services/collections_service.dart';
+import 'package:internet_archive_helper/services/favorites_service.dart';
 import 'package:internet_archive_helper/services/local_archive_storage.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
 import 'package:internet_archive_helper/core/utils/formatting_utils.dart';
+import 'package:provider/provider.dart';
 
-/// Material Design 3 Library screen consolidating downloads and collections
+/// Material Design 3 Library screen consolidating downloads, collections, and favorites
 ///
 /// Features:
-/// - Three tabs: All Downloads, Collections, Recent
+/// - Four tabs: All Downloads, Collections, Favorites, Recent
 /// - Filters: date, size, type
 /// - Sort options: name, date, size
 /// - Grid/list view toggle
@@ -31,9 +35,11 @@ class _LibraryScreenState extends State<LibraryScreen>
   late final TabController _tabController;
   final _localArchiveStorage = LocalArchiveStorage();
   final _collectionsService = CollectionsService.instance;
+  final _favoritesService = FavoritesService.instance;
 
   List<DownloadedArchive> _archives = [];
   List<Collection> _collections = [];
+  List<Favorite> _favorites = [];
   Map<int, int> _collectionItemCounts = {};
 
   bool _isLoading = true;
@@ -45,7 +51,7 @@ class _LibraryScreenState extends State<LibraryScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadData();
   }
 
@@ -65,6 +71,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       await _localArchiveStorage.initialize();
       final archives = _localArchiveStorage.archives.values.toList();
       final collections = await _collectionsService.getAllCollections();
+      final favorites = await _favoritesService.getAllFavorites();
 
       // Load item counts for collections
       final counts = <int, int>{};
@@ -78,6 +85,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       setState(() {
         _archives = archives;
         _collections = collections;
+        _favorites = favorites;
         _collectionItemCounts = counts;
         _isLoading = false;
       });
@@ -149,8 +157,9 @@ class _LibraryScreenState extends State<LibraryScreen>
           controller: _tabController,
           onTap: (_) => setState(() {}),
           tabs: const [
-            Tab(text: 'All Downloads'),
+            Tab(text: 'Downloads'),
             Tab(text: 'Collections'),
+            Tab(text: 'Favorites'),
             Tab(text: 'Recent'),
           ],
         ),
@@ -173,6 +182,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       children: [
         _buildAllDownloadsTab(),
         _buildCollectionsTab(),
+        _buildFavoritesTab(),
         _buildRecentTab(),
       ],
     );
@@ -256,6 +266,193 @@ class _LibraryScreenState extends State<LibraryScreen>
         },
       ),
     );
+  }
+
+  // Favorites Tab
+  Widget _buildFavoritesTab() {
+    if (_favorites.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.favorite_outline,
+        title: 'No favorites yet',
+        subtitle: 'Favorite archives will appear here for quick access',
+        actionLabel: 'Discover Content',
+        onAction: () {
+          // Navigate to Discover tab (index 2 in bottom nav)
+          // This would require access to the parent navigation state
+          // For now, we'll just show a snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Go to Discover tab to find content to favorite'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _favorites.length,
+        itemBuilder: (context, index) {
+          return _buildFavoriteCard(_favorites[index]);
+        },
+      ),
+    );
+  }
+
+  Widget _buildFavoriteCard(Favorite favorite) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            _getIconForMediaType(favorite.mediatype),
+            color: colorScheme.primary,
+          ),
+        ),
+        title: Text(
+          favorite.displayTitle,
+          style: theme.textTheme.titleMedium,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              favorite.identifier,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Added ${_formatDate(favorite.addedAt)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.favorite),
+          color: colorScheme.primary,
+          onPressed: () async {
+            await _favoritesService.removeFavorite(favorite.identifier);
+            await _loadData();
+          },
+        ),
+        onTap: () => _openFavorite(favorite),
+      ),
+    );
+  }
+
+  Future<void> _openFavorite(Favorite favorite) async {
+    final archiveService = context.read<ArchiveService>();
+
+    try {
+      // Fetch metadata for the archive
+      await archiveService.fetchMetadata(favorite.identifier);
+
+      if (!mounted) return;
+
+      // Navigate to detail screen with MD3 fadeThrough transition
+      await Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const ArchiveDetailScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // MD3 fadeThrough transition
+            return FadeTransition(
+              opacity: CurveTween(
+                curve: MD3Curves.emphasized,
+              ).animate(animation),
+              child: child,
+            );
+          },
+          transitionDuration: MD3Durations.medium,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading archive: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  IconData _getIconForMediaType(String? mediaType) {
+    switch (mediaType?.toLowerCase()) {
+      case 'texts':
+        return Icons.menu_book;
+      case 'movies':
+        return Icons.movie;
+      case 'audio':
+        return Icons.music_note;
+      case 'software':
+        return Icons.apps;
+      case 'image':
+        return Icons.image;
+      case 'web':
+        return Icons.public;
+      default:
+        return Icons.inventory_2;
+    }
+  }
+
+  IconData _parseCollectionIcon(String? iconString) {
+    if (iconString == null) return Icons.folder;
+    
+    try {
+      final codePoint = int.parse(iconString);
+      return IconData(
+        codePoint,
+        fontFamily: 'MaterialIcons',
+      );
+    } catch (e) {
+      // If parsing fails, use default folder icon
+      return Icons.folder;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'today';
+    } else if (difference.inDays == 1) {
+      return 'yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return '$weeks ${weeks == 1 ? 'week' : 'weeks'} ago';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return '$months ${months == 1 ? 'month' : 'months'} ago';
+    } else {
+      final years = (difference.inDays / 365).floor();
+      return '$years ${years == 1 ? 'year' : 'years'} ago';
+    }
   }
 
   // Recent Tab
@@ -840,20 +1037,8 @@ class _LibraryScreenState extends State<LibraryScreen>
                   itemCount: _collections.length,
                   itemBuilder: (context, index) {
                     final collection = _collections[index];
-                    // Parse icon at build time to avoid non-const IconData in web builds
-                    IconData collectionIcon = Icons.folder;
-                    if (collection.icon != null) {
-                      try {
-                        final codePoint = int.parse(collection.icon!);
-                        collectionIcon = IconData(
-                          codePoint,
-                          fontFamily: 'MaterialIcons',
-                        );
-                      } catch (e) {
-                        // If parsing fails, use default folder icon
-                        collectionIcon = Icons.folder;
-                      }
-                    }
+                    // Pre-compute icon to avoid non-const IconData in web builds
+                    final collectionIcon = _parseCollectionIcon(collection.icon);
                     
                     return ListTile(
                       leading: Icon(collectionIcon),

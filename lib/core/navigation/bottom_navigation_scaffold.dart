@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../screens/home_screen.dart';
 import '../../screens/library_screen.dart';
-import '../../screens/favorites_screen.dart';
+import '../../screens/discover_screen.dart';
 import '../../screens/transfers_screen.dart';
 import '../../screens/settings_screen.dart';
 import '../../utils/animation_constants.dart';
@@ -14,9 +14,9 @@ import 'navigation_state.dart';
 /// Each tab maintains its own navigation history and state.
 ///
 /// Tabs:
-/// 0. 🏠 Home - Search and discovery
-/// 1. 📚 Library - Downloaded content and collections
-/// 2. ⭐ Favorites - Starred archives
+/// 0. 🏠 Home - Quick identifier search
+/// 1. 📚 Library - Downloads, collections, and favorites
+/// 2. 🔍 Discover - Keyword search and trending content
 /// 3. 🔄 Transfers - Download/upload management
 /// 4. ⚙️ Settings - App configuration
 class BottomNavigationScaffold extends StatefulWidget {
@@ -69,7 +69,7 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
         ),
         _TabNavigator(
           navigatorKey: navigationState.getNavigatorKey(2),
-          rootScreen: const FavoritesScreen(),
+          rootScreen: const DiscoverScreen(),
         ),
         _TabNavigator(
           navigatorKey: navigationState.getNavigatorKey(3),
@@ -108,10 +108,10 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
           tooltip: 'Downloaded content and collections',
         ),
         NavigationDestination(
-          icon: Icon(Icons.favorite_outline),
-          selectedIcon: Icon(Icons.favorite),
-          label: 'Favorites',
-          tooltip: 'Starred archives',
+          icon: Icon(Icons.explore_outlined),
+          selectedIcon: Icon(Icons.explore),
+          label: 'Discover',
+          tooltip: 'Search and explore trending archives',
         ),
         NavigationDestination(
           icon: Icon(Icons.swap_vert_outlined),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/bandwidth_preset.dart';
+import '../providers/bandwidth_manager_provider.dart';
 import '../services/metadata_cache.dart';
 import '../services/archive_service.dart';
 import '../utils/semantic_colors.dart';
@@ -237,12 +239,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
                 subtitle: const Text(
-                  'Configure speed limits on Downloads screen',
+                  'Tap to configure speed limits',
                 ),
                 trailing: const Icon(Icons.arrow_forward),
                 onTap: () {
-                  // Navigate to downloads screen where bandwidth controls are
-                  Navigator.pushNamed(context, '/downloads');
+                  _showBandwidthDialog(context);
                 },
               ),
 
@@ -508,6 +509,158 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Reset'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showBandwidthDialog(BuildContext context) {
+    // Try to get the BandwidthManagerProvider if it exists
+    BandwidthManagerProvider? bandwidthProvider;
+    try {
+      bandwidthProvider = Provider.of<BandwidthManagerProvider>(
+        context,
+        listen: false,
+      );
+    } catch (e) {
+      // Provider not available, use local state
+    }
+
+    BandwidthPreset selectedPreset = bandwidthProvider?.currentPreset ?? BandwidthPreset.unlimited;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Bandwidth Limit'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Control download speed to save data and be a good Internet Archive citizen',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Custom radio selection to avoid deprecated API
+                ...BandwidthPreset.values.map((preset) {
+                  final isSelected = selectedPreset == preset;
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        selectedPreset = preset;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(12.0),
+                      margin: const EdgeInsets.only(bottom: 8.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.outline,
+                          width: isSelected ? 2 : 1,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
+                            : null,
+                      ),
+                      child: Row(
+                        children: [
+                          // Custom radio indicator
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).colorScheme.outline,
+                                width: 2,
+                              ),
+                            ),
+                            child: isSelected
+                                ? Center(
+                                    child: Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(preset.icon),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      preset.displayName,
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  preset.description,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                // Save the selected preset
+                if (bandwidthProvider != null) {
+                  bandwidthProvider.changePreset(selectedPreset);
+                }
+                
+                // Also save to SharedPreferences for persistence
+                _prefs.setInt('bandwidth_preset', selectedPreset.bytesPerSecond);
+                
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Bandwidth limit set to ${selectedPreset.displayName}',
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: const Text('Apply'),
+            ),
+          ],
+        ),
       ),
     );
   }

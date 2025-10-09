@@ -387,25 +387,69 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
   }
 
   Widget _buildSortOptions() {
-    return SegmentedButton<SortOption>(
-      segments: SortOption.values.map((option) {
-        return ButtonSegment<SortOption>(
-          value: option,
-          label: Text(_getSortLabel(option)),
-          tooltip: _getSortDescription(option),
-        );
-      }).toList(),
-      selected: {_selectedSortOption},
-      onSelectionChanged: (Set<SortOption> selected) {
-        if (selected.isNotEmpty) {
-          setState(() {
-            _selectedSortOption = selected.first;
-          });
-        }
-      },
-      multiSelectionEnabled: false,
-      showSelectedIcon: false,
-      style: const ButtonStyle(visualDensity: VisualDensity.standard),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Common sort options as chips
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            SortOption.relevance,
+            SortOption.date,
+            SortOption.downloads,
+            SortOption.weeklyViews,
+          ].map((option) {
+            final isSelected = _selectedSortOption == option;
+            return FilterChip(
+              label: Text(_getSortLabel(option)),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() {
+                    _selectedSortOption = option;
+                  });
+                }
+              },
+              selectedColor: colorScheme.primaryContainer,
+              checkmarkColor: colorScheme.onPrimaryContainer,
+              showCheckmark: true,
+              side: BorderSide(
+                color: isSelected 
+                    ? colorScheme.primary 
+                    : colorScheme.outline,
+                width: isSelected ? 1.5 : 1,
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 12),
+        // More sort options in dropdown
+        DropdownButtonFormField<SortOption>(
+          initialValue: _selectedSortOption,
+          decoration: InputDecoration(
+            labelText: 'More sort options',
+            helperText: _getSortDescription(_selectedSortOption),
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          items: SortOption.values.map((option) {
+            return DropdownMenuItem<SortOption>(
+              value: option,
+              child: Text(_getSortLabel(option)),
+            );
+          }).toList(),
+          onChanged: (SortOption? value) {
+            if (value != null) {
+              setState(() {
+                _selectedSortOption = value;
+              });
+            }
+          },
+        ),
+      ],
     );
   }
 

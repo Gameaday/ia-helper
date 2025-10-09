@@ -99,6 +99,13 @@ This is a Rust CLI tool for downloading files from the Internet Archive, built w
 - Prefer explicit types over `var` for better code clarity
 - Use proper null safety with `?` and `!` operators
 - Follow Flutter performance best practices (const constructors, efficient rebuilds)
+- **CRITICAL: ANY code warnings from `flutter analyze` WILL break the build in CI/CD**
+- **Always fix ALL warnings before committing - the build pipeline treats warnings as errors**
+- Common warnings that break builds:
+  - Non-const IconData invocations (use helper methods or `--no-tree-shake-icons`)
+  - Unused imports
+  - Deprecated API usage (update to new APIs immediately)
+  - Type mismatches
 
 ### MD3 Implementation Guidelines
 - **Animations**: Use `MD3Curves` and `MD3Durations` from `animation_constants.dart`
