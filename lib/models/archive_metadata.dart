@@ -89,11 +89,28 @@ class ArchiveMetadata {
     }
 
     // Extract rating (can be in reviews or metadata)
+    // Handle both numeric and string formats gracefully
     double? rating;
-    if (json['reviews']?['avg_rating'] != null) {
-      rating = (json['reviews']['avg_rating'] as num).toDouble();
-    } else if (json['metadata']?['avg_rating'] != null) {
-      rating = (json['metadata']['avg_rating'] as num).toDouble();
+    try {
+      if (json['reviews']?['avg_rating'] != null) {
+        final avgRating = json['reviews']['avg_rating'];
+        if (avgRating is num) {
+          rating = avgRating.toDouble();
+        } else if (avgRating is String) {
+          rating = double.tryParse(avgRating);
+        }
+      } else if (json['metadata']?['avg_rating'] != null) {
+        final avgRating = json['metadata']['avg_rating'];
+        if (avgRating is num) {
+          rating = avgRating.toDouble();
+        } else if (avgRating is String) {
+          rating = double.tryParse(avgRating);
+        }
+      }
+    } catch (e) {
+      // Silently handle rating parsing errors
+      // Some items may have invalid rating data
+      rating = null;
     }
 
     return ArchiveMetadata(
