@@ -81,23 +81,33 @@ IntelligentSearchBar({
 
 ## Next Steps
 
-### Immediate (Task 3): Integrate into Home Screen
-**Priority:** HIGH
-**Estimated Time:** 1-2 hours
+### ~~Immediate (Task 3): Integrate into Home Screen~~ ✅ **COMPLETE** (Oct 9, 2025)
+**Priority:** HIGH  
+**Estimated Time:** 2-3 hours  
+**Actual Time:** 2.5 hours
 
-**Plan:**
-1. Replace existing `SearchBarWidget` with `IntelligentSearchBar`
-2. Redesign Home screen layout:
-   - Remove app bar (or simplify drastically)
-   - Add prominent branding section
-   - Position intelligent search bar prominently
-   - Add recent searches chips below search bar
-   - Add quick action buttons (Discover, Advanced Search)
-   - Add search tips card for empty state
-3. Handle search callbacks:
-   - Identifier → Load metadata → Navigate to detail screen
-   - Keyword/Advanced → Navigate to search results screen
-   - Save to search history on each search
+✅ **Completed:**
+1. ✅ Replaced SearchBarWidget with IntelligentSearchBar
+2. ✅ Redesigned Home screen layout:
+   - Intelligent search bar with auto-detection
+   - Recent searches as tappable chips (last 5 from history)
+   - Quick action buttons (Discover, Advanced Search)
+   - Enhanced empty state with search tips card
+   - Simplified AppBar (overflow menu for history/advanced)
+3. ✅ Handled search callbacks:
+   - Identifier → fetchMetadata() → Archive Detail Screen
+   - Keyword/Advanced → SearchResultsScreen with SearchQuery.simple()
+   - Saves to search history (via HistoryService)
+4. ✅ Implemented responsive adaptive layout:
+   - Phone (<900dp): Vertical stack
+   - Tablet (≥900dp): Preserved master-detail layout
+   - Search bar spans full width on all sizes
+5. ✅ Tested: flutter analyze = 0 errors, 0 warnings
+
+**Documentation**: See `docs/features/HOME_SCREEN_REDESIGN_COMPLETE.md`
+
+**Files Modified:**
+- `lib/screens/home_screen.dart` (major refactor, 480+ lines)
 4. **Implement responsive adaptive layout** (NEW - Oct 9, 2025):
    - Use LayoutBuilder to detect screen width
    - Phone (<900dp): Existing vertical layout preserved

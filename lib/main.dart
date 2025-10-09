@@ -9,6 +9,7 @@ import 'services/local_archive_storage.dart';
 import 'services/download_scheduler.dart';
 import 'providers/download_provider.dart';
 import 'providers/bandwidth_manager_provider.dart';
+import 'providers/theme_provider.dart';
 import 'models/bandwidth_preset.dart';
 import 'core/navigation/navigation_state.dart';
 import 'core/navigation/bottom_navigation_scaffold.dart';
@@ -56,6 +57,11 @@ class IAGetMobileApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // Theme provider - needs to be first for theme changes
+        ChangeNotifierProvider<ThemeProvider>(
+          create: (_) => ThemeProvider()..initialize(),
+          lazy: false, // Initialize eagerly for theme
+        ),
         // Navigation state - for bottom navigation
         ChangeNotifierProvider<NavigationState>(
           create: (_) => NavigationState(),
@@ -128,13 +134,14 @@ class IAGetMobileApp extends StatelessWidget {
           lazy: true,
         ),
       ],
-      child: MaterialApp(
-        title: 'Internet Archive Helper',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: const AppInitializer(),
-        debugShowCheckedModeBanner: false,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) => MaterialApp(
+          title: 'Internet Archive Helper',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProvider.themeMode,
+          home: const AppInitializer(),
+          debugShowCheckedModeBanner: false,
 
         // Clamp text scaling to prevent layout issues
         builder: (context, child) {
@@ -199,6 +206,7 @@ class IAGetMobileApp extends StatelessWidget {
               );
           }
         },
+        ),
       ),
     );
   }

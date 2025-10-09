@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/bandwidth_preset.dart';
 import '../providers/bandwidth_manager_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/metadata_cache.dart';
 import '../services/archive_service.dart';
 import '../utils/semantic_colors.dart';
@@ -155,6 +156,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ? const Center(child: CircularProgressIndicator())
         : ListView(
             children: [
+              // Appearance Settings Section
+              _buildSectionHeader('Appearance'),
+
+              ListTile(
+                leading: Icon(
+                  ThemeProvider.getThemeModeIcon(
+                    Provider.of<ThemeProvider>(context).themeMode,
+                  ),
+                ),
+                title: const Text('Theme'),
+                subtitle: Text(
+                  ThemeProvider.getThemeModeName(
+                    Provider.of<ThemeProvider>(context).themeMode,
+                  ),
+                ),
+                trailing: const Icon(Icons.arrow_forward),
+                onTap: _showThemeDialog,
+              ),
+
+              const Divider(),
+
               // Download Settings Section
               _buildSectionHeader('Download Settings'),
 
@@ -485,6 +507,149 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Save'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showThemeDialog() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    ThemeMode selectedMode = themeProvider.themeMode;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Theme'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Choose your preferred theme. System Default will follow your device theme settings.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Theme mode options
+                ...ThemeMode.values.map((mode) {
+                  final isSelected = selectedMode == mode;
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        selectedMode = mode;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(12.0),
+                      margin: const EdgeInsets.only(bottom: 8.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.outline,
+                          width: isSelected ? 2 : 1,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primaryContainer
+                                  .withValues(alpha: 0.3)
+                            : null,
+                      ),
+                      child: Row(
+                        children: [
+                          // Custom radio indicator
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).colorScheme.outline,
+                                width: 2,
+                              ),
+                            ),
+                            child: isSelected
+                                ? Center(
+                                    child: Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            ThemeProvider.getThemeModeIcon(mode),
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ThemeProvider.getThemeModeName(mode),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  ThemeProvider.getThemeModeDescription(mode),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                themeProvider.setThemeMode(selectedMode);
+                Navigator.pop(context);
+                SnackBarHelper.showSuccess(
+                  context,
+                  'Theme set to ${ThemeProvider.getThemeModeName(selectedMode)}',
+                );
+              },
+              child: const Text('Apply'),
+            ),
+          ],
+        ),
       ),
     );
   }

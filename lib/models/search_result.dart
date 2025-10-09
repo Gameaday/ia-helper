@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Search result model for Internet Archive search API responses
 class SearchResult {
   final String identifier;
@@ -28,9 +30,14 @@ class SearchResult {
     if (json['__ia_thumb_url'] != null) {
       thumbnailUrl = json['__ia_thumb_url'] as String;
     } else if (json['identifier'] != null) {
-      // Generate standard thumbnail URL from identifier
+      // Generate web-friendly thumbnail URL from identifier
+      // Use __ia_thumb.jpg on web (CORS-friendly), services/img on native
       final id = json['identifier'];
-      thumbnailUrl = 'https://archive.org/services/img/$id';
+      if (kIsWeb) {
+        thumbnailUrl = 'https://archive.org/download/$id/__ia_thumb.jpg';
+      } else {
+        thumbnailUrl = 'https://archive.org/services/img/$id';
+      }
     }
 
     return SearchResult(

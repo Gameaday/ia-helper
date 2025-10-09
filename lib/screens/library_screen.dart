@@ -227,11 +227,42 @@ class _LibraryScreenState extends State<LibraryScreen>
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _collections.length,
-        itemBuilder: (context, index) {
-          return _buildCollectionCard(_collections[index]);
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          
+          // Responsive layout decision:
+          // - Phone (<600dp): Single column list (better for detailed cards)
+          // - Tablet (600-900dp): 2 column grid
+          // - Desktop (>900dp): 3-4 column grid
+          
+          if (width < 600) {
+            // Phone: Single column list for detailed view
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _collections.length,
+              itemBuilder: (context, index) {
+                return _buildCollectionCard(_collections[index]);
+              },
+            );
+          } else {
+            // Tablet/Desktop: Responsive grid
+            final crossAxisCount = width < 900 ? 2 : (width < 1200 ? 3 : 4);
+            
+            return GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                childAspectRatio: 1.2, // Slightly wider than tall
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: _collections.length,
+              itemBuilder: (context, index) {
+                return _buildCollectionGridCard(_collections[index]);
+              },
+            );
+          }
         },
       ),
     );
@@ -473,27 +504,67 @@ class _LibraryScreenState extends State<LibraryScreen>
   }
 
   Widget _buildGridView(List<DownloadedArchive> archives) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: archives.length,
-      itemBuilder: (context, index) {
-        return _buildArchiveGridCard(archives[index]);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        
+        // Responsive grid columns based on width
+        // Phone: 2 columns, Tablet: 3 columns, Desktop: 4 columns
+        final crossAxisCount = width < 600 
+            ? 2 
+            : (width < 900 ? 3 : (width < 1200 ? 4 : 5));
+        
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 0.8,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          itemCount: archives.length,
+          itemBuilder: (context, index) {
+            return _buildArchiveGridCard(archives[index]);
+          },
+        );
       },
     );
   }
 
   Widget _buildListView(List<DownloadedArchive> archives) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: archives.length,
-      itemBuilder: (context, index) {
-        return _buildArchiveListTile(archives[index]);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        
+        // Responsive list layout:
+        // Phone (<600dp): Single column
+        // Tablet/Desktop (≥600dp): Two columns for better space utilization
+        
+        if (width < 600) {
+          // Single column list for phones
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: archives.length,
+            itemBuilder: (context, index) {
+              return _buildArchiveListTile(archives[index]);
+            },
+          );
+        } else {
+          // Two-column grid for tablets and desktops
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 3.5, // Wide cards for list-style layout
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: archives.length,
+            itemBuilder: (context, index) {
+              return _buildArchiveListTile(archives[index]);
+            },
+          );
+        }
       },
     );
   }
@@ -633,6 +704,7 @@ class _LibraryScreenState extends State<LibraryScreen>
     );
   }
 
+  /// Build collection card for list view (detailed, horizontal layout)
   Widget _buildCollectionCard(Collection collection) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -708,6 +780,73 @@ class _LibraryScreenState extends State<LibraryScreen>
                 ),
               ),
               Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build collection card for grid view (compact, vertical layout)
+  Widget _buildCollectionGridCard(Collection collection) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final itemCount = _collectionItemCounts[collection.id] ?? 0;
+
+    return Card(
+      child: InkWell(
+        onTap: () => _openCollection(collection),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Collection icon (larger for grid)
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: collection.color ?? colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  collection.iconData,
+                  color: collection.color != null
+                      ? _getContrastColor(collection.color!)
+                      : colorScheme.onPrimaryContainer,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Collection name
+              Text(
+                collection.name,
+                style: theme.textTheme.titleMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              // Item count
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
