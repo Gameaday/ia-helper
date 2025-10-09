@@ -312,13 +312,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 ),
                                 onPressed: () {
                                   // Navigate to archive detail
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Opening ${favorite.displayTitle}...',
-                                      ),
-                                      duration: const Duration(seconds: 1),
-                                    ),
+                                  SnackBarHelper.showInfo(
+                                    context,
+                                    'Opening ${favorite.displayTitle}...',
                                   );
                                 },
                               );

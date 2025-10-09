@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../utils/snackbar_helper.dart';
 
 /// Screen displaying app information, credits, and legal notices
 class AboutScreen extends StatefulWidget {
@@ -35,14 +36,8 @@ class _AboutScreenState extends State<AboutScreen> {
   Future<void> _launchUrl(String urlString) async {
     final url = Uri.parse(urlString);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not open $urlString'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showError(context, 'Could not open $urlString');
     }
   }
 
