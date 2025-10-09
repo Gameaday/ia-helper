@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Bug Fixes & Improvements (2025-10-09)
+
+#### Fixed
+- **Thumbnail CDN URLs on Web** - All thumbnails now use official `/download/` endpoint
+  - Changed ArchiveMetadata to ALWAYS use `urlService.getThumbnailUrl()`
+  - Stopped using `misc.image` field from API (contains CDN redirect paths)
+  - API returns paths like `/24/items/id/__ia_thumb.jpg` which redirect to CDN
+  - Now bypasses API's CDN redirects and uses standardized endpoint directly
+  - Eliminates ALL CORS errors on web for thumbnails
+  - Consistent thumbnail loading across all platforms
+
+- **Identifier Validation False Positives** - Search bar no longer shows "Open Archive" button for non-existent identifiers
+  - Added `ArchiveService.validateIdentifier()` method with HEAD request validation
+  - IntelligentSearchBar now validates identifiers before showing actions
+  - Shows loading indicator during validation (500ms debounce)
+  - Displays validation status: "Checking...", "Valid archive", or "Archive not found"
+  - "Open Archive" button only enabled for validated identifiers
+  - Prevents false positives for queries like "mario", "test", etc.
+  - Fixes user-reported issue #8
+
+- **Collection Save Messages** - Collection picker now shows accurate feedback
+  - Fixed incorrect "Removed from collections" message when no collections selected
+  - Messages now based on actual changes (toAdd/toRemove sets)
+  - Four cases handled: "No changes", "Added to X", "Removed from X", "Updated (added X, removed Y)"
+  - Fixes user-reported issue #6
+
+- **Favorites Not Showing** - Library screen now auto-refreshes when tab becomes visible
+  - Added AutomaticKeepAliveClientMixin to preserve state
+  - Added didChangeDependencies() to reload data on visibility
+  - Favorites, collections, and downloads update immediately after changes
+  - Fixes user-reported issue #5
+
+- **URL Standardization - ALL Platforms** - Unified CDN URL handling across web, mobile, and desktop
+  - Removed web-only restriction from ArchiveUrlService.fixCorsUrl()
+  - ALL platforms now use official archive.org/download/ endpoint
+  - Consistent behavior and reliability across platforms
+  - Updated statistics to reflect "url_standardization" and "cdn_rewriting_all_platforms"
+
+#### Improved
+- **Home Screen UX** - Cleaner, more intuitive interface
+  - Recent searches now shown as rectangular cards (not chips)
+  - Removed "Recent Searches" heading text (obvious from context)
+  - Limited to 5 searches to fit on screen without scrolling
+  - Search prompt (icon + tips) only shows when NO recent searches
+  - When user has history: Clean list of recent items
+  - When user clears history: Helpful search tips reappear
+  - Better use of vertical space and visual hierarchy
+  - Swipe to dismiss still works on recent search cards
+
+#### Technical Details
+- ~200 lines modified across 2 files (archive_metadata.dart, home_screen.dart)
+- ~140 lines added for identifier validation (archive_service.dart, intelligent_search_bar.dart)
+- Zero compilation errors (flutter analyze clean)
+- Material Design 3 compliant validation UI with loading states
+- Debounced validation (500ms) to reduce API calls
+- 5-second timeout on validation requests
+- All changes tested and verified
+
 ### Backend Services Enhancement (2025-10-09)
 
 #### Added

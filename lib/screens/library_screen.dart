@@ -33,7 +33,7 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tabController;
   final _localArchiveStorage = LocalArchiveStorage();
   final _collectionsService = CollectionsService.instance;
@@ -51,10 +51,23 @@ class _LibraryScreenState extends State<LibraryScreen>
   _SortOption _sortOption = _SortOption.dateDesc;
 
   @override
+  bool get wantKeepAlive => true; // Keep state alive when switching tabs
+
+  @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _loadData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload data when screen becomes visible (e.g., after favoriting an item)
+    // This ensures favorites, collections, and downloads are always up-to-date
+    if (mounted) {
+      _loadData();
+    }
   }
 
   @override
@@ -101,6 +114,8 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required by AutomaticKeepAliveClientMixin
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Library'),

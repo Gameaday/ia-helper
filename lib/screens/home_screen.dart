@@ -285,10 +285,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
         const SizedBox(height: 16),
 
-        // Recent searches chips (from history) - Limited to 3, dismissible
+        // Recent searches as compact rectangular cards - NO heading text
         Consumer<HistoryService>(
           builder: (context, historyService, child) {
-            final recentSearches = historyService.history.take(3).toList(); // Reduced from 5 to 3
+            // Limit to fit on screen without scrolling
+            final recentSearches = historyService.history.take(5).toList();
             
             if (recentSearches.isEmpty) {
               return const SizedBox.shrink();
@@ -297,60 +298,83 @@ class _HomeScreenState extends State<HomeScreen> {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Recent Searches',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: recentSearches.map((entry) {
-                      return Dismissible(
-                        key: Key('recent_search_${entry.identifier}_${entry.visitedAt.millisecondsSinceEpoch}'),
-                        direction: DismissDirection.horizontal,
-                        onDismissed: (direction) {
-                          historyService.removeFromHistory(entry.identifier);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Removed "${entry.title}"'),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        background: Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.only(left: 16),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: recentSearches.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Dismissible(
+                      key: Key('recent_search_${entry.identifier}_${entry.visitedAt.millisecondsSinceEpoch}'),
+                      direction: DismissDirection.horizontal,
+                      onDismissed: (direction) {
+                        historyService.removeFromHistory(entry.identifier);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Removed "${entry.title}"'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      background: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.only(left: 16),
+                        decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.error,
-                          child: Icon(
-                            Icons.delete,
-                            color: Theme.of(context).colorScheme.onError,
-                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        secondaryBackground: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 16),
+                        child: Icon(
+                          Icons.delete,
+                          color: Theme.of(context).colorScheme.onError,
+                        ),
+                      ),
+                      secondaryBackground: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 16),
+                        decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.error,
-                          child: Icon(
-                            Icons.delete,
-                            color: Theme.of(context).colorScheme.onError,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.delete,
+                          color: Theme.of(context).colorScheme.onError,
+                        ),
+                      ),
+                      child: InkWell(
+                        onTap: () => _handleSearch(entry.identifier, SearchType.identifier),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.history,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  entry.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ],
                           ),
                         ),
-                        child: ActionChip(
-                          label: Text(
-                            entry.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onPressed: () => _handleSearch(entry.identifier, SearchType.identifier),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 8),
-                ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             );
           },
@@ -422,65 +446,76 @@ class _HomeScreenState extends State<HomeScreen> {
         // Loading indicator
         if (service.isLoading) const LinearProgressIndicator(),
 
-        // Empty state when not loading and no metadata
-        if (!service.isLoading &&
-            service.currentMetadata == null &&
-            service.suggestions.isEmpty &&
-            service.error == null)
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search,
-                      size: 64,
-                      color: SemanticColors.disabled(context),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Search Internet Archive',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: SemanticColors.subtitle(context),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+        // Empty state when not loading, no metadata, AND no recent searches
+        Consumer<HistoryService>(
+          builder: (context, historyService, child) {
+            final hasRecentSearches = historyService.history.isNotEmpty;
+            
+            // Only show empty state if truly empty (no history)
+            if (!service.isLoading &&
+                service.currentMetadata == null &&
+                service.suggestions.isEmpty &&
+                service.error == null &&
+                !hasRecentSearches) {
+              return Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search,
+                          size: 64,
+                          color: SemanticColors.disabled(context),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Search Internet Archive',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: SemanticColors.subtitle(context),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.lightbulb_outline,
-                                  color: Theme.of(context).colorScheme.primary,
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.lightbulb_outline,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Search Tips',
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Search Tips',
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
+                                const SizedBox(height: 12),
+                                _buildTipRow(context, Icons.tag, 'Enter an archive identifier:', 'nasa_images'),
+                                const SizedBox(height: 8),
+                                _buildTipRow(context, Icons.search, 'Search by keywords:', 'classic books'),
+                                const SizedBox(height: 8),
+                                _buildTipRow(context, Icons.filter_alt, 'Use advanced search:', 'title:space AND mediatype:movies'),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            _buildTipRow(context, Icons.tag, 'Enter an archive identifier:', 'nasa_images'),
-                            const SizedBox(height: 8),
-                            _buildTipRow(context, Icons.search, 'Search by keywords:', 'classic books'),
-                            const SizedBox(height: 8),
-                            _buildTipRow(context, Icons.filter_alt, 'Use advanced search:', 'title:space AND mediatype:movies'),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
+              );
+            }
+            
+            return const SizedBox.shrink();
+          },
+        ),
 
         // Active downloads manager at bottom
         const DownloadManagerWidget(),
