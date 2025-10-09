@@ -1,6 +1,24 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
+/// Metrics for tracking bandwidth throttle operations
+class ThrottleMetrics {
+  int bytesConsumed = 0;
+  int throttleEvents = 0;
+  int immediatePass = 0;
+  Duration totalDelay = Duration.zero;
+
+  @override
+  String toString() {
+    return 'ThrottleMetrics('
+        'bytesConsumed: $bytesConsumed, '
+        'throttleEvents: $throttleEvents, '
+        'immediatePass: $immediatePass, '
+        'totalDelay: ${totalDelay.inMilliseconds}ms'
+        ')';
+  }
+}
+
 /// Bandwidth throttle using token bucket algorithm.
 ///
 /// Controls download/upload speed by limiting bytes per second.
@@ -30,6 +48,9 @@ class BandwidthThrottle {
   double _availableTokens;
   DateTime _lastUpdate;
   bool _isPaused = false;
+
+  // Metrics tracking
+  final ThrottleMetrics metrics = ThrottleMetrics();
 
   /// Creates a bandwidth throttle with specified limits.
   ///
@@ -67,25 +88,43 @@ class BandwidthThrottle {
       return Duration.zero;
     }
 
+    // Track bytes consumed
+    metrics.bytesConsumed += bytes;
+
     // Refill tokens based on time elapsed
     _refillTokens();
 
     // If enough tokens available, consume immediately
     if (_availableTokens >= bytes) {
+      metrics.immediatePass++;
       _availableTokens -= bytes;
+
+      if (kDebugMode) {
+        debugPrint(
+          '[BandwidthThrottle] Immediate pass: $bytes bytes (available: ${_availableTokens.toInt()})',
+        );
+      }
+
       return Duration.zero;
     }
+
+    // Track throttle event
+    metrics.throttleEvents++;
 
     // Calculate delay needed to get enough tokens
     final tokensNeeded = bytes - _availableTokens;
     final delaySeconds = tokensNeeded / bytesPerSecond;
     final delay = Duration(microseconds: (delaySeconds * 1000000).round());
 
+    // Track total delay
+    metrics.totalDelay += delay;
+
     if (kDebugMode) {
       debugPrint(
         '[BandwidthThrottle] Throttling: need $bytes bytes, '
         'have ${_availableTokens.toInt()}, '
-        'delay ${delay.inMilliseconds}ms',
+        'delay ${delay.inMilliseconds}ms '
+        '(total throttle events: ${metrics.throttleEvents})',
       );
     }
 
@@ -120,12 +159,20 @@ class BandwidthThrottle {
   /// Useful for pausing downloads without changing limits.
   void pause() {
     _isPaused = true;
+
+    if (kDebugMode) {
+      debugPrint('[BandwidthThrottle] Paused (rate: $bytesPerSecond B/s)');
+    }
   }
 
   /// Resume bandwidth throttling.
   void resume() {
     _isPaused = false;
     _lastUpdate = DateTime.now(); // Reset time to avoid burst on resume
+
+    if (kDebugMode) {
+      debugPrint('[BandwidthThrottle] Resumed (rate: $bytesPerSecond B/s)');
+    }
   }
 
   /// Update bandwidth limit dynamically.
@@ -163,6 +210,49 @@ class BandwidthThrottle {
     _availableTokens = burstSize.toDouble();
     _lastUpdate = DateTime.now();
     _isPaused = false;
+
+    if (kDebugMode) {
+      debugPrint('[BandwidthThrottle] Reset (rate: $bytesPerSecond B/s)');
+    }
+  }
+
+  /// Get metrics for monitoring.
+  ThrottleMetrics getMetrics() => metrics;
+
+  /// Reset metrics tracking.
+  void resetMetrics() {
+    metrics.bytesConsumed = 0;
+    metrics.throttleEvents = 0;
+    metrics.immediatePass = 0;
+    metrics.totalDelay = Duration.zero;
+
+    if (kDebugMode) {
+      debugPrint('[BandwidthThrottle] Metrics reset');
+    }
+  }
+
+  /// Get formatted statistics string.
+  String getFormattedStatistics() {
+    final totalOperations = metrics.throttleEvents + metrics.immediatePass;
+    final throttleRate = totalOperations > 0
+        ? (metrics.throttleEvents / totalOperations * 100).toStringAsFixed(1)
+        : '0.0';
+    final avgDelayMs = metrics.throttleEvents > 0
+        ? (metrics.totalDelay.inMilliseconds / metrics.throttleEvents)
+            .toStringAsFixed(1)
+        : '0.0';
+    final throughputKBps = (metrics.bytesConsumed / 1024).toStringAsFixed(2);
+
+    return '[BandwidthThrottle] Statistics:\n'
+        '  Total operations: $totalOperations\n'
+        '  Bytes consumed: ${metrics.bytesConsumed} ($throughputKBps KB)\n'
+        '  Throttle events: ${metrics.throttleEvents} ($throttleRate%)\n'
+        '  Immediate pass: ${metrics.immediatePass}\n'
+        '  Total delay: ${metrics.totalDelay.inMilliseconds}ms\n'
+        '  Avg delay/throttle: ${avgDelayMs}ms\n'
+        '  Configured rate: $bytesPerSecond B/s\n'
+        '  Burst size: $burstSize bytes\n'
+        '  Current state: ${_isPaused ? "PAUSED" : "ACTIVE"}';
   }
 }
 

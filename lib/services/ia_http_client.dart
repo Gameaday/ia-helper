@@ -12,6 +12,32 @@ import '../models/rate_limit_status.dart';
 /// Run `flutter --version` to get the current version.
 const String _kFlutterVersion = '3.35.5';
 
+/// Metrics for tracking HTTP client operations
+class HttpClientMetrics {
+  int requests = 0;
+  int retries = 0;
+  int failures = 0;
+  int timeouts = 0;
+  int rateLimitHits = 0;
+  int networkErrors = 0;
+  int cacheHits = 0;
+  int serverErrors = 0;
+
+  @override
+  String toString() {
+    return 'HttpClientMetrics('
+        'requests: $requests, '
+        'retries: $retries, '
+        'failures: $failures, '
+        'timeouts: $timeouts, '
+        'rateLimitHits: $rateLimitHits, '
+        'networkErrors: $networkErrors, '
+        'cacheHits: $cacheHits, '
+        'serverErrors: $serverErrors'
+        ')';
+  }
+}
+
 /// Enhanced HTTP client for Archive.org API compliance.
 ///
 /// Implements all Archive.org best practices:
@@ -48,6 +74,9 @@ const String _kFlutterVersion = '3.35.5';
 class IAHttpClient {
   final http.Client _innerClient;
   final RateLimiter _rateLimiter;
+
+  // Metrics tracking
+  final HttpClientMetrics metrics = HttpClientMetrics();
   final String userAgent;
   final Duration defaultTimeout;
   final int maxRetries;
@@ -98,13 +127,28 @@ class IAHttpClient {
     Duration? timeout,
     String? ifNoneMatch,
   }) async {
-    return _executeWithRetry(
+    metrics.requests++;
+    if (kDebugMode) {
+      debugPrint('[IAHttpClient] GET ${url.host}${url.path}');
+    }
+
+    final response = await _executeWithRetry(
       () => _innerClient.get(
         url,
         headers: _mergeHeaders(headers, ifNoneMatch: ifNoneMatch),
       ),
       timeout: timeout,
     );
+
+    // Track cache hits (304 Not Modified)
+    if (response.statusCode == 304) {
+      metrics.cacheHits++;
+      if (kDebugMode) {
+        debugPrint('[IAHttpClient] Cache hit (304) for ${url.path}');
+      }
+    }
+
+    return response;
   }
 
   /// POST request with automatic retry and rate limiting.
@@ -114,6 +158,10 @@ class IAHttpClient {
     Object? body,
     Duration? timeout,
   }) async {
+    metrics.requests++;
+    if (kDebugMode) {
+      debugPrint('[IAHttpClient] POST ${url.host}${url.path}');
+    }
     return _executeWithRetry(
       () => _innerClient.post(url, headers: _mergeHeaders(headers), body: body),
       timeout: timeout,
@@ -126,6 +174,11 @@ class IAHttpClient {
     Map<String, String>? headers,
     Duration? timeout,
   }) async {
+    metrics.requests++;
+    if (kDebugMode) {
+      debugPrint('[IAHttpClient] HEAD ${url.host}${url.path}');
+    }
+
     return _executeWithRetry(
       () => _innerClient.head(url, headers: _mergeHeaders(headers)),
       timeout: timeout,
@@ -140,6 +193,11 @@ class IAHttpClient {
     Map<String, String>? headers,
     Duration? timeout,
   }) async {
+    metrics.requests++;
+    if (kDebugMode) {
+      debugPrint('[IAHttpClient] GET (stream) ${url.host}${url.path}');
+    }
+
     return _executeWithRetry(() async {
       final request = http.Request('GET', url);
       request.headers.addAll(_mergeHeaders(headers));
@@ -174,8 +232,19 @@ class IAHttpClient {
         _parseRetryAfter(response);
       }
 
+      // Track rate limit hits
+      if (statusCode == 429) {
+        metrics.rateLimitHits++;
+      }
+
+      // Track server errors
+      if (statusCode >= 500) {
+        metrics.serverErrors++;
+      }
+
       // Check if retry is needed based on status code
       if (_shouldRetry(response, attemptNumber)) {
+        metrics.retries++;
         final retryAfter = _parseRetryAfter(response);
         final delay = retryAfter ?? _getRetryDelay(attemptNumber);
 
@@ -196,6 +265,13 @@ class IAHttpClient {
 
       // Check for HTTP errors
       if (statusCode >= 400) {
+        metrics.failures++;
+        if (kDebugMode) {
+          debugPrint(
+            '[IAHttpClient] HTTP error $statusCode: ${_getReasonPhrase(response)}',
+          );
+        }
+
         throw IAHttpException(
           'HTTP $statusCode: ${_getReasonPhrase(response)}',
           statusCode: statusCode,
@@ -205,8 +281,15 @@ class IAHttpClient {
 
       return response;
     } on SocketException catch (e) {
+      metrics.networkErrors++;
       return _handleNetworkError(e, request, timeout, attemptNumber);
     } on TimeoutException catch (e) {
+      metrics.timeouts++;
+      metrics.failures++;
+      if (kDebugMode) {
+        debugPrint('[IAHttpClient] Request timeout: ${e.message}');
+      }
+
       throw IAHttpException(
         'Request timeout: ${e.message}',
         type: IAHttpExceptionType.timeout,
@@ -215,6 +298,11 @@ class IAHttpClient {
     } on IAHttpException {
       rethrow;
     } catch (e) {
+      metrics.failures++;
+      if (kDebugMode) {
+        debugPrint('[IAHttpClient] Unexpected error: $e');
+      }
+
       throw IAHttpException(
         'Unexpected error: $e',
         type: IAHttpExceptionType.unknown,
@@ -233,6 +321,13 @@ class IAHttpClient {
     int attemptNumber,
   ) async {
     if (attemptNumber >= maxRetries) {
+      metrics.failures++;
+      if (kDebugMode) {
+        debugPrint(
+          '[IAHttpClient] Network error after $maxRetries retries: ${error.message}',
+        );
+      }
+
       throw IAHttpException(
         'Network error after $maxRetries retries: ${error.message}',
         type: IAHttpExceptionType.network,
@@ -240,11 +335,12 @@ class IAHttpClient {
       );
     }
 
+    metrics.retries++;
     final delay = _getRetryDelay(attemptNumber);
     if (kDebugMode) {
       debugPrint(
         '[IAHttpClient] Network error, retry ${attemptNumber + 1}/$maxRetries '
-        'after ${delay.inSeconds}s',
+        'after ${delay.inSeconds}s: ${error.message}',
       );
     }
 
@@ -435,6 +531,55 @@ class IAHttpClient {
   /// Close the HTTP client and release resources.
   void close() {
     _innerClient.close();
+  }
+
+  /// Get current metrics
+  HttpClientMetrics getMetrics() => metrics;
+
+  /// Reset metrics to zero
+  void resetMetrics() {
+    metrics.requests = 0;
+    metrics.retries = 0;
+    metrics.failures = 0;
+    metrics.timeouts = 0;
+    metrics.rateLimitHits = 0;
+    metrics.networkErrors = 0;
+    metrics.cacheHits = 0;
+    metrics.serverErrors = 0;
+    if (kDebugMode) {
+      debugPrint('[IAHttpClient] Metrics reset');
+    }
+  }
+
+  /// Get formatted statistics for monitoring
+  Map<String, dynamic> getFormattedStatistics() {
+    final successfulRequests = metrics.requests - metrics.failures;
+    final successRate = metrics.requests > 0
+        ? (successfulRequests / metrics.requests * 100).toStringAsFixed(1)
+        : '0.0';
+    
+    final retryRate = metrics.requests > 0
+        ? (metrics.retries / metrics.requests * 100).toStringAsFixed(1)
+        : '0.0';
+    
+    final cacheHitRate = metrics.requests > 0
+        ? (metrics.cacheHits / metrics.requests * 100).toStringAsFixed(1)
+        : '0.0';
+
+    return {
+      'totalRequests': metrics.requests,
+      'successfulRequests': successfulRequests,
+      'failedRequests': metrics.failures,
+      'successRate': '$successRate%',
+      'retries': metrics.retries,
+      'retryRate': '$retryRate%',
+      'timeouts': metrics.timeouts,
+      'rateLimitHits': metrics.rateLimitHits,
+      'networkErrors': metrics.networkErrors,
+      'serverErrors': metrics.serverErrors,
+      'cacheHits': metrics.cacheHits,
+      'cacheHitRate': '$cacheHitRate%',
+    };
   }
 }
 

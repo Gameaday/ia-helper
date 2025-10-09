@@ -10,6 +10,32 @@ import 'internet_archive_api.dart';
 import 'notification_service.dart';
 import 'local_archive_storage.dart';
 
+/// Metrics for tracking download operations
+class DownloadMetrics {
+  int starts = 0;
+  int completions = 0;
+  int failures = 0;
+  int pauses = 0;
+  int resumes = 0;
+  int cancellations = 0;
+  int retries = 0;
+  int queueOperations = 0;
+
+  @override
+  String toString() {
+    return 'DownloadMetrics('
+        'starts: $starts, '
+        'completions: $completions, '
+        'failures: $failures, '
+        'pauses: $pauses, '
+        'resumes: $resumes, '
+        'cancellations: $cancellations, '
+        'retries: $retries, '
+        'queueOperations: $queueOperations'
+        ')';
+  }
+}
+
 /// Service for managing background downloads with Android WorkManager integration
 class BackgroundDownloadService extends ChangeNotifier {
   static const _platform = MethodChannel(
@@ -28,6 +54,9 @@ class BackgroundDownloadService extends ChangeNotifier {
   int _maxConcurrentDownloads = 3;
   int _maxRetries = 3;
   LocalArchiveStorage? _archiveStorage;
+
+  // Metrics tracking
+  final DownloadMetrics metrics = DownloadMetrics();
 
   Map<String, DownloadProgress> get activeDownloads =>
       Map.unmodifiable(_activeDownloads);
@@ -225,6 +254,9 @@ class BackgroundDownloadService extends ChangeNotifier {
       // Use identifier as downloadId
       final downloadId = identifier;
 
+      // Track metrics
+      metrics.starts++;
+
       // Store metadata and files for later use
       if (metadata != null) {
         _downloadMetadata[downloadId] = metadata;
@@ -253,6 +285,13 @@ class BackgroundDownloadService extends ChangeNotifier {
         progress: 0.0,
         status: DownloadStatus.queued,
       );
+
+      if (kDebugMode) {
+        debugPrint(
+          '[BackgroundDownloadService] Started download: $identifier (${selectedFiles.length} files)',
+        );
+      }
+
       notifyListeners();
 
       // Start download in background using Dart isolate
@@ -268,7 +307,10 @@ class BackgroundDownloadService extends ChangeNotifier {
 
       return downloadId;
     } catch (e) {
-      debugPrint('Failed to start background download: $e');
+      metrics.failures++;
+      if (kDebugMode) {
+        debugPrint('[BackgroundDownloadService] Failed to start download: $e');
+      }
       return null;
     }
   }
@@ -416,13 +458,23 @@ class BackgroundDownloadService extends ChangeNotifier {
       });
 
       if (success == true) {
+        // Track metrics
+        metrics.cancellations++;
+
         _activeDownloads.remove(downloadId);
+
+        if (kDebugMode) {
+          debugPrint('[BackgroundDownloadService] Cancelled download: $downloadId');
+        }
+
         notifyListeners();
       }
 
       return success == true;
     } catch (e) {
-      debugPrint('Failed to cancel download: $e');
+      if (kDebugMode) {
+        debugPrint('[BackgroundDownloadService] Failed to cancel download: $e');
+      }
       return false;
     }
   }
@@ -435,15 +487,25 @@ class BackgroundDownloadService extends ChangeNotifier {
       });
 
       if (success == true && _activeDownloads.containsKey(downloadId)) {
+        // Track metrics
+        metrics.pauses++;
+
         _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
           status: DownloadStatus.paused,
         );
+
+        if (kDebugMode) {
+          debugPrint('[BackgroundDownloadService] Paused download: $downloadId');
+        }
+
         notifyListeners();
       }
 
       return success == true;
     } catch (e) {
-      debugPrint('Failed to pause download: $e');
+      if (kDebugMode) {
+        debugPrint('[BackgroundDownloadService] Failed to pause download: $e');
+      }
       return false;
     }
   }
@@ -456,15 +518,25 @@ class BackgroundDownloadService extends ChangeNotifier {
       });
 
       if (success == true && _activeDownloads.containsKey(downloadId)) {
+        // Track metrics
+        metrics.resumes++;
+
         _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
           status: DownloadStatus.downloading,
         );
+
+        if (kDebugMode) {
+          debugPrint('[BackgroundDownloadService] Resumed download: $downloadId');
+        }
+
         notifyListeners();
       }
 
       return success == true;
     } catch (e) {
-      debugPrint('Failed to resume download: $e');
+      if (kDebugMode) {
+        debugPrint('[BackgroundDownloadService] Failed to resume download: $e');
+      }
       return false;
     }
   }
@@ -528,6 +600,9 @@ class BackgroundDownloadService extends ChangeNotifier {
     if (downloadId == null) return;
 
     if (_activeDownloads.containsKey(downloadId)) {
+      // Track metrics
+      metrics.completions++;
+
       final completedDownload = _activeDownloads[downloadId]!.copyWith(
         status: DownloadStatus.completed,
         progress: 1.0,
@@ -543,6 +618,14 @@ class BackgroundDownloadService extends ChangeNotifier {
       // Move to completed downloads
       _completedDownloads[downloadId] = completedDownload;
       _activeDownloads.remove(downloadId);
+
+      if (kDebugMode) {
+        debugPrint(
+          '[BackgroundDownloadService] Completed download: $downloadId '
+          '(${completedDownload.totalFiles} files, '
+          '${completedDownload.totalBytes != null ? "${(completedDownload.totalBytes! / 1024 / 1024).toStringAsFixed(1)} MB" : "unknown size"})',
+        );
+      }
 
       // Save to local archive storage (async, non-blocking)
       final files = _downloadFiles[downloadId];
@@ -582,10 +665,20 @@ class BackgroundDownloadService extends ChangeNotifier {
     if (downloadId == null) return;
 
     if (_activeDownloads.containsKey(downloadId)) {
+      // Track metrics
+      metrics.failures++;
+
       final failedDownload = _activeDownloads[downloadId]!.copyWith(
         status: DownloadStatus.error,
         errorMessage: errorMessage,
       );
+
+      if (kDebugMode) {
+        debugPrint(
+          '[BackgroundDownloadService] Download failed: $downloadId '
+          'Error: ${errorMessage ?? "unknown"}',
+        );
+      }
 
       _activeDownloads[downloadId] = failedDownload;
 
@@ -616,11 +709,16 @@ class BackgroundDownloadService extends ChangeNotifier {
             (download.errorMessage!.contains('Insufficient space') ||
                 download.errorMessage!.contains('Permission denied') ||
                 download.errorMessage!.contains('Not found'))) {
-          debugPrint(
-            'Skipping retry for unrecoverable error: ${download.errorMessage}',
-          );
+          if (kDebugMode) {
+            debugPrint(
+              '[BackgroundDownloadService] Skipping retry for unrecoverable error: ${download.errorMessage}',
+            );
+          }
           continue;
         }
+
+        // Track retry metric
+        metrics.retries++;
 
         // Increment retry count
         final updatedDownload = download.copyWith(
@@ -629,12 +727,21 @@ class BackgroundDownloadService extends ChangeNotifier {
         );
         _activeDownloads[entry.key] = updatedDownload;
 
-        debugPrint(
-          'Auto-retrying failed download: ${download.identifier} (attempt ${download.retryCount + 1}/$_maxRetries)',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '[BackgroundDownloadService] Auto-retrying failed download: ${download.identifier} '
+            '(attempt ${download.retryCount + 1}/$_maxRetries)',
+          );
+        }
+
         await resumeDownload(entry.key);
       } else {
-        debugPrint('Max retries reached for ${download.identifier}, giving up');
+        if (kDebugMode) {
+          debugPrint(
+            '[BackgroundDownloadService] Max retries reached for ${download.identifier}, giving up',
+          );
+        }
+
         // Mark as permanently failed
         final updatedDownload = download.copyWith(
           errorMessage: '${download.errorMessage} (Max retries: $_maxRetries)',
@@ -650,6 +757,9 @@ class BackgroundDownloadService extends ChangeNotifier {
   Future<void> _processQueue() async {
     if (_downloadQueue.isEmpty) return;
     if (_activeDownloads.length >= _maxConcurrentDownloads) return;
+
+    // Track queue operations
+    metrics.queueOperations++;
 
     final toProcess = _maxConcurrentDownloads - _activeDownloads.length;
     for (int i = 0; i < toProcess && _downloadQueue.isNotEmpty; i++) {
@@ -876,6 +986,24 @@ class BackgroundDownloadService extends ChangeNotifier {
       _downloadMetadata.remove(identifier);
     } catch (e) {
       debugPrint('Failed to save archive $identifier: $e');
+    }
+  }
+
+  /// Get current metrics
+  DownloadMetrics getMetrics() => metrics;
+
+  /// Reset metrics to zero
+  void resetMetrics() {
+    metrics.starts = 0;
+    metrics.completions = 0;
+    metrics.failures = 0;
+    metrics.pauses = 0;
+    metrics.resumes = 0;
+    metrics.cancellations = 0;
+    metrics.retries = 0;
+    metrics.queueOperations = 0;
+    if (kDebugMode) {
+      debugPrint('[BackgroundDownloadService] Metrics reset');
     }
   }
 }

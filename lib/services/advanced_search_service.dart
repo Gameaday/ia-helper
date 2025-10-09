@@ -9,9 +9,12 @@ import 'package:flutter/foundation.dart';
 import '../models/search_query.dart';
 import '../models/search_result.dart';
 import '../models/rate_limit_status.dart';
+import '../models/api_intensity_settings.dart';
 import '../core/constants/internet_archive_constants.dart';
 import '../services/ia_http_client.dart';
 import '../services/rate_limiter.dart';
+import '../services/thumbnail_cache_service.dart';
+import '../screens/api_intensity_settings_screen.dart';
 
 /// Service for executing advanced searches
 ///
@@ -40,7 +43,8 @@ class AdvancedSearchService extends ChangeNotifier {
 
   /// Execute a search query
   ///
-  /// Returns a list of SearchResult objects matching the query
+  /// Returns a list of SearchResult objects matching the query.
+  /// Respects API intensity settings to optimize data usage and performance.
   Future<List<SearchResult>> search(SearchQuery query) async {
     _isSearching = true;
     _error = null;
@@ -49,13 +53,20 @@ class AdvancedSearchService extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Load API intensity settings
+      final settings = await ApiIntensitySettingsScreen.getSettings();
+
+      // Adjust query based on API intensity
+      final adjustedQuery = await _adjustQueryForIntensity(query, settings);
+
       // Build API URL
-      final url = query.buildApiUrl(IAEndpoints.advancedSearch);
+      final url = adjustedQuery.buildApiUrl(IAEndpoints.advancedSearch);
 
       if (kDebugMode) {
+        print('[AdvancedSearchService] API Intensity: ${settings.level.name}');
         print('[AdvancedSearchService] Searching: $url');
         print(
-          '[AdvancedSearchService] Query string: ${query.buildQueryString()}',
+          '[AdvancedSearchService] Query string: ${adjustedQuery.buildQueryString()}',
         );
       }
 
@@ -81,6 +92,11 @@ class AdvancedSearchService extends ChangeNotifier {
           );
         }
 
+        // Preload thumbnails if enabled
+        if (settings.loadThumbnails && settings.preloadMetadata) {
+          _preloadThumbnails();
+        }
+
         _isSearching = false;
         notifyListeners();
 
@@ -96,6 +112,87 @@ class AdvancedSearchService extends ChangeNotifier {
       _isSearching = false;
       notifyListeners();
       rethrow;
+    }
+  }
+
+  /// Adjust query based on API intensity settings
+  Future<SearchQuery> _adjustQueryForIntensity(
+    SearchQuery query,
+    ApiIntensitySettings settings,
+  ) async {
+    // Determine fields to request based on intensity level
+    List<String> fields;
+    int rows = query.rows;
+
+    switch (settings.level) {
+      case ApiIntensityLevel.full:
+        // Request all fields for full experience
+        fields = [
+          'identifier',
+          'title',
+          'description',
+          'creator',
+          'date',
+          'mediatype',
+          'downloads',
+          'item_size',
+          'publicdate',
+          'addeddate',
+          'collection',
+          'subject',
+          'language',
+          'avg_rating',
+          'num_reviews',
+          '__ia_thumb_url', // Thumbnail URL
+        ];
+        break;
+
+      case ApiIntensityLevel.standard:
+        // Request core fields for balanced experience
+        fields = [
+          'identifier',
+          'title',
+          'description',
+          'creator',
+          'date',
+          'mediatype',
+          'downloads',
+          '__ia_thumb_url', // Thumbnail URL
+        ];
+        break;
+
+      case ApiIntensityLevel.minimal:
+        // Request only essential fields for fast loading
+        fields = ['identifier', 'title', 'mediatype'];
+        // Increase row count since payload is smaller
+        rows = (rows * 2).clamp(1, 200);
+        break;
+
+      case ApiIntensityLevel.cacheOnly:
+        // Cache-only mode - this should be handled at a higher level
+        // Return minimal fields for cache lookup
+        fields = ['identifier', 'title'];
+        break;
+    }
+
+    // Apply field adjustments
+    return query.copyWith(fields: fields, rows: rows);
+  }
+
+  /// Preload thumbnails for current results
+  void _preloadThumbnails() {
+    final thumbnailUrls = _currentResults
+        .where((result) => result.thumbnailUrl != null)
+        .map((result) => result.thumbnailUrl!)
+        .toList();
+
+    if (thumbnailUrls.isNotEmpty) {
+      // Fire and forget - don't await
+      ThumbnailCacheService().preloadThumbnails(thumbnailUrls).catchError((e) {
+        if (kDebugMode) {
+          print('[AdvancedSearchService] Thumbnail preload error: $e');
+        }
+      });
     }
   }
 
