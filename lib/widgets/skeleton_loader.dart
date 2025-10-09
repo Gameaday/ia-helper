@@ -129,11 +129,12 @@ class ArchiveResultCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isListLayout) {
-      return _buildListSkeleton(context);
-    } else {
-      return _buildGridSkeleton(context);
-    }
+    // Exclude from screen readers - just loading placeholders
+    return ExcludeSemantics(
+      child: isListLayout
+          ? _buildListSkeleton(context)
+          : _buildGridSkeleton(context),
+    );
   }
 
   Widget _buildGridSkeleton(BuildContext context) {

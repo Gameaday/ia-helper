@@ -42,12 +42,16 @@ class ArchiveResultCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
+    return Semantics(
+      label: _buildSemanticLabel(),
+      button: true,
+      enabled: true,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: InkWell(
+          onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -132,6 +136,7 @@ class ArchiveResultCard extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -140,19 +145,23 @@ class ArchiveResultCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 1,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Thumbnail section with Hero animation
-            Hero(
-              tag: 'archive-thumbnail-${result.identifier}',
+    return Semantics(
+      label: _buildSemanticLabel(),
+      button: true,
+      enabled: true,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        elevation: 1,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: InkWell(
+          onTap: onTap,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail section with Hero animation
+              Hero(
+                tag: 'archive-thumbnail-${result.identifier}',
               child: SizedBox(
                   width: 120, height: 120, child: _buildThumbnail(context)),
             ),
@@ -245,6 +254,7 @@ class ArchiveResultCard extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -416,5 +426,37 @@ class ArchiveResultCard extends StatelessWidget {
       }
       return date;
     }
+  }
+
+  /// Build semantic label for screen readers
+  String _buildSemanticLabel() {
+    final buffer = StringBuffer();
+
+    // Add title
+    buffer.write(result.title);
+
+    // Add creator if available
+    if (result.creator != null && result.creator!.isNotEmpty) {
+      buffer.write(' by ${result.creator}');
+    }
+
+    // Add media type
+    if (result.mediaType != null) {
+      buffer.write(', ${_formatMediaType(result.mediaType!)}');
+    }
+
+    // Add date if available
+    if (result.date != null && result.date!.isNotEmpty) {
+      buffer.write(', ${_formatDate(result.date!)}');
+    }
+
+    // Add download count if available
+    if (result.downloads != null && result.downloads! > 0) {
+      buffer.write(', ${_formatDownloads(result.downloads!)} downloads');
+    }
+
+    buffer.write('. Tap to view details.');
+
+    return buffer.toString();
   }
 }

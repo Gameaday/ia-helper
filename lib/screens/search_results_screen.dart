@@ -311,106 +311,121 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }
 
   Widget _buildLoadingState() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final isPhone = width < 600;
-        final crossAxisCount = isPhone ? 2 : (width < 900 ? 3 : 4);
-        
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Loading indicator with message
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Column(
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Searching Internet Archive...'),
-                    ],
+    return Semantics(
+      label: 'Loading search results',
+      liveRegion: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final isPhone = width < 600;
+          final crossAxisCount = isPhone ? 2 : (width < 900 ? 3 : 4);
+          
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Loading indicator with message
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Searching Internet Archive...'),
+                      ],
+                    ),
                   ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Skeleton loaders
+                SkeletonGrid(
+                  itemCount: 6,
+                  crossAxisCount: crossAxisCount,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+  Widget _buildErrorState() {
+    return Semantics(
+      label: 'Search error: ${_error ?? 'An unknown error occurred'}. Tap retry button to try again.',
+      liveRegion: true,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
               const SizedBox(height: 16),
-              
-              // Skeleton loaders
-              SkeletonGrid(
-                itemCount: 6,
-                crossAxisCount: crossAxisCount,
+              Text('Search Error', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              Text(
+                _error ?? 'An unknown error occurred',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: _executeSearch,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
               ),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text('Search Error', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              _error ?? 'An unknown error occurred',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _executeSearch,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
         ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Results Found',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting your search query or filters',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
+    return Semantics(
+      label: 'No search results found. Try adjusting your search query or filters. Tap back to search button to return.',
+      liveRegion: true,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.search_off,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.tonal(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Back to Search'),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'No Results Found',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Try adjusting your search query or filters',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton.tonal(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Back to Search'),
+              ),
+            ],
+          ),
         ),
       ),
     );
