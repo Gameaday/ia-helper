@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/api_intensity_settings.dart';
+import '../utils/snackbar_helper.dart';
 
 /// Screen for configuring API intensity and data usage settings
 class ApiIntensitySettingsScreen extends StatefulWidget {
@@ -61,14 +62,8 @@ class _ApiIntensitySettingsScreenState
 
   Future<void> _saveSettings() async {
     await ApiIntensitySettingsScreen.saveSettings(_settings);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Settings saved'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
+    if (!mounted) return;
+    SnackBarHelper.showSuccess(context, 'Settings saved');
   }
 
   @override

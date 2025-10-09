@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import '../models/archive_metadata.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/snackbar_helper.dart';
 
 /// Screen for previewing files in memory without downloading
 class FilePreviewScreen extends StatefulWidget {
@@ -177,13 +178,11 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
                       if (await canLaunchUrl(uri)) {
                         await launchUrl(uri, mode: LaunchMode.platformDefault);
                       } else {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Could not open download URL'),
-                            ),
-                          );
-                        }
+                        if (!context.mounted) return;
+                        SnackBarHelper.showError(
+                          context,
+                          'Could not open download URL',
+                        );
                       }
                     }
                   },
