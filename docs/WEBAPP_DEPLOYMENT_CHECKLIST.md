@@ -260,6 +260,15 @@ Before enabling GitHub Pages, verify:
    - Install prompt for mobile
    - App icon and splash screens
 
+4. **WASM Compilation** (future consideration)
+   - Current build uses JavaScript compilation (fully supported)
+   - If migrating to WASM compilation in the future:
+     - Consider conditionally disabling `pdfx` package on web platform
+     - Most modern browsers have native PDF viewing capabilities
+     - Current WASM warnings from `pdfx` package are non-blocking
+     - See: https://docs.flutter.dev/platform-integration/web/wasm
+   - **Decision:** Keep JS compilation for now, reassess if WASM becomes standard
+
 ---
 
 ## 📞 Support
