@@ -98,10 +98,16 @@ IntelligentSearchBar({
    - Identifier → Load metadata → Navigate to detail screen
    - Keyword/Advanced → Navigate to search results screen
    - Save to search history on each search
-4. Test all navigation flows
+4. **Implement responsive adaptive layout** (NEW - Oct 9, 2025):
+   - Use LayoutBuilder to detect screen width
+   - Phone (<900dp): Existing vertical layout preserved
+   - Tablet/Desktop (≥900dp): Enhanced layout with side panels
+   - Search bar spans full width on all sizes
+   - Integrate with existing master-detail tablet logic
+5. Test all navigation flows on phone, tablet, and web
 
 **Files to Modify:**
-- `lib/screens/home_screen.dart` (major refactoring)
+- `lib/screens/home_screen.dart` (major refactoring with adaptive layout)
 
 **Challenges:**
 - Home screen currently has complex tablet layout logic

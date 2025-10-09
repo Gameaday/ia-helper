@@ -522,6 +522,68 @@ Phase 5 focuses on preparing the Flutter mobile app for production release on th
 
 ---
 
+### Task 7: Adaptive Responsive Layouts ⭐ **NEW** 🚧 **IN PROGRESS**
+**Priority**: High  
+**Estimated Time**: 7-9.5 hours  
+**Status**: 20% complete (1/6 screens)
+
+**Background**: This task emerged from web platform migration completion and user feedback about vertical space optimization on large screens. Not in original Phase 5 plan but essential for excellent tablet/desktop/web experience.
+
+**Key Principle**: "Feature creep is our friend as long as the design stays strong and the foundations even stronger."
+
+#### 7.1 Completed Work ✅
+- [x] **Archive Detail Screen** - Side-by-side layout (metadata sidebar | file list)
+  - Phone (<900dp): Vertical stack (unchanged)
+  - Tablet/Desktop (≥900dp): 360px sidebar + expanded file list
+  - Impact: 2-3x more files visible without scrolling
+  - Status: Complete, tested, 0 errors/warnings
+
+#### 7.2 In Progress 🚧
+- [ ] **Home Screen** - Adaptive layout with IntelligentSearchBar
+  - Integrates with Task 2 (Intelligent Search)
+  - Phone: Vertical stack with search + recent + quick actions
+  - Tablet: Search bar + two-panel layout (navigation | preview)
+  - Estimated: 2-3 hours
+
+#### 7.3 Planned Work 📋
+- [ ] **Search Results Screen** - Master-detail layout (2 hours)
+  - Phone: Vertical list
+  - Tablet: Results list (40%) + preview panel (60%)
+  - Keyboard navigation support
+  
+- [ ] **Collections Screen** - Responsive grid (1-2 hours)
+  - Phone: 2 columns
+  - Tablet: 3-4 columns
+  - Desktop: 4-5 columns
+  
+- [ ] **Downloads Screen** - Two-column layout (1 hour)
+  - Phone: Vertical list with tabs
+  - Tablet: Active (50%) | Completed (50%)
+  
+- [ ] **Settings Screen** - Category navigation (30 minutes)
+  - Phone: Simple list
+  - Tablet: Category list (30%) + settings panel (70%)
+
+#### 7.4 Technical Pattern
+```dart
+LayoutBuilder(
+  builder: (context, constraints) {
+    final isLargeScreen = constraints.maxWidth >= 900;
+    return isLargeScreen ? _buildTabletLayout() : _buildPhoneLayout();
+  },
+);
+```
+
+**Design Constants:**
+- Breakpoint: 900dp (MD3 standard)
+- Sidebar width: 360px
+- Divider: 1px VerticalDivider
+- Grid columns: Phone (2) → Tablet (3-4) → Desktop (4-5)
+
+**Documentation:** See `docs/features/PHASE_5_TASK_7_RESPONSIVE_LAYOUTS.md` for detailed plan
+
+---
+
 ## 📸 Store Assets Requirements
 
 ### Screenshots (Phone)
