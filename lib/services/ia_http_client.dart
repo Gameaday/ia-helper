@@ -324,14 +324,16 @@ class IAHttpClient {
 
   /// Merge custom headers with required headers.
   ///
-  /// Always includes User-Agent header.
+  /// Always includes User-Agent header on native platforms.
+  /// On web, User-Agent is not allowed in CORS preflight and is omitted.
   /// Optionally includes If-None-Match header for conditional GET requests.
   Map<String, String> _mergeHeaders(
     Map<String, String>? headers, {
     String? ifNoneMatch,
   }) {
     return {
-      'User-Agent': userAgent,
+      // Don't set User-Agent on web - it's not allowed in CORS requests
+      if (!kIsWeb) 'User-Agent': userAgent,
       if (ifNoneMatch != null) 'If-None-Match': ifNoneMatch,
       if (headers != null) ...headers,
     };

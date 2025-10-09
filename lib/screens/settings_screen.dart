@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/bandwidth_preset.dart';
@@ -155,13 +156,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Download Settings Section
               _buildSectionHeader('Download Settings'),
 
-              ListTile(
-                leading: const Icon(Icons.folder),
-                title: const Text('Download Location'),
-                subtitle: Text(_downloadPath),
-                trailing: const Icon(Icons.edit),
-                onTap: _showDownloadPathDialog,
-              ),
+              // Hide download path setting on web (file picker doesn't work)
+              if (!kIsWeb)
+                ListTile(
+                  leading: const Icon(Icons.folder),
+                  title: const Text('Download Location'),
+                  subtitle: Text(_downloadPath),
+                  trailing: const Icon(Icons.edit),
+                  onTap: _showDownloadPathDialog,
+                ),
 
               ListTile(
                 leading: const Icon(Icons.file_download),
