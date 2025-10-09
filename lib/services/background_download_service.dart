@@ -9,6 +9,7 @@ import '../models/downloaded_archive.dart';
 import 'internet_archive_api.dart';
 import 'notification_service.dart';
 import 'local_archive_storage.dart';
+import 'archive_url_service.dart';
 
 /// Metrics for tracking download operations
 class DownloadMetrics {
@@ -54,6 +55,7 @@ class BackgroundDownloadService extends ChangeNotifier {
   int _maxConcurrentDownloads = 3;
   int _maxRetries = 3;
   LocalArchiveStorage? _archiveStorage;
+  final ArchiveUrlService _urlService = ArchiveUrlService();
 
   // Metrics tracking
   final DownloadMetrics metrics = DownloadMetrics();
@@ -343,7 +345,7 @@ class BackgroundDownloadService extends ChangeNotifier {
 
       for (final fileName in selectedFiles) {
         try {
-          final fileUrl = 'https://archive.org/download/$identifier/$fileName';
+          final fileUrl = _urlService.getDownloadUrl(identifier, fileName);
           final filePath = '$downloadPath/$fileName';
           final fileStartBytes = totalDownloadedBytes;
 
