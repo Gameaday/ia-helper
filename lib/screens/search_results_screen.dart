@@ -217,11 +217,26 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       return _buildEmptyState();
     }
 
+    // Smooth transition between grid and list views
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: _viewLayout == ArchiveResultCardLayout.grid
-          ? _buildGridView()
-          : _buildListView(),
+      child: AnimatedSwitcher(
+        duration: MD3Durations.medium,
+        switchInCurve: MD3Curves.emphasized,
+        switchOutCurve: MD3Curves.emphasized,
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey(_viewLayout),
+          child: _viewLayout == ArchiveResultCardLayout.grid
+              ? _buildGridView()
+              : _buildListView(),
+        ),
+      ),
     );
   }
 

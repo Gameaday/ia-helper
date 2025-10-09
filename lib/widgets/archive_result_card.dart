@@ -51,10 +51,13 @@ class ArchiveResultCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail section
-            AspectRatio(
-              aspectRatio: _getAspectRatio(),
-              child: _buildThumbnail(context),
+            // Thumbnail section with Hero animation
+            Hero(
+              tag: 'archive-thumbnail-${result.identifier}',
+              child: AspectRatio(
+                aspectRatio: _getAspectRatio(),
+                child: _buildThumbnail(context),
+              ),
             ),
 
             // Content section
@@ -147,8 +150,12 @@ class ArchiveResultCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail section
-            SizedBox(width: 120, height: 120, child: _buildThumbnail(context)),
+            // Thumbnail section with Hero animation
+            Hero(
+              tag: 'archive-thumbnail-${result.identifier}',
+              child: SizedBox(
+                  width: 120, height: 120, child: _buildThumbnail(context)),
+            ),
 
             // Content section
             Expanded(
