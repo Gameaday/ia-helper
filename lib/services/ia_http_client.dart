@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import '../core/platform/http_headers_adapter.dart';
 import 'rate_limiter.dart';
 import '../models/rate_limit_status.dart';
 
@@ -74,6 +75,7 @@ class HttpClientMetrics {
 class IAHttpClient {
   final http.Client _innerClient;
   final RateLimiter _rateLimiter;
+  final HttpHeadersAdapter _headersAdapter = HttpHeadersAdapter();
 
   // Metrics tracking
   final HttpClientMetrics metrics = HttpClientMetrics();
@@ -420,16 +422,16 @@ class IAHttpClient {
 
   /// Merge custom headers with required headers.
   ///
-  /// Always includes User-Agent header on native platforms.
-  /// On web, User-Agent is not allowed in CORS preflight and is omitted.
+  /// Uses HttpHeadersAdapter to automatically include User-Agent on native platforms.
+  /// On web, User-Agent is omitted (not allowed in CORS preflight).
   /// Optionally includes If-None-Match header for conditional GET requests.
   Map<String, String> _mergeHeaders(
     Map<String, String>? headers, {
     String? ifNoneMatch,
   }) {
+    final baseHeaders = _headersAdapter.getPlatformHeaders();
     return {
-      // Don't set User-Agent on web - it's not allowed in CORS requests
-      if (!kIsWeb) 'User-Agent': userAgent,
+      ...baseHeaders,
       if (ifNoneMatch != null) 'If-None-Match': ifNoneMatch,
       if (headers != null) ...headers,
     };
@@ -484,10 +486,6 @@ class IAHttpClient {
   /// - Native: "Flutter/3.35.5 Dart/3.8.0"
   /// - Web: "Flutter/3.35.5 (Web)"
   static String _getFlutterVersion() {
-    if (kIsWeb) {
-      return 'Flutter/$_kFlutterVersion (Web)';
-    }
-
     try {
       // Platform.version includes full Dart version info
       // Format: "3.8.0 (stable) on \"windows_x64\""
@@ -498,8 +496,11 @@ class IAHttpClient {
         return 'Flutter/$_kFlutterVersion Dart/$dartVersion';
       }
     } catch (e) {
-      // Fallback if Platform.version is not available
-      debugPrint('Failed to get Dart version: $e');
+      // Fallback for web or if Platform.version is not available
+      if (kDebugMode) {
+        debugPrint('[IAHttpClient] Get version handled: $e');
+      }
+      return 'Flutter/$_kFlutterVersion (Web)';
     }
 
     return 'Flutter/$_kFlutterVersion';

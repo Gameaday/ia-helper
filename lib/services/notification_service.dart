@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Service for managing Android notifications for downloads
+///
+/// Platform-aware: Works on all platforms (no-op on web via try-catch).
 class NotificationService {
   static const _platform = MethodChannel(
     'com.internetarchive.helper/notifications',
@@ -14,16 +16,9 @@ class NotificationService {
 
   /// Initialize the notification service
   ///
-  /// On web platform, this silently returns without error since notifications
-  /// are not supported in Flutter web apps.
+  /// Works on all platforms. On web, MethodChannel calls are no-ops (caught silently).
   static Future<void> initialize() async {
     if (_isInitialized) return;
-
-    // Notifications not supported on web platform
-    if (kIsWeb) {
-      _isInitialized = true; // Mark as initialized to prevent repeated attempts
-      return;
-    }
 
     try {
       await _platform.invokeMethod('initialize', {
@@ -47,7 +42,11 @@ class NotificationService {
 
       _isInitialized = true;
     } catch (e) {
-      debugPrint('Failed to initialize notification service: $e');
+      // Silent failure on web (MethodChannel not available)
+      _isInitialized = true; // Mark as initialized to prevent repeated attempts
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Initialize handled: $e');
+      }
     }
   }
 
@@ -57,7 +56,9 @@ class NotificationService {
       final result = await _platform.invokeMethod('requestPermissions');
       return result == true;
     } catch (e) {
-      debugPrint('Failed to request notification permissions: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Request permissions handled: $e');
+      }
       return false;
     }
   }
@@ -68,7 +69,9 @@ class NotificationService {
       final result = await _platform.invokeMethod('arePermissionsGranted');
       return result == true;
     } catch (e) {
-      debugPrint('Failed to check notification permissions: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Check permissions handled: $e');
+      }
       return false;
     }
   }
@@ -103,7 +106,9 @@ class NotificationService {
         'extras': {'currentFile': currentFile, 'totalFiles': totalFiles},
       });
     } catch (e) {
-      debugPrint('Failed to show download progress notification: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Show progress handled: $e');
+      }
     }
   }
 
@@ -134,7 +139,9 @@ class NotificationService {
         ],
       });
     } catch (e) {
-      debugPrint('Failed to show paused download notification: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Show paused handled: $e');
+      }
     }
   }
 
@@ -168,7 +175,9 @@ class NotificationService {
         },
       });
     } catch (e) {
-      debugPrint('Failed to show download complete notification: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Show complete handled: $e');
+      }
     }
   }
 
@@ -196,7 +205,9 @@ class NotificationService {
         ],
       });
     } catch (e) {
-      debugPrint('Failed to show download error notification: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Show error handled: $e');
+      }
     }
   }
 
@@ -207,7 +218,9 @@ class NotificationService {
         'notificationId': downloadId.hashCode,
       });
     } catch (e) {
-      debugPrint('Failed to cancel notification: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Cancel notification handled: $e');
+      }
     }
   }
 
@@ -216,7 +229,9 @@ class NotificationService {
     try {
       await _platform.invokeMethod('cancelAllNotifications');
     } catch (e) {
-      debugPrint('Failed to cancel all notifications: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Cancel all handled: $e');
+      }
     }
   }
 
@@ -244,7 +259,9 @@ class NotificationService {
         ],
       });
     } catch (e) {
-      debugPrint('Failed to show download summary notification: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Show summary handled: $e');
+      }
     }
   }
 
@@ -253,7 +270,9 @@ class NotificationService {
     try {
       await _platform.invokeMethod('updateBadgeCount', {'count': count});
     } catch (e) {
-      debugPrint('Failed to update badge count: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Update badge handled: $e');
+      }
     }
   }
 }

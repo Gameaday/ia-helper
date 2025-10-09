@@ -1,24 +1,28 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import '../screens/api_intensity_settings_screen.dart';
+import '../core/platform/storage_adapter.dart';
 
 /// Service for caching thumbnail images with LRU eviction
 ///
 /// Features:
 /// - Memory cache with LRU eviction (max 100MB)
-/// - Disk cache persistence
+/// - Disk cache persistence (native) / Memory-only (web)
 /// - Network loading with graceful fallback
 /// - Respects ApiIntensitySettings.loadThumbnails
 /// - Cache metrics tracking
+/// - Platform-agnostic via StorageAdapter
 class ThumbnailCacheService {
   static final ThumbnailCacheService _instance =
       ThumbnailCacheService._internal();
   factory ThumbnailCacheService() => _instance;
   ThumbnailCacheService._internal();
+
+  /// Platform adapter for file system operations
+  final StorageAdapter _storage = StorageAdapter();
 
   /// Memory cache with LRU eviction
   final Map<String, Uint8List> _memoryCache = {};
@@ -39,10 +43,8 @@ class ThumbnailCacheService {
 
   /// Initialize cache and load settings
   Future<void> initialize() async {
-    // Skip disk cache cleanup on web
-    if (!kIsWeb) {
-      await _cleanupOldCacheFiles();
-    }
+    // Clean up old cache files
+    await _cleanupOldCacheFiles();
   }
 
   /// Get thumbnail image data
@@ -67,14 +69,12 @@ class ThumbnailCacheService {
 
     _misses++;
 
-    // Check disk cache (skip on web platform)
-    if (!kIsWeb) {
-      final diskData = await _loadFromDisk(cacheKey);
-      if (diskData != null) {
-        _diskHits++;
-        await _addToMemoryCache(cacheKey, diskData);
-        return diskData;
-      }
+    // Check disk cache (works on all platforms - no-op on web)
+    final diskData = await _loadFromDisk(cacheKey);
+    if (diskData != null) {
+      _diskHits++;
+      await _addToMemoryCache(cacheKey, diskData);
+      return diskData;
     }
 
     // Load from network
@@ -83,15 +83,15 @@ class ThumbnailCacheService {
       if (networkData != null) {
         _networkLoads++;
         await _addToMemoryCache(cacheKey, networkData);
-        // Save to disk only on native platforms
-        if (!kIsWeb) {
-          await _saveToDisk(cacheKey, networkData);
-        }
+        // Save to disk (no-op on web, real save on native)
+        await _saveToDisk(cacheKey, networkData);
         return networkData;
       }
     } catch (e) {
       _failures++;
-      debugPrint('Failed to load thumbnail from network: $e');
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Network load failed: $e');
+      }
     }
 
     return null;
@@ -146,10 +146,10 @@ class ThumbnailCacheService {
     _accessOrder.add(key);
   }
 
-  /// Load image from disk cache (native platforms only)
+  /// Load image from disk cache
+  ///
+  /// Works on all platforms. Returns null on web (no-op), real data on native.
   Future<Uint8List?> _loadFromDisk(String key) async {
-    if (kIsWeb) return null; // Skip on web
-    
     try {
       final file = await _getCacheFile(key);
       if (await file.exists()) {
@@ -163,10 +163,10 @@ class ThumbnailCacheService {
     return null;
   }
 
-  /// Save image to disk cache (native platforms only)
+  /// Save image to disk cache
+  ///
+  /// Works on all platforms. No-op on web, real save on native.
   Future<void> _saveToDisk(String key, Uint8List data) async {
-    if (kIsWeb) return; // Skip on web
-    
     try {
       final file = await _getCacheFile(key);
       await file.writeAsBytes(data);
@@ -203,13 +203,12 @@ class ThumbnailCacheService {
     return null;
   }
 
-  /// Get cache file for a key (native platforms only)
+  /// Get cache file for a key
+  ///
+  /// Works on all platforms via StorageAdapter.
+  /// On web, returns a virtual file that won't actually be written.
   Future<File> _getCacheFile(String key) async {
-    if (kIsWeb) {
-      throw UnsupportedError('File system not supported on web');
-    }
-    
-    final directory = await getApplicationCacheDirectory();
+    final directory = await _storage.getCacheDirectory();
     final cacheDir = Directory('${directory.path}/thumbnails');
     if (!await cacheDir.exists()) {
       await cacheDir.create(recursive: true);
@@ -224,12 +223,12 @@ class ThumbnailCacheService {
     return digest.toString();
   }
 
-  /// Clean up old cache files (older than 30 days) - native platforms only
+  /// Clean up old cache files (older than 30 days)
+  ///
+  /// Works on all platforms. No-op on web, real cleanup on native.
   Future<void> _cleanupOldCacheFiles() async {
-    if (kIsWeb) return; // Skip on web
-    
     try {
-      final directory = await getApplicationCacheDirectory();
+      final directory = await _storage.getCacheDirectory();
       final cacheDir = Directory('${directory.path}/thumbnails');
 
       if (!await cacheDir.exists()) {
@@ -263,19 +262,17 @@ class ThumbnailCacheService {
     _accessOrder.clear();
     _currentMemoryCacheSize = 0;
 
-    // Clear disk cache (native platforms only)
-    if (!kIsWeb) {
-      try {
-        final directory = await getApplicationCacheDirectory();
-        final cacheDir = Directory('${directory.path}/thumbnails');
+    // Clear disk cache
+    try {
+      final directory = await _storage.getCacheDirectory();
+      final cacheDir = Directory('${directory.path}/thumbnails');
 
-        if (await cacheDir.exists()) {
-          await cacheDir.delete(recursive: true);
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint('[ThumbnailCache] Failed to clear disk cache: $e');
-        }
+      if (await cacheDir.exists()) {
+        await cacheDir.delete(recursive: true);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Failed to clear disk cache: $e');
       }
     }
 
@@ -327,10 +324,10 @@ class ThumbnailCacheService {
     return _memoryCache.containsKey(key);
   }
 
-  /// Check if URL is cached on disk (native platforms only)
+  /// Check if URL is cached on disk
+  ///
+  /// Works on all platforms. Returns false on web (no disk cache), checks file on native.
   Future<bool> isCachedOnDisk(String url) async {
-    if (kIsWeb) return false;
-    
     try {
       final key = _getCacheKey(url);
       final file = await _getCacheFile(key);
@@ -351,27 +348,25 @@ class ThumbnailCacheService {
       _accessOrder.remove(key);
     }
 
-    // Remove from disk cache (native platforms only)
-    if (!kIsWeb) {
-      try {
-        final file = await _getCacheFile(key);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint('[ThumbnailCache] Failed to remove from disk: $e');
-        }
+    // Remove from disk cache
+    try {
+      final file = await _getCacheFile(key);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Failed to remove from disk: $e');
       }
     }
   }
 
-  /// Get disk cache size (native platforms only)
+  /// Get disk cache size
+  ///
+  /// Works on all platforms. Returns 0 on web (no disk cache), calculates size on native.
   Future<int> getDiskCacheSize() async {
-    if (kIsWeb) return 0;
-    
     try {
-      final directory = await getApplicationCacheDirectory();
+      final directory = await _storage.getCacheDirectory();
       final cacheDir = Directory('${directory.path}/thumbnails');
 
       if (!await cacheDir.exists()) {
@@ -395,12 +390,12 @@ class ThumbnailCacheService {
     }
   }
 
-  /// Get disk cache item count (native platforms only)
+  /// Get disk cache item count
+  ///
+  /// Works on all platforms. Returns 0 on web (no disk cache), counts items on native.
   Future<int> getDiskCacheItemCount() async {
-    if (kIsWeb) return 0;
-    
     try {
-      final directory = await getApplicationCacheDirectory();
+      final directory = await _storage.getCacheDirectory();
       final cacheDir = Directory('${directory.path}/thumbnails');
 
       if (!await cacheDir.exists()) {

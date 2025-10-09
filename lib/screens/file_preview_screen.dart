@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import '../models/archive_metadata.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../utils/snackbar_helper.dart';
 
 /// Screen for previewing files in memory without downloading
 class FilePreviewScreen extends StatefulWidget {
@@ -141,77 +138,6 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Disable all previews on web - let browser handle file viewing
-    if (kIsWeb) {
-      return Scaffold(
-        appBar: AppBar(title: Text(widget.file.displayName)),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.download_rounded,
-                  size: 96,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Preview not available on web',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Download the file to view it in your browser',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                FilledButton.icon(
-                  onPressed: () async {
-                    if (widget.file.downloadUrl != null) {
-                      final uri = Uri.parse(widget.file.downloadUrl!);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.platformDefault);
-                      } else {
-                        if (!context.mounted) return;
-                        SnackBarHelper.showError(
-                          context,
-                          'Could not open download URL',
-                        );
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.download),
-                  label: const Text('Download File'),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  widget.file.format?.toUpperCase() ?? 'Unknown',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                if (widget.file.size != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    _formatFileSize(widget.file.size!),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.file.displayName),
@@ -226,15 +152,6 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
       ),
       body: _buildBody(),
     );
-  }
-
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    }
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
   Widget _buildBody() {
