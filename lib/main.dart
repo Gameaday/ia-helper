@@ -14,6 +14,7 @@ import 'core/navigation/navigation_state.dart';
 import 'core/navigation/bottom_navigation_scaffold.dart';
 import 'screens/archive_detail_screen.dart';
 import 'screens/advanced_search_screen.dart';
+import 'screens/api_intensity_settings_screen.dart';
 import 'screens/saved_searches_screen.dart';
 import 'screens/search_results_screen.dart';
 import 'models/search_query.dart';
@@ -174,6 +175,11 @@ class IAGetMobileApp extends StatelessWidget {
             case SavedSearchesScreen.routeName:
               return MD3PageTransitions.sharedAxis(
                 page: const SavedSearchesScreen(),
+                settings: settings,
+              );
+            case '/api-intensity-settings':
+              return MD3PageTransitions.sharedAxis(
+                page: const ApiIntensitySettingsScreen(),
                 settings: settings,
               );
             case SearchResultsScreen.routeName:

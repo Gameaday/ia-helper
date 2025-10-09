@@ -77,8 +77,9 @@ class ArchiveInfoWidget extends StatelessWidget {
                                         ),
                                         decoration: BoxDecoration(
                                           color: colorScheme.tertiaryContainer,
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -128,8 +129,9 @@ class ArchiveInfoWidget extends StatelessWidget {
                                 IconButton(
                                   icon: Icon(
                                     Icons.sync,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                   tooltip: 'Sync metadata',
                                   onPressed: () async {
@@ -144,8 +146,9 @@ class ArchiveInfoWidget extends StatelessWidget {
                                         metadata.identifier,
                                       );
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           const SnackBar(
                                             content: Text(
                                               'Metadata synced successfully',
@@ -156,8 +159,9 @@ class ArchiveInfoWidget extends StatelessWidget {
                                       }
                                     } catch (e) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           SnackBar(
                                             content: Text('Sync failed: $e'),
                                             backgroundColor: Theme.of(
