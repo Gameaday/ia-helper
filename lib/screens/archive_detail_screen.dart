@@ -103,24 +103,80 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            return Column(
-              children: [
-                // Archive information
-                ArchiveInfoWidget(metadata: service.currentMetadata!),
+            // Adaptive layout: side-by-side on large screens, stacked on phones
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final isLargeScreen = constraints.maxWidth >= 900;
 
-                // File list (with integrated filter controls)
-                Expanded(child: FileListWidget(files: service.filteredFiles)),
-
-                // Download controls
-                const DownloadControlsWidget(),
-
-                // Active downloads manager
-                const DownloadManagerWidget(),
-              ],
+                if (isLargeScreen) {
+                  return _buildTabletLayout(service);
+                } else {
+                  return _buildPhoneLayout(service);
+                }
+              },
             );
           },
         ),
       ),
+    );
+  }
+
+  /// Phone layout: Vertical stack (metadata → files → controls)
+  Widget _buildPhoneLayout(ArchiveService service) {
+    return Column(
+      children: [
+        // Archive information
+        ArchiveInfoWidget(metadata: service.currentMetadata!),
+
+        // File list (with integrated filter controls)
+        Expanded(child: FileListWidget(files: service.filteredFiles)),
+
+        // Download controls
+        const DownloadControlsWidget(),
+
+        // Active downloads manager
+        const DownloadManagerWidget(),
+      ],
+    );
+  }
+
+  /// Tablet/Desktop layout: Side-by-side (metadata | files/controls)
+  Widget _buildTabletLayout(ArchiveService service) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left sidebar: Archive metadata (30% width, scrollable)
+        SizedBox(
+          width: 360, // Fixed width for consistency (roughly 30% of 1200dp)
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: ArchiveInfoWidget(metadata: service.currentMetadata!),
+          ),
+        ),
+
+        // Vertical divider
+        VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+
+        // Right content: Files, controls, and downloads (70% width)
+        Expanded(
+          child: Column(
+            children: [
+              // File list (with integrated filter controls)
+              Expanded(child: FileListWidget(files: service.filteredFiles)),
+
+              // Download controls
+              const DownloadControlsWidget(),
+
+              // Active downloads manager
+              const DownloadManagerWidget(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
