@@ -4,6 +4,10 @@ import 'package:flutter/foundation.dart';
 import '../models/download_task.dart';
 import '../models/download_progress.dart';
 
+// Web platform check
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart' 
+    if (dart.library.io) 'package:sqflite/sqflite.dart';
+
 /// Database helper for managing SQLite database operations
 /// Used for metadata caching and file preview caching with versioning and migrations
 class DatabaseHelper {
@@ -36,6 +40,11 @@ class DatabaseHelper {
   /// Initialize database with schema
   Future<Database> _initDatabase() async {
     try {
+      // Initialize web database factory if on web
+      if (kIsWeb) {
+        databaseFactory = databaseFactoryFfiWeb;
+      }
+      
       final databasesPath = await getDatabasesPath();
       final path = join(databasesPath, _databaseName);
 
