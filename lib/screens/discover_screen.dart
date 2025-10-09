@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/favorite.dart';
 import '../models/search_query.dart';
 import '../models/search_result.dart';
@@ -31,12 +32,17 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     with AutomaticKeepAliveClientMixin {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
   final AdvancedSearchService _searchService = AdvancedSearchService();
   final FavoritesService _favoritesService = FavoritesService.instance;
   List<SearchResult> _trendingResults = [];
   List<Favorite> _recentFavorites = [];
   bool _isLoadingTrending = false;
+  bool _isLoadingMore = false;
+  bool _hasMoreResults = true;
   bool _showFavorites = false;
+  int _currentPage = 0;
+  static const int _pageSize = 40;
 
   @override
   bool get wantKeepAlive => true;
@@ -45,18 +51,34 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   void initState() {
     super.initState();
     _loadTrendingContent();
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isLoadingMore || !_hasMoreResults) return;
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    final delta = 200.0; // Trigger 200px before bottom
+
+    if (currentScroll >= (maxScroll - delta)) {
+      _loadMoreTrendingContent();
+    }
   }
 
   Future<void> _loadTrendingContent() async {
     setState(() {
       _isLoadingTrending = true;
+      _currentPage = 0;
+      _hasMoreResults = true;
     });
 
     try {
@@ -64,7 +86,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       const query = SearchQuery(
         query: 'mediatype:(texts OR movies OR audio OR software)',
         sortBy: SortOption.downloads,
-        rows: 20,
+        rows: 40, // _pageSize
+        page: 1,
       );
 
       final results = await _searchService.search(query);
@@ -78,6 +101,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           _trendingResults = results;
           _recentFavorites = recentFavorites;
           _isLoadingTrending = false;
+          _currentPage = 1;
+          _hasMoreResults = results.length >= _pageSize;
         });
       }
     } catch (e) {
@@ -86,6 +111,42 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           _isLoadingTrending = false;
         });
         SnackBarHelper.showError(context, e);
+      }
+    }
+  }
+
+  Future<void> _loadMoreTrendingContent() async {
+    if (_isLoadingMore || !_hasMoreResults) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final nextPage = _currentPage + 1;
+      final query = SearchQuery(
+        query: 'mediatype:(texts OR movies OR audio OR software)',
+        sortBy: SortOption.downloads,
+        rows: _pageSize,
+        page: nextPage,
+      );
+
+      final results = await _searchService.search(query);
+
+      if (mounted) {
+        setState(() {
+          _trendingResults.addAll(results);
+          _currentPage = nextPage;
+          _hasMoreResults = results.length >= _pageSize;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+        // Silent failure for pagination - don't show error snackbar
       }
     }
   }
@@ -130,6 +191,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       body: RefreshIndicator(
         onRefresh: _loadTrendingContent,
         child: CustomScrollView(
+          controller: _scrollController,
           slivers: [
             // Search bar section
             SliverToBoxAdapter(
@@ -184,7 +246,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               ),
             ),
 
-            // Popular categories section
+            // Popular categories section (responsive grid)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -198,41 +260,49 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _CategoryChip(
-                          label: 'Books & Texts',
-                          icon: Icons.menu_book,
-                          onTap: () => _searchCategory('texts'),
-                        ),
-                        _CategoryChip(
-                          label: 'Movies & Videos',
-                          icon: Icons.movie,
-                          onTap: () => _searchCategory('movies'),
-                        ),
-                        _CategoryChip(
-                          label: 'Audio & Music',
-                          icon: Icons.music_note,
-                          onTap: () => _searchCategory('audio'),
-                        ),
-                        _CategoryChip(
-                          label: 'Software',
-                          icon: Icons.apps,
-                          onTap: () => _searchCategory('software'),
-                        ),
-                        _CategoryChip(
-                          label: 'Images',
-                          icon: Icons.image,
-                          onTap: () => _searchCategory('image'),
-                        ),
-                        _CategoryChip(
-                          label: 'Web Archives',
-                          icon: Icons.public,
-                          onTap: () => _searchCategory('web'),
-                        ),
-                      ],
+                    // Responsive category grid
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Determine columns based on width
+                        int columns;
+                        if (constraints.maxWidth < 600) {
+                          columns = 2; // Phone: 2 columns
+                        } else if (constraints.maxWidth < 900) {
+                          columns = 3; // Tablet: 3 columns
+                        } else {
+                          columns = 4; // Desktop: 4 columns
+                        }
+
+                        final categories = [
+                          ('Books & Texts', Icons.menu_book, 'texts'),
+                          ('Movies & Videos', Icons.movie, 'movies'),
+                          ('Audio & Music', Icons.music_note, 'audio'),
+                          ('Software', Icons.apps, 'software'),
+                          ('Images', Icons.image, 'image'),
+                          ('Web Archives', Icons.public, 'web'),
+                        ];
+
+                        return GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: columns,
+                            childAspectRatio: 2.5,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          itemCount: categories.length,
+                          itemBuilder: (context, index) {
+                            final (label, icon, category) = categories[index];
+                            return _CategoryChip(
+                              label: label,
+                              icon: icon,
+                              onTap: () => _searchCategory(category),
+                            );
+                          },
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -380,19 +450,81 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 ),
               )
             else
+              // Responsive trending items grid
               SliverPadding(
                 padding: const EdgeInsets.all(16.0),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 180,
-                    childAspectRatio: 0.7,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+                sliver: SliverLayoutBuilder(
+                  builder: (context, constraints) {
+                    // Determine columns based on width
+                    int columns;
+                    if (constraints.crossAxisExtent < 600) {
+                      columns = 2; // Phone: 2 columns
+                    } else if (constraints.crossAxisExtent < 900) {
+                      columns = 3; // Tablet: 3 columns
+                    } else if (constraints.crossAxisExtent < 1200) {
+                      columns = 4; // Desktop: 4 columns
+                    } else {
+                      columns = 5; // Large: 5 columns
+                    }
+
+                    return SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        childAspectRatio: 0.7,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final result = _trendingResults[index];
+                          return _TrendingCard(result: result);
+                        },
+                        childCount: _trendingResults.length,
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+            // Loading more indicator
+            if (_isLoadingMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32.0),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        const SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Loading more...',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final result = _trendingResults[index];
-                    return _TrendingCard(result: result);
-                  }, childCount: _trendingResults.length),
+                ),
+              ),
+
+            // End message when no more results
+            if (!_isLoadingMore && !_hasMoreResults && _trendingResults.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32.0),
+                  child: Center(
+                    child: Text(
+                      'No more results',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
                 ),
               ),
           ],
@@ -477,6 +609,16 @@ class _TrendingCard extends StatelessWidget {
           final archiveService = context.read<ArchiveService>();
 
           try {
+            // Show loading indicator
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Loading ${result.title}...'),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            }
+
             // Fetch metadata for the archive
             await archiveService.fetchMetadata(result.identifier);
 
@@ -490,37 +632,93 @@ class _TrendingCard extends StatelessWidget {
                 settings: const RouteSettings(name: '/archive-detail'),
               ),
             );
+          } on FormatException catch (e) {
+            if (!context.mounted) return;
+            SnackBarHelper.showError(
+              context,
+              'Invalid archive: ${e.message}',
+            );
           } catch (e) {
             if (!context.mounted) return;
-
-            SnackBarHelper.showError(context, e);
+            
+            // Provide more specific error messages
+            String errorMessage = 'Could not open archive';
+            if (e.toString().contains('404') ||
+                e.toString().contains('not found')) {
+              errorMessage = 'Archive "${result.identifier}" not found';
+            } else if (e.toString().contains('timeout')) {
+              errorMessage = 'Request timed out. Please try again.';
+            } else if (e.toString().contains('network')) {
+              errorMessage = 'Network error. Check your connection.';
+            }
+            
+            SnackBarHelper.showError(context, errorMessage);
           }
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail placeholder
+            // Thumbnail image with fallback
             Expanded(
-              child: Container(
-                width: double.infinity,
-                color: colorScheme.surfaceContainerHighest,
-                child: Icon(
-                  Icons.inventory_2,
-                  size: 48,
-                  color: colorScheme.primary,
-                ),
-              ),
+              child: result.thumbnailUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: result.thumbnailUrl!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      placeholder: (context, url) => Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        child: Icon(
+                          Icons.inventory_2,
+                          size: 48,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      width: double.infinity,
+                      color: colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        Icons.inventory_2,
+                        size: 48,
+                        color: colorScheme.primary,
+                      ),
+                    ),
             ),
-            // Title
+            // Title and description
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                result.title,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    result.title,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (result.description.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      result.description,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
               ),
             ),
           ],

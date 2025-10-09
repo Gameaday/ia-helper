@@ -361,6 +361,58 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
           ),
         ),
 
+        // Dual-action buttons when identifier is detected
+        if (_currentSearchType == SearchType.identifier &&
+            _controller.text.isNotEmpty &&
+            !_showSuggestions)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              children: [
+                // Open Archive button (primary action)
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      final query = _controller.text.trim();
+                      widget.onSearch?.call(query, SearchType.identifier);
+                      _focusNode.unfocus();
+                    },
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    label: const Text('Open Archive'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Search for term button (secondary action)
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      final query = _controller.text.trim();
+                      widget.onSearch?.call(query, SearchType.keyword);
+                      _focusNode.unfocus();
+                    },
+                    icon: const Icon(Icons.search, size: 18),
+                    label: Text(
+                      'Search for "${_controller.text.trim().length > 12 ? '${_controller.text.trim().substring(0, 12)}...' : _controller.text.trim()}"',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
         // Suggestions dropdown
         if (_showSuggestions &&
             (_suggestions.isNotEmpty || _didYouMean != null))

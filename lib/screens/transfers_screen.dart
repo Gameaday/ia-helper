@@ -412,10 +412,61 @@ class _TransfersScreenState extends State<TransfersScreen> {
       return _buildEmptyState(theme);
     }
 
+    // Responsive layout based on screen width
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+
+        // Phone: Single column reorderable list
+        if (width < 600) {
+          return _buildReorderableList();
+        }
+
+        // Tablet: Two-column grid
+        if (width < 900) {
+          return _buildGrid(columns: 2);
+        }
+
+        // Desktop: Three-column grid
+        return _buildGrid(columns: 3);
+      },
+    );
+  }
+
+  /// Build traditional single-column reorderable list (phone)
+  Widget _buildReorderableList() {
     return ReorderableListView.builder(
       padding: const EdgeInsets.only(bottom: 16),
       itemCount: _filteredTasks.length,
       onReorder: _handleReorder,
+      itemBuilder: (context, index) {
+        final task = _filteredTasks[index];
+        final progress = _progressMap[task.id];
+
+        return _TransferCard(
+          key: ValueKey(task.id),
+          task: task,
+          progress: progress,
+          onPause: () => _pauseDownload(task),
+          onResume: () => _resumeDownload(task),
+          onCancel: () => _cancelDownload(task),
+          onRetry: () => _retryDownload(task),
+        );
+      },
+    );
+  }
+
+  /// Build responsive grid for tablet/desktop
+  Widget _buildGrid({required int columns}) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
+        childAspectRatio: 2.5, // Wide cards for transfer details
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: _filteredTasks.length,
       itemBuilder: (context, index) {
         final task = _filteredTasks[index];
         final progress = _progressMap[task.id];

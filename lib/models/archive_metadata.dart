@@ -81,6 +81,20 @@ class ArchiveMetadata {
     if (json['misc']?['image'] != null) {
       final imagePath = json['misc']['image'] as String;
       thumbnailUrl = 'https://archive.org$imagePath';
+      
+      // CORS FIX for web: Replace CDN URLs with archive.org/download/
+      // CDN URLs (e.g. dn720706.ca.archive.org) don't have CORS headers
+      if (kIsWeb) {
+        // Check if it's a CDN URL pattern
+        if (thumbnailUrl.contains('.archive.org') && 
+            !thumbnailUrl.contains('archive.org/download/')) {
+          // Extract the filename (usually __ia_thumb.jpg)
+          final filename = thumbnailUrl.split('/').last;
+          // Reconstruct with CORS-friendly endpoint
+          thumbnailUrl = 'https://archive.org/download/$identifier/$filename';
+        }
+      }
+      
       // Cover image is usually the full-size version
       coverImageUrl = thumbnailUrl.replaceAll('__ia_thumb.jpg', '.jpg');
     }
