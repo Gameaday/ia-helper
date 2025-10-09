@@ -357,19 +357,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       // Navigate to detail screen with MD3 fadeThrough transition
       await Navigator.push(
         context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const ArchiveDetailScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            // MD3 fadeThrough transition
-            return FadeTransition(
-              opacity: CurveTween(
-                curve: MD3Curves.emphasized,
-              ).animate(animation),
-              child: child,
-            );
-          },
-          transitionDuration: MD3Durations.medium,
+        MD3PageTransitions.fadeThrough(
+          page: const ArchiveDetailScreen(),
+          settings: const RouteSettings(name: '/archive-detail'),
         ),
       );
     } catch (e) {

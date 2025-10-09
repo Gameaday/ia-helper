@@ -105,10 +105,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     if (mounted) {
       await Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => SearchResultsScreen(
+        MD3PageTransitions.sharedAxis(
+          page: SearchResultsScreen(
             query: searchQuery,
           ),
+          settings: const RouteSettings(name: '/search-results'),
         ),
       );
     }
@@ -117,8 +118,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   void _openAdvancedSearch() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const AdvancedSearchScreen(),
+      MD3PageTransitions.sharedAxis(
+        page: const AdvancedSearchScreen(),
+        settings: const RouteSettings(name: '/advanced-search'),
       ),
     );
   }
@@ -413,13 +415,14 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   void _searchCategory(String mediatype) {
     final query = SearchQuery.mediatype(mediatype);
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SearchResultsScreen(query: query),
-        ),
-      );
-    }
+    Navigator.push(
+      context,
+      MD3PageTransitions.sharedAxis(
+        page: SearchResultsScreen(query: query),
+        settings: const RouteSettings(name: '/search-results'),
+      ),
+    );
+  }
 
     IconData _getMediaIcon(String? mediaType) {
       switch (mediaType?.toLowerCase()) {
@@ -493,20 +496,9 @@ class _TrendingCard extends StatelessWidget {
             // Navigate to detail screen with MD3 fadeThrough transition
             await Navigator.push(
               context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const ArchiveDetailScreen(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  // MD3 fadeThrough transition
-                  return FadeTransition(
-                    opacity: CurveTween(
-                      curve: MD3Curves.emphasized,
-                    ).animate(animation),
-                    child: child,
-                  );
-                },
-                transitionDuration: MD3Durations.medium,
+              MD3PageTransitions.fadeThrough(
+                page: const ArchiveDetailScreen(),
+                settings: const RouteSettings(name: '/archive-detail'),
               ),
             );
           } catch (e) {
