@@ -15,10 +15,10 @@ import '../widgets/download_manager_widget.dart';
 import '../widgets/archive_info_widget.dart';
 import '../widgets/file_list_widget.dart';
 import '../widgets/download_controls_widget.dart';
+import '../core/navigation/navigation_state.dart';
 import 'advanced_search_screen.dart';
 import 'archive_detail_screen.dart';
 import 'search_results_screen.dart';
-import 'help_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -103,20 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Internet Archive Helper'),
         actions: [
-          // Help screen
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MD3PageTransitions.sharedAxis(
-                  page: const HelpScreen(),
-                  settings: const RouteSettings(name: '/help'),
-                ),
-              );
-            },
-            tooltip: 'Help',
-          ),
           // Overflow menu for less-used actions
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -269,10 +255,40 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // Recent searches chips (from history)
+        // Quick action buttons (moved above recent searches)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // Navigate to Discover tab (index 2)
+                    final navigationState = context.read<NavigationState>();
+                    navigationState.changeTab(2); // Discover tab
+                  },
+                  icon: const Icon(Icons.explore),
+                  label: const Text('Discover'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _navigateToAdvancedSearch,
+                  icon: const Icon(Icons.tune),
+                  label: const Text('Advanced'),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Recent searches chips (from history) - Limited to 3, dismissible
         Consumer<HistoryService>(
           builder: (context, historyService, child) {
-            final recentSearches = historyService.history.take(5).toList();
+            final recentSearches = historyService.history.take(3).toList(); // Reduced from 5 to 3
             
             if (recentSearches.isEmpty) {
               return const SizedBox.shrink();
@@ -292,13 +308,44 @@ class _HomeScreenState extends State<HomeScreen> {
                     spacing: 8,
                     runSpacing: 4,
                     children: recentSearches.map((entry) {
-                      return ActionChip(
-                        label: Text(
-                          entry.identifier,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      return Dismissible(
+                        key: Key('recent_search_${entry.identifier}_${entry.visitedAt.millisecondsSinceEpoch}'),
+                        direction: DismissDirection.horizontal,
+                        onDismissed: (direction) {
+                          historyService.removeFromHistory(entry.identifier);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Removed "${entry.title}"'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        background: Container(
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.only(left: 16),
+                          color: Theme.of(context).colorScheme.error,
+                          child: Icon(
+                            Icons.delete,
+                            color: Theme.of(context).colorScheme.onError,
+                          ),
                         ),
-                        onPressed: () => _handleSearch(entry.identifier, SearchType.identifier),
+                        secondaryBackground: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 16),
+                          color: Theme.of(context).colorScheme.error,
+                          child: Icon(
+                            Icons.delete,
+                            color: Theme.of(context).colorScheme.onError,
+                          ),
+                        ),
+                        child: ActionChip(
+                          label: Text(
+                            entry.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onPressed: () => _handleSearch(entry.identifier, SearchType.identifier),
+                        ),
                       );
                     }).toList(),
                   ),
@@ -308,39 +355,6 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-
-        // Quick action buttons
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // Navigate to Discover tab (index 2)
-                    // This would require NavigationState from main.dart
-                    // For now, show a message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Navigate to Discover tab')),
-                    );
-                  },
-                  icon: const Icon(Icons.explore),
-                  label: const Text('Discover'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _navigateToAdvancedSearch,
-                  icon: const Icon(Icons.tune),
-                  label: const Text('Advanced'),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
 
         // Error display
         if (service.error != null)
@@ -625,10 +639,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Navigate to History screen
   void _navigateToHistory() {
-    // Navigate to History tab (index 1 in bottom nav)
-    // This would require NavigationState from main.dart
+    // Navigate to Library tab (index 1) which contains History
+    final navigationState = context.read<NavigationState>();
+    navigationState.changeTab(1); // Library tab
+    
+    // Show brief feedback
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Navigate to History tab')),
+      const SnackBar(
+        content: Text('Opening Library (History tab)'),
+        duration: Duration(seconds: 1),
+      ),
     );
   }
 

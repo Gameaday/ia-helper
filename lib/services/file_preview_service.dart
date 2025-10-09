@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import '../models/file_preview.dart';
 import '../models/archive_metadata.dart';
 import '../database/database_helper.dart';
+import 'archive_url_service.dart';
 
 /// Service for managing file previews with caching
 ///
@@ -21,6 +22,7 @@ class FilePreviewService {
   FilePreviewService._internal();
 
   final DatabaseHelper _db = DatabaseHelper.instance;
+  final ArchiveUrlService _urlService = ArchiveUrlService();
 
   // File size thresholds for smart downloading
   static const int _cacheAlwaysThreshold = 1024 * 1024; // 1MB
@@ -380,10 +382,8 @@ class FilePreviewService {
     ArchiveFile file,
   ) async {
     try {
-      // Construct download URL
-      final url = Uri.parse(
-        'https://archive.org/download/$identifier/${file.name}',
-      );
+      // Construct download URL using centralized service
+      final url = Uri.parse(_urlService.getDownloadUrl(identifier, file.name));
 
       debugPrint('Downloading text preview: $url');
 
@@ -445,10 +445,8 @@ class FilePreviewService {
     ArchiveFile file,
   ) async {
     try {
-      // Construct download URL
-      final url = Uri.parse(
-        'https://archive.org/download/$identifier/${file.name}',
-      );
+      // Construct download URL using centralized service
+      final url = Uri.parse(_urlService.getDownloadUrl(identifier, file.name));
 
       debugPrint('Downloading image preview: $url');
 
@@ -531,10 +529,8 @@ class FilePreviewService {
     ArchiveFile file,
   ) async {
     try {
-      // Construct download URL
-      final url = Uri.parse(
-        'https://archive.org/download/$identifier/${file.name}',
-      );
+      // Construct download URL using centralized service
+      final url = Uri.parse(_urlService.getDownloadUrl(identifier, file.name));
 
       debugPrint('Downloading PDF preview: $url');
 
@@ -587,9 +583,7 @@ class FilePreviewService {
   ) async {
     try {
       // Construct download URL
-      final url = Uri.parse(
-        'https://archive.org/download/$identifier/${file.name}',
-      );
+      final url = Uri.parse(_urlService.getDownloadUrl(identifier, file.name));
 
       debugPrint('Downloading audio preview: $url');
 
@@ -639,10 +633,8 @@ class FilePreviewService {
     try {
       debugPrint('Generating video preview for: ${file.name}');
 
-      // Construct download URL
-      final url = Uri.parse(
-        'https://archive.org/download/$identifier/${file.name}',
-      );
+      // Construct download URL using centralized service
+      final url = Uri.parse(_urlService.getDownloadUrl(identifier, file.name));
 
       debugPrint('Downloading video preview: $url');
 
@@ -688,10 +680,8 @@ class FilePreviewService {
     try {
       debugPrint('Generating archive preview for: ${file.name}');
 
-      // Construct download URL
-      final url = Uri.parse(
-        'https://archive.org/download/$identifier/${file.name}',
-      );
+      // Construct download URL using centralized service
+      final url = Uri.parse(_urlService.getDownloadUrl(identifier, file.name));
 
       debugPrint('Downloading archive preview: $url');
 

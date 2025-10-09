@@ -131,14 +131,22 @@ class _CollectionPickerState extends State<CollectionPicker> {
       if (!mounted) return;
       Navigator.pop(context);
 
-      // Show success message
+      // Show accurate success message based on actual changes
+      final String message;
+      if (toAdd.isEmpty && toRemove.isEmpty) {
+        message = 'No changes made';
+      } else if (toAdd.isNotEmpty && toRemove.isEmpty) {
+        message = 'Added to ${toAdd.length} ${toAdd.length == 1 ? 'collection' : 'collections'}';
+      } else if (toAdd.isEmpty && toRemove.isNotEmpty) {
+        message = 'Removed from ${toRemove.length} ${toRemove.length == 1 ? 'collection' : 'collections'}';
+      } else {
+        // Both added and removed
+        message = 'Updated collections (added: ${toAdd.length}, removed: ${toRemove.length})';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            _selectedCollectionIds.isEmpty
-                ? 'Removed from collections'
-                : 'Added to ${_selectedCollectionIds.length} ${_selectedCollectionIds.length == 1 ? 'collection' : 'collections'}',
-          ),
+          content: Text(message),
           behavior: SnackBarBehavior.floating,
         ),
       );

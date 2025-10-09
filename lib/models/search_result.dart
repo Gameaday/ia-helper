@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import '../services/archive_url_service.dart';
 
 /// Search result model for Internet Archive search API responses
 class SearchResult {
@@ -10,6 +10,9 @@ class SearchResult {
   final String? mediaType;
   final int? downloads;
   final String? date;
+
+  // Singleton URL service instance
+  static final _urlService = ArchiveUrlService();
 
   SearchResult({
     required this.identifier,
@@ -32,26 +35,13 @@ class SearchResult {
     if (json['__ia_thumb_url'] != null) {
       thumbnailUrl = json['__ia_thumb_url'] as String;
       
-      // CORS FIX for web: Replace CDN URLs with archive.org/download/
-      // CDN URLs (e.g. dn720706.ca.archive.org) don't have CORS headers
-      if (kIsWeb && identifier != null) {
-        // Check if it's a CDN URL pattern
-        if (thumbnailUrl.contains('.archive.org') && 
-            !thumbnailUrl.contains('archive.org/download/')) {
-          // Extract the filename (usually __ia_thumb.jpg)
-          final filename = thumbnailUrl.split('/').last;
-          // Reconstruct with CORS-friendly endpoint
-          thumbnailUrl = 'https://archive.org/download/$identifier/$filename';
-        }
+      // CORS FIX: Use centralized URL service to rewrite CDN URLs
+      if (identifier != null) {
+        thumbnailUrl = _urlService.fixCorsUrl(thumbnailUrl, identifier);
       }
     } else if (identifier != null) {
-      // Generate web-friendly thumbnail URL from identifier
-      // Use __ia_thumb.jpg on web (CORS-friendly), services/img on native
-      if (kIsWeb) {
-        thumbnailUrl = 'https://archive.org/download/$identifier/__ia_thumb.jpg';
-      } else {
-        thumbnailUrl = 'https://archive.org/services/img/$identifier';
-      }
+      // Generate platform-appropriate thumbnail URL
+      thumbnailUrl = _urlService.getThumbnailUrl(identifier);
     }
 
     return SearchResult(

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import '../services/archive_url_service.dart';
 
 /// Archive metadata model
 class ArchiveMetadata {
@@ -73,6 +73,9 @@ class ArchiveMetadata {
       }
     }
 
+    // Singleton URL service instance
+    final urlService = ArchiveUrlService();
+
     // Extract thumbnail URLs
     String? thumbnailUrl;
     String? coverImageUrl;
@@ -82,30 +85,15 @@ class ArchiveMetadata {
       final imagePath = json['misc']['image'] as String;
       thumbnailUrl = 'https://archive.org$imagePath';
       
-      // CORS FIX for web: Replace CDN URLs with archive.org/download/
-      // CDN URLs (e.g. dn720706.ca.archive.org) don't have CORS headers
-      if (kIsWeb) {
-        // Check if it's a CDN URL pattern
-        if (thumbnailUrl.contains('.archive.org') && 
-            !thumbnailUrl.contains('archive.org/download/')) {
-          // Extract the filename (usually __ia_thumb.jpg)
-          final filename = thumbnailUrl.split('/').last;
-          // Reconstruct with CORS-friendly endpoint
-          thumbnailUrl = 'https://archive.org/download/$identifier/$filename';
-        }
-      }
+      // CORS FIX: Use centralized URL service to rewrite CDN URLs
+      thumbnailUrl = urlService.fixCorsUrl(thumbnailUrl, identifier);
       
       // Cover image is usually the full-size version
       coverImageUrl = thumbnailUrl.replaceAll('__ia_thumb.jpg', '.jpg');
     }
-    // Fallback to generated thumbnail URL (web-friendly on web platform)
+    // Fallback to generated thumbnail URL (platform-appropriate)
     else {
-      // Use CORS-friendly endpoint on web, standard endpoint on native
-      if (kIsWeb) {
-        thumbnailUrl = 'https://archive.org/download/$identifier/__ia_thumb.jpg';
-      } else {
-        thumbnailUrl = 'https://archive.org/services/img/$identifier';
-      }
+      thumbnailUrl = urlService.getThumbnailUrl(identifier);
       coverImageUrl = thumbnailUrl;
     }
 
