@@ -39,8 +39,10 @@ class ThumbnailCacheService {
 
   /// Initialize cache and load settings
   Future<void> initialize() async {
-    // Clean up old cache files
-    await _cleanupOldCacheFiles();
+    // Skip disk cache cleanup on web
+    if (!kIsWeb) {
+      await _cleanupOldCacheFiles();
+    }
   }
 
   /// Get thumbnail image data
@@ -65,12 +67,14 @@ class ThumbnailCacheService {
 
     _misses++;
 
-    // Check disk cache
-    final diskData = await _loadFromDisk(cacheKey);
-    if (diskData != null) {
-      _diskHits++;
-      await _addToMemoryCache(cacheKey, diskData);
-      return diskData;
+    // Check disk cache (skip on web platform)
+    if (!kIsWeb) {
+      final diskData = await _loadFromDisk(cacheKey);
+      if (diskData != null) {
+        _diskHits++;
+        await _addToMemoryCache(cacheKey, diskData);
+        return diskData;
+      }
     }
 
     // Load from network
@@ -79,7 +83,10 @@ class ThumbnailCacheService {
       if (networkData != null) {
         _networkLoads++;
         await _addToMemoryCache(cacheKey, networkData);
-        await _saveToDisk(cacheKey, networkData);
+        // Save to disk only on native platforms
+        if (!kIsWeb) {
+          await _saveToDisk(cacheKey, networkData);
+        }
         return networkData;
       }
     } catch (e) {
@@ -139,30 +146,41 @@ class ThumbnailCacheService {
     _accessOrder.add(key);
   }
 
-  /// Load image from disk cache
+  /// Load image from disk cache (native platforms only)
   Future<Uint8List?> _loadFromDisk(String key) async {
+    if (kIsWeb) return null; // Skip on web
+    
     try {
       final file = await _getCacheFile(key);
       if (await file.exists()) {
         return await file.readAsBytes();
       }
     } catch (e) {
-      debugPrint('Failed to load thumbnail from disk: $e');
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Failed to load from disk: $e');
+      }
     }
     return null;
   }
 
-  /// Save image to disk cache
+  /// Save image to disk cache (native platforms only)
   Future<void> _saveToDisk(String key, Uint8List data) async {
+    if (kIsWeb) return; // Skip on web
+    
     try {
       final file = await _getCacheFile(key);
       await file.writeAsBytes(data);
     } catch (e) {
-      debugPrint('Failed to save thumbnail to disk: $e');
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Failed to save to disk: $e');
+      }
     }
   }
 
   /// Load image from network
+  ///
+  /// On web, CORS issues may prevent loading some Archive.org thumbnails.
+  /// Falls back gracefully on error.
   Future<Uint8List?> _loadFromNetwork(String url) async {
     try {
       final response = await http
@@ -171,15 +189,26 @@ class ThumbnailCacheService {
 
       if (response.statusCode == 200) {
         return response.bodyBytes;
+      } else if (kDebugMode) {
+        debugPrint(
+            '[ThumbnailCache] HTTP ${response.statusCode} for: $url');
       }
     } catch (e) {
-      debugPrint('Network request failed for thumbnail: $e');
+      // On web, CORS errors are expected for some Archive.org thumbnails
+      // Log only in debug mode to avoid console spam
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Network error for $url: $e');
+      }
     }
     return null;
   }
 
-  /// Get cache file for a key
+  /// Get cache file for a key (native platforms only)
   Future<File> _getCacheFile(String key) async {
+    if (kIsWeb) {
+      throw UnsupportedError('File system not supported on web');
+    }
+    
     final directory = await getApplicationCacheDirectory();
     final cacheDir = Directory('${directory.path}/thumbnails');
     if (!await cacheDir.exists()) {
@@ -195,8 +224,10 @@ class ThumbnailCacheService {
     return digest.toString();
   }
 
-  /// Clean up old cache files (older than 30 days)
+  /// Clean up old cache files (older than 30 days) - native platforms only
   Future<void> _cleanupOldCacheFiles() async {
+    if (kIsWeb) return; // Skip on web
+    
     try {
       final directory = await getApplicationCacheDirectory();
       final cacheDir = Directory('${directory.path}/thumbnails');
@@ -219,7 +250,9 @@ class ThumbnailCacheService {
         }
       }
     } catch (e) {
-      debugPrint('Failed to cleanup old cache files: $e');
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Cleanup failed: $e');
+      }
     }
   }
 
@@ -230,16 +263,20 @@ class ThumbnailCacheService {
     _accessOrder.clear();
     _currentMemoryCacheSize = 0;
 
-    // Clear disk cache
-    try {
-      final directory = await getApplicationCacheDirectory();
-      final cacheDir = Directory('${directory.path}/thumbnails');
+    // Clear disk cache (native platforms only)
+    if (!kIsWeb) {
+      try {
+        final directory = await getApplicationCacheDirectory();
+        final cacheDir = Directory('${directory.path}/thumbnails');
 
-      if (await cacheDir.exists()) {
-        await cacheDir.delete(recursive: true);
+        if (await cacheDir.exists()) {
+          await cacheDir.delete(recursive: true);
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[ThumbnailCache] Failed to clear disk cache: $e');
+        }
       }
-    } catch (e) {
-      debugPrint('Failed to clear disk cache: $e');
     }
 
     // Reset metrics
@@ -290,11 +327,17 @@ class ThumbnailCacheService {
     return _memoryCache.containsKey(key);
   }
 
-  /// Check if URL is cached on disk
+  /// Check if URL is cached on disk (native platforms only)
   Future<bool> isCachedOnDisk(String url) async {
-    final key = _getCacheKey(url);
-    final file = await _getCacheFile(key);
-    return await file.exists();
+    if (kIsWeb) return false;
+    
+    try {
+      final key = _getCacheKey(url);
+      final file = await _getCacheFile(key);
+      return await file.exists();
+    } catch (e) {
+      return false;
+    }
   }
 
   /// Remove specific URL from cache
@@ -308,19 +351,25 @@ class ThumbnailCacheService {
       _accessOrder.remove(key);
     }
 
-    // Remove from disk cache
-    try {
-      final file = await _getCacheFile(key);
-      if (await file.exists()) {
-        await file.delete();
+    // Remove from disk cache (native platforms only)
+    if (!kIsWeb) {
+      try {
+        final file = await _getCacheFile(key);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[ThumbnailCache] Failed to remove from disk: $e');
+        }
       }
-    } catch (e) {
-      debugPrint('Failed to remove thumbnail from disk: $e');
     }
   }
 
-  /// Get disk cache size
+  /// Get disk cache size (native platforms only)
   Future<int> getDiskCacheSize() async {
+    if (kIsWeb) return 0;
+    
     try {
       final directory = await getApplicationCacheDirectory();
       final cacheDir = Directory('${directory.path}/thumbnails');
@@ -333,19 +382,23 @@ class ThumbnailCacheService {
       await for (final entity in cacheDir.list()) {
         if (entity is File) {
           final stat = await entity.stat();
-          totalSize += stat.size;
+          totalSize += stat.size.toInt();
         }
       }
 
       return totalSize;
     } catch (e) {
-      debugPrint('Failed to calculate disk cache size: $e');
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Failed to calculate disk cache size: $e');
+      }
       return 0;
     }
   }
 
-  /// Get disk cache item count
+  /// Get disk cache item count (native platforms only)
   Future<int> getDiskCacheItemCount() async {
+    if (kIsWeb) return 0;
+    
     try {
       final directory = await getApplicationCacheDirectory();
       final cacheDir = Directory('${directory.path}/thumbnails');
@@ -363,7 +416,9 @@ class ThumbnailCacheService {
 
       return count;
     } catch (e) {
-      debugPrint('Failed to count disk cache items: $e');
+      if (kDebugMode) {
+        debugPrint('[ThumbnailCache] Failed to count disk cache items: $e');
+      }
       return 0;
     }
   }
