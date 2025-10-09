@@ -13,7 +13,7 @@ class NotificationService {
   static const String _completionChannelId = 'download_completion';
 
   /// Initialize the notification service
-  /// 
+  ///
   /// On web platform, this silently returns without error since notifications
   /// are not supported in Flutter web apps.
   static Future<void> initialize() async {

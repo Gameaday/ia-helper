@@ -220,6 +220,102 @@ Phase 5 focuses on preparing the Flutter mobile app for production release on th
 - [ ] Handle network errors gracefully
 - [ ] Add offline help section
 
+#### 2.7 Similar/Suggested Archives Feature
+- [ ] Implement "Similar Items" section in archive detail screen
+- [ ] Query Internet Archive's metadata-based similar items API
+- [ ] Display similar archives based on:
+  - Subject/topic metadata
+  - Creator/contributor
+  - Media type
+  - Collection membership
+  - Tags
+- [ ] Add horizontal scrollable list of similar items
+- [ ] Enable navigation from similar items to their detail pages
+- [ ] Add "Explore Similar" button/section
+- [ ] Cache similar items for offline viewing
+- [ ] Test with various archive types (audio, video, text, etc.)
+
+#### 2.8 Enhanced Collection Navigation & Discovery
+- [ ] **Archive Detail Screen - Collection Display**
+  - Show all collections the archive belongs to
+  - Display collection badges/chips with collection names
+  - Make collection badges tappable to navigate to collection view
+  - Show collection count (e.g., "In 3 collections")
+  - Add visual hierarchy for primary vs secondary collections
+  
+- [ ] **Collection View Screen**
+  - Create dedicated collection viewer screen
+  - Display collection metadata (name, description, curator, item count)
+  - Show all archives in the collection with thumbnail grid/list
+  - Implement sort options:
+    - Date added (newest/oldest)
+    - Title (A-Z/Z-A)
+    - Downloads (most/least)
+    - Views (most/least)
+    - Relevance
+  - Implement filter options:
+    - Media type (audio, video, text, image, software)
+    - Date range
+    - File size
+    - Language
+    - Subject/topic
+  - Add search within collection
+  - Show collection statistics (total items, total size, date created)
+  - Display collection curator/creator information
+  
+- [ ] **Collection Bookmarking & Local Management**
+  - Add "Save Collection" / "Bookmark Collection" button
+  - Store bookmarked collections in local database
+  - Add bookmarked collections to user's Collections list
+  - Sync collection metadata periodically
+  - Show offline indicator for saved collections
+  - Allow viewing saved collections offline (with cached metadata)
+  - Implement "Remove from Collections" option
+  - Add collection notes/tags (user-added metadata)
+  
+- [ ] **Collection List Management**
+  - Integrate IA collections with local user collections
+  - Distinguish between:
+    - Bookmarked IA collections (remote)
+    - User-created collections (local)
+    - Mixed collections (contain both local and IA items)
+  - Show collection source badge (IA logo vs local icon)
+  - Enable sorting/filtering of collections list
+  - Add search in collections
+  
+- [ ] **Archive Page Layout Overhaul**
+  - Redesign archive detail screen for better information density
+  - Create collapsible sections:
+    - Basic Info (title, description, creator) - always visible
+    - Files & Downloads - expandable
+    - Collections - expandable with chips
+    - Metadata - expandable
+    - Similar Items - expandable
+    - Reviews/Comments (if available) - expandable
+  - Add floating action button (FAB) for primary actions
+  - Improve visual hierarchy with MD3 components
+  - Add breadcrumb navigation (Collection > Archive)
+  - Implement tab-based layout for large archives:
+    - Files tab
+    - Info tab  
+    - Collections tab
+    - Related tab
+  
+- [ ] **Fluid Archive-to-Archive Navigation**
+  - Add "Next/Previous in Collection" navigation
+  - Implement swipe gestures to move between archives in collection
+  - Show mini-preview of next/previous archive
+  - Add "Back to Collection" button in app bar
+  - Maintain navigation stack for easy backtracking
+  - Remember position in collection when returning
+  
+- [ ] **Performance & Caching**
+  - Cache collection metadata for offline access
+  - Implement pagination for large collections (100+ items)
+  - Lazy load collection thumbnails
+  - Preload next/previous archive metadata
+  - Optimize collection list queries
+
 ---
 
 ### Task 3: Performance Optimization

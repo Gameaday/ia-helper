@@ -45,7 +45,7 @@ class DatabaseHelper {
       if (kIsWeb && webDatabaseFactory != null) {
         databaseFactory = webDatabaseFactory!;
       }
-      
+
       final databasesPath = await getDatabasesPath();
       final path = join(databasesPath, _databaseName);
 

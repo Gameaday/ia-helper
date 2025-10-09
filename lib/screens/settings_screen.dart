@@ -241,9 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
-                subtitle: const Text(
-                  'Tap to configure speed limits',
-                ),
+                subtitle: const Text('Tap to configure speed limits'),
                 trailing: const Icon(Icons.arrow_forward),
                 onTap: () {
                   _showBandwidthDialog(context);
@@ -528,7 +526,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Provider not available, use local state
     }
 
-    BandwidthPreset selectedPreset = bandwidthProvider?.currentPreset ?? BandwidthPreset.unlimited;
+    BandwidthPreset selectedPreset =
+        bandwidthProvider?.currentPreset ?? BandwidthPreset.unlimited;
 
     showDialog(
       context: context,
@@ -569,7 +568,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         borderRadius: BorderRadius.circular(8),
                         color: isSelected
-                            ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
+                            ? Theme.of(context).colorScheme.primaryContainer
+                                  .withValues(alpha: 0.3)
                             : null,
                       ),
                       child: Row(
@@ -594,7 +594,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       height: 10,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                       ),
                                     ),
                                   )
@@ -611,18 +613,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     const SizedBox(width: 8),
                                     Text(
                                       preset.displayName,
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   preset.description,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
                                 ),
                               ],
                             ),
@@ -646,10 +656,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (bandwidthProvider != null) {
                   bandwidthProvider.changePreset(selectedPreset);
                 }
-                
+
                 // Also save to SharedPreferences for persistence
-                _prefs.setInt('bandwidth_preset', selectedPreset.bytesPerSecond);
-                
+                _prefs.setInt(
+                  'bandwidth_preset',
+                  selectedPreset.bytesPerSecond,
+                );
+
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

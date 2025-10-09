@@ -421,7 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await AdvancedFiltersSheet.show(context);
     if (result != null && mounted) {
       if (!context.mounted) return;
-      
+
       // Navigate to advanced search screen with filters pre-applied
       Navigator.push(
         context,
@@ -430,7 +430,7 @@ class _HomeScreenState extends State<HomeScreen> {
           settings: const RouteSettings(name: AdvancedSearchScreen.routeName),
         ),
       );
-      
+
       // Note: The AdvancedSearchScreen will need to accept initial filters
       // in a future enhancement. For now, we navigate to the screen where
       // users can apply these filters.

@@ -143,9 +143,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
     // Disable all previews on web - let browser handle file viewing
     if (kIsWeb) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.file.displayName),
-        ),
+        appBar: AppBar(title: Text(widget.file.displayName)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -167,8 +165,8 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
                 Text(
                   'Download the file to view it in your browser',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -196,16 +194,16 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
                 Text(
                   widget.file.format?.toUpperCase() ?? 'Unknown',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                 ),
                 if (widget.file.size != null) ...[
                   const SizedBox(height: 8),
                   Text(
                     _formatFileSize(widget.file.size!),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                 ],
               ],

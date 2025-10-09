@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import '../screens/settings_screen.dart';
 import '../screens/help_screen.dart';
+import '../screens/data_storage_screen.dart';
+import '../screens/statistics_screen.dart';
+import '../screens/about_screen.dart';
+import '../screens/api_settings_screen.dart';
+import '../screens/ia_health_screen.dart';
 import '../utils/animation_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -81,6 +86,20 @@ class MoreScreen extends StatelessWidget {
                 );
               },
             ),
+            _buildMenuItem(
+              context,
+              icon: Icons.api,
+              title: 'API Settings',
+              subtitle: 'Internet Archive API configuration',
+              onTap: () {
+                Navigator.of(context).push(
+                  MD3PageTransitions.sharedAxis(
+                    page: const ApiSettingsScreen(),
+                    settings: const RouteSettings(name: '/api-settings'),
+                  ),
+                );
+              },
+            ),
 
             const SizedBox(height: 16),
 
@@ -89,8 +108,8 @@ class MoreScreen extends StatelessWidget {
             _buildMenuItem(
               context,
               icon: Icons.help_outline,
-              title: 'Help & About',
-              subtitle: 'User guide and app information',
+              title: 'Help',
+              subtitle: 'User guide and tutorials',
               onTap: () {
                 Navigator.of(context).push(
                   MD3PageTransitions.sharedAxis(
@@ -102,15 +121,28 @@ class MoreScreen extends StatelessWidget {
             ),
             _buildMenuItem(
               context,
+              icon: Icons.info_outline,
+              title: 'About',
+              subtitle: 'App info, credits, and licenses',
+              onTap: () {
+                Navigator.of(context).push(
+                  MD3PageTransitions.sharedAxis(
+                    page: const AboutScreen(),
+                    settings: const RouteSettings(name: '/about'),
+                  ),
+                );
+              },
+            ),
+            _buildMenuItem(
+              context,
               icon: Icons.storage,
               title: 'Data & Storage',
               subtitle: 'Manage cache and local data',
               onTap: () {
-                // Navigate to data & storage section in settings
                 Navigator.of(context).push(
                   MD3PageTransitions.sharedAxis(
-                    page: const SettingsScreen(),
-                    settings: const RouteSettings(name: '/settings/storage'),
+                    page: const DataStorageScreen(),
+                    settings: const RouteSettings(name: '/data-storage'),
                   ),
                 );
               },
@@ -121,11 +153,24 @@ class MoreScreen extends StatelessWidget {
               title: 'Statistics',
               subtitle: 'Download and usage statistics',
               onTap: () {
-                // Navigate to statistics section in settings
                 Navigator.of(context).push(
                   MD3PageTransitions.sharedAxis(
-                    page: const SettingsScreen(),
-                    settings: const RouteSettings(name: '/settings/statistics'),
+                    page: const StatisticsScreen(),
+                    settings: const RouteSettings(name: '/statistics'),
+                  ),
+                );
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.health_and_safety,
+              title: 'IA Service Status',
+              subtitle: 'Internet Archive health monitoring',
+              onTap: () {
+                Navigator.of(context).push(
+                  MD3PageTransitions.sharedAxis(
+                    page: const IAHealthScreen(),
+                    settings: const RouteSettings(name: '/ia-health'),
                   ),
                 );
               },
@@ -208,10 +253,10 @@ class MoreScreen extends StatelessWidget {
       child: Text(
         title.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }

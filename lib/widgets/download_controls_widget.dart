@@ -459,8 +459,11 @@ class _DownloadControlsWidgetState extends State<DownloadControlsWidget> {
                 // Navigate to Transfers tab in bottom navigation
                 final navState = context.read<NavigationState>();
                 navState.changeTab(3); // Switch to Transfers tab (index 3)
-                
-                Navigator.popUntil(context, (route) => route.isFirst); // Return to main screen
+
+                Navigator.popUntil(
+                  context,
+                  (route) => route.isFirst,
+                ); // Return to main screen
               },
             ),
             duration: const Duration(seconds: 3),

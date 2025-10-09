@@ -105,8 +105,9 @@ class IADownloadPriority {
 
 /// HTTP Headers for API Compliance
 class IAHeaders {
-  /// User-Agent header - REQUIRED
+  /// User-Agent header - REQUIRED on native platforms
   /// Format: AppName/Version (Contact: email)
+  /// Note: Not sent on web due to CORS restrictions
   static String userAgent(String appVersion) =>
       'InternetArchiveHelper/$appVersion (Flutter; https://github.com/Gameaday/ia-get-cli)';
 
@@ -130,8 +131,10 @@ class IAHeaders {
   static const String reducedPriorityValue = '1';
 
   /// Standard headers map
+  /// Note: User-Agent header is excluded on web to avoid CORS preflight issues
   static Map<String, String> standard(String appVersion) => {
-    'User-Agent': userAgent(appVersion),
+    // Don't include User-Agent on web - it's a forbidden header in browsers
+    // and causes CORS preflight failures with archive.org
     'Accept': acceptJson,
     'Accept-Language': acceptLanguage,
     'Cache-Control': cacheControl,

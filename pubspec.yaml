@@ -1,6 +1,6 @@
 name: internet_archive_helper
 description: Internet Archive Helper - Mobile app for downloading files from the Internet Archive
-version: 1.6.0+1
+version: 1.7.0
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -16,9 +16,9 @@ dependencies:
   # Storage and file management
   path_provider: ^2.1.5
   permission_handler: ^12.0.1  # Latest available for Flutter 3.32
-  open_file: ^3.5.9
-  sqflite: ^2.4.1  # SQLite for metadata caching
-  sqflite_common_ffi_web: ^0.4.5+1  # Web-compatible SQLite using IndexedDB
+  open_file: ^3.5.10
+  sqflite: ^2.4.2  # SQLite for metadata caching
+  sqflite_common_ffi_web: ^1.0.1  # Web-compatible SQLite using IndexedDB
   
   # Network and download
   http: ^1.5.0
@@ -26,31 +26,31 @@ dependencies:
   connectivity_plus: ^7.0.0  # Network connectivity monitoring
   
   # Cryptography for checksum validation
-  crypto: ^3.0.5
+  crypto: ^3.0.6
   
   # UI enhancements
   flutter_spinkit: ^5.2.2
   percent_indicator: ^4.2.5
   
   # File preview support
-  cached_network_image: ^3.3.1  # Image caching and display
+  cached_network_image: ^3.4.1  # Image caching and display
   photo_view: ^0.15.0  # Image zoom and pan
   flutter_highlight: ^0.7.0  # Syntax highlighting
   flutter_markdown: ^0.7.7  # Markdown rendering
-  pdfx: ^2.7.0  # PDF document rendering (Phase 3)
+  pdfx: ^2.9.2  # PDF document rendering (Phase 3)
   just_audio: ^0.10.5  # Audio playback (Phase 3)
   chewie: ^1.13.0  # Video player with controls (Phase 3)
-  video_player: ^2.9.2  # Video playback support (Phase 3)
+  video_player: ^2.10.0  # Video playback support (Phase 3)
   mime: ^2.0.0  # MIME type detection
-  image: ^4.3.0  # Image processing and resizing
+  image: ^4.5.4  # Image processing and resizing
   share_plus: ^12.0.0  # Cross-platform sharing
   
   # Utilities
   intl: ^0.20.2
   shared_preferences: ^2.5.3
   url_launcher: ^6.3.2
-  app_links: ^6.3.2
-  path: ^1.9.0
+  app_links: ^6.4.1
+  path: ^1.9.1
   
   # Archive decompression
   archive: ^4.0.7  # Allow patch updates
@@ -58,6 +58,7 @@ dependencies:
   # Code generation support
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
@@ -67,7 +68,7 @@ dev_dependencies:
   # Commented out: Causes compilation errors in release builds
   # The plugin gets registered but isn't included in release dependencies
   flutter_lints: ^6.0.0  # Latest lints for Dart 3.8+
-  mockito: ^5.4.4
+  mockito: ^5.5.1
   
   # Code generation tools
   build_runner: ^2.9.0

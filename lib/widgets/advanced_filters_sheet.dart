@@ -396,34 +396,35 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [
-            SortOption.relevance,
-            SortOption.date,
-            SortOption.downloads,
-            SortOption.weeklyViews,
-          ].map((option) {
-            final isSelected = _selectedSortOption == option;
-            return FilterChip(
-              label: Text(_getSortLabel(option)),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() {
-                    _selectedSortOption = option;
-                  });
-                }
-              },
-              selectedColor: colorScheme.primaryContainer,
-              checkmarkColor: colorScheme.onPrimaryContainer,
-              showCheckmark: true,
-              side: BorderSide(
-                color: isSelected 
-                    ? colorScheme.primary 
-                    : colorScheme.outline,
-                width: isSelected ? 1.5 : 1,
-              ),
-            );
-          }).toList(),
+          children:
+              [
+                SortOption.relevance,
+                SortOption.date,
+                SortOption.downloads,
+                SortOption.weeklyViews,
+              ].map((option) {
+                final isSelected = _selectedSortOption == option;
+                return FilterChip(
+                  label: Text(_getSortLabel(option)),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() {
+                        _selectedSortOption = option;
+                      });
+                    }
+                  },
+                  selectedColor: colorScheme.primaryContainer,
+                  checkmarkColor: colorScheme.onPrimaryContainer,
+                  showCheckmark: true,
+                  side: BorderSide(
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.outline,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                );
+              }).toList(),
         ),
         const SizedBox(height: 12),
         // More sort options in dropdown
@@ -433,7 +434,10 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
             labelText: 'More sort options',
             helperText: _getSortDescription(_selectedSortOption),
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
           ),
           items: SortOption.values.map((option) {
             return DropdownMenuItem<SortOption>(

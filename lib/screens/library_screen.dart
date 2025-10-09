@@ -410,13 +410,10 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   IconData _parseCollectionIcon(String? iconString) {
     if (iconString == null) return Icons.folder;
-    
+
     try {
       final codePoint = int.parse(iconString);
-      return IconData(
-        codePoint,
-        fontFamily: 'MaterialIcons',
-      );
+      return IconData(codePoint, fontFamily: 'MaterialIcons');
     } catch (e) {
       // If parsing fails, use default folder icon
       return Icons.folder;
@@ -972,7 +969,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                 final navigator = Navigator.of(context);
                 final messenger = ScaffoldMessenger.of(context);
                 final collectionName = controller.text.trim();
-                
+
                 try {
                   await _collectionsService.createCollection(
                     name: collectionName,
@@ -1028,8 +1025,10 @@ class _LibraryScreenState extends State<LibraryScreen>
                   itemBuilder: (context, index) {
                     final collection = _collections[index];
                     // Pre-compute icon to avoid non-const IconData in web builds
-                    final collectionIcon = _parseCollectionIcon(collection.icon);
-                    
+                    final collectionIcon = _parseCollectionIcon(
+                      collection.icon,
+                    );
+
                     return ListTile(
                       leading: Icon(collectionIcon),
                       title: Text(collection.name),
@@ -1041,7 +1040,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                         final messenger = ScaffoldMessenger.of(context);
                         final archiveId = archive.identifier;
                         final collName = collection.name;
-                        
+
                         try {
                           await _collectionsService.addItemToCollection(
                             collectionId: collection.id!,

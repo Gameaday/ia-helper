@@ -13,7 +13,7 @@ import 'archive_detail_screen.dart';
 import 'search_results_screen.dart';
 
 /// Discover screen for exploring Internet Archive content
-/// 
+///
 /// Features:
 /// - Keyword search bar for general queries
 /// - Quick access to advanced search
@@ -67,11 +67,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       );
 
       final results = await _searchService.search(query);
-      
+
       // Also load recent favorites (up to 5)
       final favorites = await _favoritesService.getAllFavorites();
       final recentFavorites = favorites.take(5).toList();
-      
+
       if (mounted) {
         setState(() {
           _trendingResults = results;
@@ -106,9 +106,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       await Navigator.push(
         context,
         MD3PageTransitions.sharedAxis(
-          page: SearchResultsScreen(
-            query: searchQuery,
-          ),
+          page: SearchResultsScreen(query: searchQuery),
           settings: const RouteSettings(name: '/search-results'),
         ),
       );
@@ -132,10 +130,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Discover'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Discover'), centerTitle: true),
       body: RefreshIndicator(
         onRefresh: _loadTrendingContent,
         child: CustomScrollView(
@@ -288,7 +283,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                               ),
                               const Spacer(),
                               Icon(
-                                _showFavorites ? Icons.expand_less : Icons.expand_more,
+                                _showFavorites
+                                    ? Icons.expand_less
+                                    : Icons.expand_more,
                                 size: 20,
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -303,7 +300,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _recentFavorites.length,
-                            separatorBuilder: (context, index) => const SizedBox(width: 8),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final favorite = _recentFavorites[index];
                               return ActionChip(
@@ -320,7 +318,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                   // Navigate to archive detail
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Opening ${favorite.displayTitle}...'),
+                                      content: Text(
+                                        'Opening ${favorite.displayTitle}...',
+                                      ),
                                       duration: const Duration(seconds: 1),
                                     ),
                                   );
@@ -397,13 +397,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final result = _trendingResults[index];
-                      return _TrendingCard(result: result);
-                    },
-                    childCount: _trendingResults.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final result = _trendingResults[index];
+                    return _TrendingCard(result: result);
+                  }, childCount: _trendingResults.length),
                 ),
               ),
           ],
@@ -424,25 +421,27 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     );
   }
 
-    IconData _getMediaIcon(String? mediaType) {
-      switch (mediaType?.toLowerCase()) {
-        case 'texts':
-          return Icons.menu_book;
-        case 'movies':
-          return Icons.movie;
-        case 'audio':
-          return Icons.music_note;
-        case 'software':
-          return Icons.apps;
-        case 'image':
-          return Icons.image;
-        case 'web':
-          return Icons.public;
-        default:
-          return Icons.inventory_2;
-      }
+  IconData _getMediaIcon(String? mediaType) {
+    switch (mediaType?.toLowerCase()) {
+      case 'texts':
+        return Icons.menu_book;
+      case 'movies':
+        return Icons.movie;
+      case 'audio':
+        return Icons.music_note;
+      case 'software':
+        return Icons.apps;
+      case 'image':
+        return Icons.image;
+      case 'web':
+        return Icons.public;
+      default:
+        return Icons.inventory_2;
     }
-  }/// Category chip widget for quick category access
+  }
+}
+
+/// Category chip widget for quick category access
 class _CategoryChip extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -463,9 +462,7 @@ class _CategoryChip extends StatelessWidget {
       label: Text(label),
       onPressed: onTap,
       backgroundColor: colorScheme.surfaceContainerHighest,
-      side: BorderSide(
-        color: colorScheme.outline.withValues(alpha: 0.3),
-      ),
+      side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
     );
   }
 }
