@@ -50,7 +50,7 @@ jobs:
     
     - name: Build Web (no icon tree-shaking)
       run: |
-        flutter build web --release --no-tree-shake-icons --base-href /ia-helper/app/
+        flutter build web --release --no-tree-shake-icons --base-href="/ia-helper/app/"
     
     - name: Get build info
       id: build-info
