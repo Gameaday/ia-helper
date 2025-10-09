@@ -319,8 +319,8 @@ void main() {
 
       service.addToHistory(entry);
 
-      // Wait for async save to complete
-      await Future.delayed(const Duration(milliseconds: 100));
+      // Wait for debounced save (2 seconds) plus buffer
+      await Future.delayed(const Duration(milliseconds: 2100));
 
       // Create new service and load
       final newService = HistoryService();
@@ -348,8 +348,8 @@ void main() {
         );
       }
 
-      // Wait for async save to complete
-      await Future.delayed(const Duration(milliseconds: 100));
+      // Wait for debounced save (2 seconds) plus buffer
+      await Future.delayed(const Duration(milliseconds: 2100));
 
       // Create new service and load
       final newService = HistoryService();
@@ -412,7 +412,9 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       service.removeFromHistory('archive-1');
-      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Wait for debounced save (2 seconds) plus buffer
+      await Future.delayed(const Duration(milliseconds: 2100));
 
       // Create new service and load
       final newService = HistoryService();
@@ -437,7 +439,9 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       service.clearHistory();
-      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Wait for debounced save (2 seconds) plus buffer
+      await Future.delayed(const Duration(milliseconds: 2100));
 
       // Create new service and load
       final newService = HistoryService();

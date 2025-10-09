@@ -6,6 +6,7 @@ import 'package:internet_archive_helper/models/search_query.dart';
 import 'package:internet_archive_helper/models/sort_option.dart';
 import 'package:internet_archive_helper/services/saved_search_service.dart';
 import 'package:internet_archive_helper/services/search_history_service.dart';
+import 'package:internet_archive_helper/utils/snackbar_helper.dart';
 
 /// Material Design 3 compliant advanced search screen
 ///
@@ -160,7 +161,10 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         _currentQuery.fieldQueries.isEmpty &&
         _currentQuery.mediatypes.isEmpty &&
         _currentQuery.dateRange == null) {
-      _showSnackBar('Please enter a search query or select filters');
+      SnackBarHelper.showWarning(
+        context,
+        'Please enter a search query or select filters',
+      );
       return;
     }
 
@@ -202,7 +206,10 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     _buildQuery();
 
     if (_currentQuery.query == null && _currentQuery.fieldQueries.isEmpty) {
-      _showSnackBar('Please enter a search query first');
+      SnackBarHelper.showWarning(
+        context,
+        'Please enter a search query first',
+      );
       return;
     }
 
@@ -272,11 +279,11 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       try {
         await _savedSearchService.createSavedSearch(savedSearch);
         if (mounted) {
-          _showSnackBar('Search saved successfully');
+          SnackBarHelper.showSuccess(context, 'Search saved successfully');
         }
       } catch (e) {
         if (mounted) {
-          _showSnackBar('Error saving search: $e');
+          SnackBarHelper.showError(context, e);
         }
       }
     }
@@ -308,14 +315,9 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     // Mark as used
     await _savedSearchService.markSearchUsed(savedSearch.id!);
 
-    _showSnackBar('Loaded: ${savedSearch.name}');
-  }
-
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
+    if (mounted) {
+      SnackBarHelper.showInfo(context, 'Loaded: ${savedSearch.name}');
+    }
   }
 
   void _clearFilters() {
@@ -369,30 +371,46 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   }
 
   Widget _buildBody() {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildSearchField(),
-          const SizedBox(height: 16),
-          _buildFieldSearchToggle(),
-          if (_showFieldSearch) ...[
-            const SizedBox(height: 16),
-            _buildFieldSearchSection(),
-          ],
-          const SizedBox(height: 24),
-          _buildMediatypeFilters(),
-          const SizedBox(height: 24),
-          _buildDateRangeFilter(),
-          const SizedBox(height: 24),
-          _buildSortOptions(),
-          const SizedBox(height: 24),
-          _buildSavedSearches(),
-          const SizedBox(height: 80), // Space for FAB
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive breakpoints
+        final width = constraints.maxWidth;
+        final isPhone = width < 600;
+        final isTablet = width >= 600 && width < 1200;
+        final isDesktop = width >= 1200;
+        
+        // Determine padding based on screen size
+        final horizontalPadding = isPhone ? 16.0 : (isTablet ? 24.0 : 32.0);
+        
+        return SingleChildScrollView(
+          controller: _scrollController,
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildSearchField(),
+              const SizedBox(height: 16),
+              _buildFieldSearchToggle(),
+              if (_showFieldSearch) ...[
+                const SizedBox(height: 16),
+                _buildFieldSearchSection(isPhone: isPhone, isTablet: isTablet, isDesktop: isDesktop),
+              ],
+              const SizedBox(height: 24),
+              _buildMediatypeFilters(),
+              const SizedBox(height: 24),
+              _buildDateRangeFilter(),
+              const SizedBox(height: 24),
+              _buildSortOptions(),
+              const SizedBox(height: 24),
+              _buildSavedSearches(),
+              const SizedBox(height: 80), // Space for FAB
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -449,41 +467,73 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     );
   }
 
-  Widget _buildFieldSearchSection() {
+  Widget _buildFieldSearchSection({
+    required bool isPhone,
+    required bool isTablet,
+    required bool isDesktop,
+  }) {
+    // Determine number of columns based on screen size
+    // Phone: 1 column (stacked vertically)
+    // Tablet: 2 columns
+    // Desktop: 3 columns
+    final columnCount = isPhone ? 1 : (isTablet ? 2 : 3);
+    
+    // List of field widgets
+    final fields = [
+      TextField(
+        controller: _titleController,
+        decoration: const InputDecoration(
+          labelText: 'Title',
+          hintText: 'Search in title field',
+          prefixIcon: Icon(Icons.title),
+        ),
+      ),
+      TextField(
+        controller: _creatorController,
+        decoration: const InputDecoration(
+          labelText: 'Creator',
+          hintText: 'Search by creator/author',
+          prefixIcon: Icon(Icons.person),
+        ),
+      ),
+      TextField(
+        controller: _subjectController,
+        decoration: const InputDecoration(
+          labelText: 'Subject',
+          hintText: 'Search by subject/topic',
+          prefixIcon: Icon(Icons.label),
+        ),
+      ),
+    ];
+    
+    // Build responsive grid layout
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Search in title field',
-                prefixIcon: Icon(Icons.title),
+        child: columnCount == 1
+            // Stacked layout for phone
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (int i = 0; i < fields.length; i++) ...[
+                    fields[i],
+                    if (i < fields.length - 1) const SizedBox(height: 12),
+                  ],
+                ],
+              )
+            // Grid layout for tablet and desktop
+            : Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: fields.map((field) {
+                  return SizedBox(
+                    width: columnCount == 2
+                        ? (MediaQuery.of(context).size.width - 80) / 2
+                        : (MediaQuery.of(context).size.width - 112) / 3,
+                    child: field,
+                  );
+                }).toList(),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _creatorController,
-              decoration: const InputDecoration(
-                labelText: 'Creator',
-                hintText: 'Search by creator/author',
-                prefixIcon: Icon(Icons.person),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _subjectController,
-              decoration: const InputDecoration(
-                labelText: 'Subject',
-                hintText: 'Search by subject/topic',
-                prefixIcon: Icon(Icons.label),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -743,7 +793,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
 
       final label =
           'Custom: ${startDate!.year}-${startDate!.month.toString().padLeft(2, '0')}-${startDate!.day.toString().padLeft(2, '0')} to ${endDate!.year}-${endDate!.month.toString().padLeft(2, '0')}-${endDate!.day.toString().padLeft(2, '0')}';
-      _showSnackBar(label);
+      SnackBarHelper.showInfo(context, label);
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:internet_archive_helper/models/saved_search.dart';
 import 'package:internet_archive_helper/services/saved_search_service.dart';
+import 'package:internet_archive_helper/utils/snackbar_helper.dart';
 
 /// Material Design 3 compliant saved searches management screen
 ///
@@ -71,7 +72,7 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        _showSnackBar('Error loading saved searches: $e');
+        SnackBarHelper.showError(context, e);
       }
     }
   }
@@ -138,7 +139,9 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
       await _savedSearchService.togglePin(search.id!);
       _loadSavedSearches();
     } catch (e) {
-      _showSnackBar('Error toggling pin: $e');
+      if (mounted) {
+        SnackBarHelper.showError(context, e);
+      }
     }
   }
 
@@ -149,11 +152,11 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
     try {
       await _savedSearchService.deleteSavedSearch(search.id!);
       if (mounted) {
-        _showSnackBar('Deleted: ${search.name}');
+        SnackBarHelper.showSuccess(context, 'Deleted: ${search.name}');
       }
     } catch (e) {
       if (mounted) {
-        _showSnackBar('Error deleting search: $e');
+        SnackBarHelper.showError(context, e);
       }
     }
   }
@@ -242,11 +245,11 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
       try {
         await _savedSearchService.updateSavedSearch(updatedSearch);
         if (mounted) {
-          _showSnackBar('Search updated');
+          SnackBarHelper.showSuccess(context, 'Search updated');
         }
       } catch (e) {
         if (mounted) {
-          _showSnackBar('Error updating search: $e');
+          SnackBarHelper.showError(context, e);
         }
       }
     }
@@ -278,7 +281,9 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
         }
         _loadSavedSearches();
       } catch (e) {
-        _showSnackBar('Error updating tags: $e');
+        if (mounted) {
+          SnackBarHelper.showError(context, e);
+        }
       }
     }
   }
@@ -288,13 +293,6 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
     if (mounted) {
       Navigator.pop(context, search);
     }
-  }
-
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
   }
 
   @override

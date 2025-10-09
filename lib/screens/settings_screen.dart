@@ -8,6 +8,7 @@ import '../services/metadata_cache.dart';
 import '../services/archive_service.dart';
 import '../utils/semantic_colors.dart';
 import '../utils/responsive_utils.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/cache_statistics_widget.dart';
 import '../widgets/cache_metrics_card.dart';
 
