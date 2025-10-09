@@ -5,15 +5,19 @@ import 'package:internet_archive_helper/models/search_result.dart';
 import 'package:internet_archive_helper/services/advanced_search_service.dart';
 import 'package:internet_archive_helper/services/archive_service.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
+import 'package:internet_archive_helper/widgets/archive_result_card.dart';
+import 'package:internet_archive_helper/screens/api_intensity_settings_screen.dart';
 import 'archive_detail_screen.dart';
 
 /// Material Design 3 compliant search results display screen
 ///
 /// Features:
 /// - Paginated search results from AdvancedSearchService
+/// - Grid/list view toggle
+/// - Responsive grid layout (2-5 columns)
 /// - Pull-to-refresh to re-execute search
 /// - Infinite scroll for pagination
-/// - Archive preview cards with metadata
+/// - Archive preview cards with thumbnails
 /// - Navigate to ArchiveDetailScreen
 /// - Error handling and retry
 /// - Empty state messaging
@@ -42,6 +46,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   int _currentPage = 1;
   int? _totalResults;
   bool _hasMore = true;
+  bool _showThumbnails = true;
+  ArchiveResultCardLayout _viewLayout = ArchiveResultCardLayout.grid;
 
   static const _pageSize = 20;
 
@@ -49,7 +55,18 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _loadApiSettings();
     _executeSearch();
+  }
+
+  /// Load API intensity settings
+  Future<void> _loadApiSettings() async {
+    final settings = await ApiIntensitySettingsScreen.getSettings();
+    if (mounted) {
+      setState(() {
+        _showThumbnails = settings.loadThumbnails;
+      });
+    }
   }
 
   @override
@@ -154,6 +171,24 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     return AppBar(
       title: Text(widget.title ?? 'Search Results'),
       actions: [
+        // View toggle button
+        IconButton(
+          icon: Icon(
+            _viewLayout == ArchiveResultCardLayout.grid
+                ? Icons.view_list
+                : Icons.grid_view,
+          ),
+          onPressed: () {
+            setState(() {
+              _viewLayout = _viewLayout == ArchiveResultCardLayout.grid
+                  ? ArchiveResultCardLayout.list
+                  : ArchiveResultCardLayout.grid;
+            });
+          },
+          tooltip: _viewLayout == ArchiveResultCardLayout.grid
+              ? 'Switch to list view'
+              : 'Switch to grid view',
+        ),
         if (_totalResults != null)
           Center(
             child: Padding(
@@ -183,20 +218,80 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(16),
-        itemCount: _results.length + (_isLoadingMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index >= _results.length) {
-            return _buildLoadingMoreIndicator();
-          }
-
-          final result = _results[index];
-          return _buildResultCard(result);
-        },
-      ),
+      child: _viewLayout == ArchiveResultCardLayout.grid
+          ? _buildGridView()
+          : _buildListView(),
     );
+  }
+
+  /// Build grid view with responsive columns
+  Widget _buildGridView() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive column count based on width
+        final crossAxisCount = _getColumnCount(constraints.maxWidth);
+
+        return GridView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(8),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 0.7, // Cards are taller than wide
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: _results.length + (_isLoadingMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index >= _results.length) {
+              return _buildLoadingMoreIndicator();
+            }
+
+            final result = _results[index];
+            return ArchiveResultCard(
+              result: result,
+              layout: ArchiveResultCardLayout.grid,
+              showThumbnail: _showThumbnails,
+              onTap: () => _navigateToDetail(result),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Build list view
+  Widget _buildListView() {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _results.length + (_isLoadingMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= _results.length) {
+          return _buildLoadingMoreIndicator();
+        }
+
+        final result = _results[index];
+        return ArchiveResultCard(
+          result: result,
+          layout: ArchiveResultCardLayout.list,
+          showThumbnail: _showThumbnails,
+          onTap: () => _navigateToDetail(result),
+        );
+      },
+    );
+  }
+
+  /// Get responsive column count based on screen width
+  int _getColumnCount(double width) {
+    if (width < 600) {
+      return 2; // Phone portrait
+    } else if (width < 900) {
+      return 3; // Phone landscape / small tablet
+    } else if (width < 1200) {
+      return 4; // Tablet
+    } else {
+      return 5; // Desktop / large tablet
+    }
   }
 
   Widget _buildLoadingState() {
@@ -284,64 +379,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     return const Padding(
       padding: EdgeInsets.all(16),
       child: Center(child: CircularProgressIndicator()),
-    );
-  }
-
-  Widget _buildResultCard(SearchResult result) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => _navigateToDetail(result),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                result.title,
-                style: Theme.of(context).textTheme.titleMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (result.description.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  result.description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.link,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      result.identifier,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.chevron_right),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

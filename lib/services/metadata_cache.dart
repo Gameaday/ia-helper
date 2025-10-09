@@ -1,14 +1,28 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart';
 import '../database/database_helper.dart';
 import '../models/cached_metadata.dart';
 import '../models/archive_metadata.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for managing offline-first metadata caching with smart purge logic
+///
+/// Features:
+/// - SQLite-based persistent storage
+/// - ETag support for conditional GET requests
+/// - LRU (Least Recently Used) eviction policy
+/// - Pin/unpin archives to prevent auto-purge
+/// - Cache size limits with automatic eviction
+/// - Comprehensive metrics and statistics
+/// - Batch operations for efficiency
+/// - Debug logging for troubleshooting
 class MetadataCache {
   static final MetadataCache _instance = MetadataCache._internal();
   factory MetadataCache() => _instance;
   MetadataCache._internal();
+
+  /// Cache metrics for monitoring and optimization
+  final CacheMetrics metrics = CacheMetrics();
 
   /// Shared preferences keys
   static const String _keyRetentionDays = 'cache_retention_days';
@@ -26,6 +40,12 @@ class MetadataCache {
   Future<Database> get _db async => await DatabaseHelper.instance.database;
 
   /// Cache metadata for an archive (auto-cache on view)
+  /// Cache metadata for an archive (auto-cache on view)
+  ///
+  /// Automatically enforces cache size limits by evicting least recently
+  /// used entries when the cache exceeds the configured maximum size.
+  ///
+  /// Updates metrics (writes, evictions) and logs operations in debug mode.
   Future<void> cacheMetadata(
     ArchiveMetadata metadata, {
     bool isPinned = false,
@@ -39,14 +59,28 @@ class MetadataCache {
       etag: etag,
     );
 
+    // Check cache size limits and evict if needed
+    await _enforceSizeLimit();
+
     await db.insert(
       'cached_metadata',
       cached.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+
+    // Update metrics
+    metrics.writes++;
+
+    if (kDebugMode) {
+      print('[MetadataCache] WRITE: ${metadata.identifier} '
+          '(${cached.totalSize ~/ 1024} KB, pinned: $isPinned)');
+    }
   }
 
   /// Get cached metadata by identifier
+  ///
+  /// Returns cached metadata if available, null otherwise.
+  /// Updates metrics (hit/miss) and last accessed timestamp.
   Future<CachedMetadata?> getCachedMetadata(String identifier) async {
     final db = await _db;
 
@@ -57,9 +91,23 @@ class MetadataCache {
       limit: 1,
     );
 
-    if (maps.isEmpty) return null;
+    if (maps.isEmpty) {
+      // Cache miss
+      metrics.misses++;
+      if (kDebugMode) {
+        print('[MetadataCache] MISS: $identifier');
+      }
+      return null;
+    }
 
+    // Cache hit
+    metrics.hits++;
     final cached = CachedMetadata.fromMap(maps.first);
+
+    if (kDebugMode) {
+      final ageHours = DateTime.now().difference(cached.cachedAt).inHours;
+      print('[MetadataCache] HIT: $identifier (age: ${ageHours}h)');
+    }
 
     // Update last accessed time
     await _updateLastAccessed(identifier);
@@ -215,6 +263,74 @@ class MetadataCache {
     );
   }
 
+  /// Enforce cache size limit by evicting LRU entries
+  ///
+  /// Checks if cache exceeds the configured maximum size and evicts
+  /// least recently used (unpinned) entries until under the limit.
+  ///
+  /// Pinned archives are never evicted.
+  Future<void> _enforceSizeLimit() async {
+    final maxSizeMB = await getMaxCacheSizeMB();
+    if (maxSizeMB <= 0) {
+      // Unlimited cache size
+      return;
+    }
+
+    final maxSizeBytes = maxSizeMB * 1024 * 1024;
+    final stats = await getCacheStats();
+
+    if (stats.totalDataSize <= maxSizeBytes) {
+      // Under limit, no eviction needed
+      return;
+    }
+
+    final db = await _db;
+    final bytesToFree = stats.totalDataSize - maxSizeBytes;
+
+    if (kDebugMode) {
+      print('[MetadataCache] Size limit exceeded: '
+          '${stats.formattedDataSize} > $maxSizeMB MB, '
+          'evicting ~${(bytesToFree / (1024 * 1024)).toStringAsFixed(1)} MB');
+    }
+
+    // Get unpinned entries sorted by last accessed (LRU)
+    final candidates = await db.query(
+      'cached_metadata',
+      columns: ['identifier', 'total_size'],
+      where: 'is_pinned = 0',
+      orderBy: 'last_accessed ASC',
+    );
+
+    int freedBytes = 0;
+    int evictionCount = 0;
+
+    for (final entry in candidates) {
+      if (freedBytes >= bytesToFree) break;
+
+      final identifier = entry['identifier'] as String;
+      final size = entry['total_size'] as int;
+
+      await db.delete(
+        'cached_metadata',
+        where: 'identifier = ?',
+        whereArgs: [identifier],
+      );
+
+      freedBytes += size;
+      evictionCount++;
+      metrics.evictions++;
+
+      if (kDebugMode) {
+        print('[MetadataCache] EVICT: $identifier (${size ~/ 1024} KB)');
+      }
+    }
+
+    if (kDebugMode) {
+      print('[MetadataCache] Evicted $evictionCount entries, '
+          'freed ${(freedBytes / (1024 * 1024)).toStringAsFixed(1)} MB');
+    }
+  }
+
   /// Purge stale cache entries (LRU with exceptions)
   /// Does NOT purge:
   /// - Pinned archives
@@ -329,13 +445,23 @@ class MetadataCache {
   }
 
   /// Delete specific cache entry
+  ///
+  /// Updates metrics (deletes) and logs operations in debug mode.
   Future<void> deleteCache(String identifier) async {
     final db = await _db;
-    await db.delete(
+    final deleted = await db.delete(
       'cached_metadata',
       where: 'identifier = ?',
       whereArgs: [identifier],
     );
+
+    if (deleted > 0) {
+      metrics.deletes++;
+
+      if (kDebugMode) {
+        print('[MetadataCache] DELETE: $identifier');
+      }
+    }
   }
 
   /// Get identifiers that need sync (stale metadata)
@@ -418,6 +544,112 @@ class MetadataCache {
   Future<void> vacuum() async {
     await DatabaseHelper.instance.vacuum();
   }
+
+  /// Cache multiple metadata items in a single transaction (batch operation)
+  ///
+  /// More efficient than calling cacheMetadata multiple times as it uses
+  /// a single database transaction for all insertions.
+  ///
+  /// Returns the number of items successfully cached.
+  Future<int> cacheMetadataBatch(
+    List<ArchiveMetadata> metadataList, {
+    bool isPinned = false,
+  }) async {
+    if (metadataList.isEmpty) return 0;
+
+    final db = await _db;
+    final batch = db.batch();
+
+    for (final metadata in metadataList) {
+      final cached = CachedMetadata.fromMetadata(
+        metadata,
+        isPinned: isPinned,
+      );
+
+      batch.insert(
+        'cached_metadata',
+        cached.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+    final results = await batch.commit(noResult: false);
+    final successCount = results.length;
+
+    // Update metrics
+    metrics.writes += successCount;
+
+    if (kDebugMode) {
+      print('[MetadataCache] BATCH WRITE: $successCount items');
+    }
+
+    // Enforce size limits after batch operation
+    await _enforceSizeLimit();
+
+    return successCount;
+  }
+
+  /// Delete multiple cache entries in a single transaction (batch operation)
+  ///
+  /// More efficient than calling deleteCache multiple times as it uses
+  /// a single database transaction for all deletions.
+  ///
+  /// Returns the number of items successfully deleted.
+  Future<int> deleteCacheBatch(List<String> identifiers) async {
+    if (identifiers.isEmpty) return 0;
+
+    final db = await _db;
+    final batch = db.batch();
+
+    for (final identifier in identifiers) {
+      batch.delete(
+        'cached_metadata',
+        where: 'identifier = ?',
+        whereArgs: [identifier],
+      );
+    }
+
+    final results = await batch.commit(noResult: false);
+    final successCount = results.length;
+
+    // Update metrics
+    metrics.deletes += successCount;
+
+    if (kDebugMode) {
+      print('[MetadataCache] BATCH DELETE: $successCount items');
+    }
+
+    return successCount;
+  }
+
+  /// Dispose resources and cleanup
+  ///
+  /// Call this method when the cache is no longer needed to release resources.
+  /// Currently logs final metrics in debug mode.
+  ///
+  /// Note: Database connections are managed by DatabaseHelper singleton and
+  /// should not be closed here.
+  void dispose() {
+    if (kDebugMode) {
+      print('[MetadataCache] Final metrics: $metrics');
+    }
+  }
+
+  /// Get current metrics for monitoring
+  ///
+  /// Returns a snapshot of the current cache metrics including hit/miss rates,
+  /// eviction counts, and total operations.
+  CacheMetrics getMetrics() => metrics;
+
+  /// Reset metrics to zero
+  ///
+  /// Useful for testing or periodic monitoring. Does not affect cache data.
+  void resetMetrics() {
+    metrics.reset();
+    if (kDebugMode) {
+      print('[MetadataCache] Metrics reset');
+    }
+  }
 }
 
 /// Cache statistics
@@ -454,5 +686,65 @@ class CacheStats {
   String toString() {
     return 'CacheStats{archives: $totalArchives ($pinnedArchives pinned), '
         'data: $formattedDataSize, db: $formattedDbSize}';
+  }
+}
+
+/// Cache performance metrics
+///
+/// Tracks cache behavior for monitoring and optimization:
+/// - Hit/miss rates for effectiveness
+/// - Eviction counts for size management
+/// - Access patterns for optimization
+class CacheMetrics {
+  /// Cache hits (successful retrievals from cache)
+  int hits = 0;
+
+  /// Cache misses (not found in cache, need API call)
+  int misses = 0;
+
+  /// Number of evictions due to size limits
+  int evictions = 0;
+
+  /// Number of cache writes
+  int writes = 0;
+
+  /// Number of cache deletes
+  int deletes = 0;
+
+  /// Reset all metrics to zero
+  void reset() {
+    hits = 0;
+    misses = 0;
+    evictions = 0;
+    writes = 0;
+    deletes = 0;
+  }
+
+  /// Calculate hit rate (percentage of successful cache retrievals)
+  double get hitRate {
+    final total = hits + misses;
+    return total > 0 ? (hits / total) * 100 : 0.0;
+  }
+
+  /// Calculate miss rate (percentage of cache misses)
+  double get missRate {
+    final total = hits + misses;
+    return total > 0 ? (misses / total) * 100 : 0.0;
+  }
+
+  /// Total number of cache operations
+  int get totalOperations => hits + misses + writes + deletes;
+
+  @override
+  String toString() {
+    return 'CacheMetrics{'
+        'hits: $hits, '
+        'misses: $misses, '
+        'evictions: $evictions, '
+        'writes: $writes, '
+        'deletes: $deletes, '
+        'hitRate: ${hitRate.toStringAsFixed(1)}%, '
+        'missRate: ${missRate.toStringAsFixed(1)}%'
+        '}';
   }
 }

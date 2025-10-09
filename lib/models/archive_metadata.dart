@@ -10,6 +10,11 @@ class ArchiveMetadata {
   final int? filesCount;
   final int? itemLastUpdated;
   final List<ArchiveFile> files;
+  final String? thumbnailUrl;
+  final String? coverImageUrl;
+  final String? mediaType;
+  final int? downloads;
+  final double? rating;
 
   ArchiveMetadata({
     required this.identifier,
@@ -22,6 +27,11 @@ class ArchiveMetadata {
     this.filesCount,
     this.itemLastUpdated,
     required this.files,
+    this.thumbnailUrl,
+    this.coverImageUrl,
+    this.mediaType,
+    this.downloads,
+    this.rating,
   });
 
   factory ArchiveMetadata.fromJson(Map<String, dynamic> json) {
@@ -61,6 +71,31 @@ class ArchiveMetadata {
       }
     }
 
+    // Extract thumbnail URLs
+    String? thumbnailUrl;
+    String? coverImageUrl;
+
+    // Check for misc.image field (common in API responses)
+    if (json['misc']?['image'] != null) {
+      final imagePath = json['misc']['image'] as String;
+      thumbnailUrl = 'https://archive.org$imagePath';
+      // Cover image is usually the full-size version
+      coverImageUrl = thumbnailUrl.replaceAll('__ia_thumb.jpg', '.jpg');
+    }
+    // Fallback to generated thumbnail URL
+    else {
+      thumbnailUrl = 'https://archive.org/services/img/$identifier';
+      coverImageUrl = thumbnailUrl;
+    }
+
+    // Extract rating (can be in reviews or metadata)
+    double? rating;
+    if (json['reviews']?['avg_rating'] != null) {
+      rating = (json['reviews']['avg_rating'] as num).toDouble();
+    } else if (json['metadata']?['avg_rating'] != null) {
+      rating = (json['metadata']['avg_rating'] as num).toDouble();
+    }
+
     return ArchiveMetadata(
       identifier: identifier,
       title: json['metadata']?['title'],
@@ -72,6 +107,11 @@ class ArchiveMetadata {
       filesCount: _parseIntField(json['files_count']),
       itemLastUpdated: _parseIntField(json['item_last_updated']),
       files: files,
+      thumbnailUrl: thumbnailUrl,
+      coverImageUrl: coverImageUrl,
+      mediaType: json['metadata']?['mediatype'] as String?,
+      downloads: json['downloads'] as int?,
+      rating: rating,
     );
   }
 
@@ -94,10 +134,14 @@ class ArchiveMetadata {
         'description': description,
         'creator': creator,
         'date': date,
+        'mediatype': mediaType,
+        'avg_rating': rating,
       },
       'item_size': totalSize,
       'files_count': filesCount,
       'item_last_updated': itemLastUpdated,
+      'downloads': downloads,
+      'misc': {if (thumbnailUrl != null) 'image': thumbnailUrl},
       'files': files.map((f) => f.toJson()).toList(),
     };
   }

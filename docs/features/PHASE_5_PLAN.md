@@ -100,47 +100,66 @@ Phase 5 focuses on preparing the Flutter mobile app for production release on th
 **Priority**: High  
 **Estimated Time**: 8-12 hours
 
-#### 2.1 Navigation & Information Architecture Redesign ⭐ **CRITICAL**
+#### 2.1 Navigation & Information Architecture Redesign ⭐ **CRITICAL** 🚧 **IN PROGRESS**
 **Problem**: Current navigation has too many buttons in top app bar (hard to reach, against Material Design)  
 **Goal**: Redesign app navigation for one-handed use and better content discovery
+**Progress**: Intelligent search bar complete, home screen integration next
 
-- [ ] **Analyze current navigation issues**:
-  - [ ] Document all current navigation points
-  - [ ] Map user flows and pain points
-  - [ ] Identify most-used vs rarely-used features
-  - [ ] Review Material Design 3 navigation patterns
+- [x] **Analyze current navigation issues**:
+  - [x] Document all current navigation points → `NAVIGATION_AUDIT.md`
+  - [x] Map user flows and pain points → Audit complete
+  - [x] Identify most-used vs rarely-used features → Documented
+  - [x] Review Material Design 3 navigation patterns → Reviewed
 
-- [ ] **Implement Bottom Navigation Bar** (Primary Navigation):
-  - [ ] 3-5 primary destinations max (MD3 guideline)
-  - [ ] **Proposed tabs**:
-    - 🏠 **Home/Search** - Search bar + recent/trending
-    - 📚 **Browse** - Categories, collections, featured
-    - ⬇️ **Downloads** - Queue, completed, in-progress (Future: rename to "Transfers" when uploads added)
-    - ⭐ **Library** - Favorites, saved, collections
-    - ⚙️ **Settings** - Profile, preferences, about
-  - [ ] Add proper icons (filled when active, outlined when inactive)
-  - [ ] Implement smooth tab transitions
-  - [ ] Persist selected tab on app restart
-  - [ ] Add proper accessibility labels
-  - [ ] **Future-proof naming**: Use "Downloads" for now, easily rename to "Transfers" when upload feature is added
+- [x] **Bottom Navigation Bar** (Already Implemented! ✅):
+  - [x] 5 primary destinations (MD3 compliant)
+  - [x] **Current tabs**:
+    - 🏠 **Home** - Search hub (redesign in progress)
+    - 📚 **Library** - User's content
+    - 🔍 **Discover** - Browse, categories, trending (to be enhanced)
+    - ⬇️ **Transfers** - Downloads and future uploads
+    - ⚙️ **More** - Settings, account, about
+  - [x] Proper icons (filled when active, outlined when inactive)
+  - [x] Smooth tab transitions with MD3 animations
+  - [x] Persists selected tab (NavigationState provider)
+  - [x] Proper accessibility labels
+  - [x] Future-proof naming ✅ Already using "Transfers"
 
-- [ ] **Redesign Home Screen Layout**:
-  - [ ] Move search to prominent position (top, but not in app bar)
-  - [ ] Add search suggestions/autocomplete
-  - [ ] Show recent searches (quick access)
-  - [ ] Add "Trending" or "Featured" section
-  - [ ] Show recent downloads/activity
-  - [ ] Add quick action cards
-  - [ ] Implement pull-to-refresh
-  - [ ] Remove excessive app bar actions
+- [x] **Create Intelligent Search Bar Widget** ✅ **COMPLETE**:
+  - [x] Auto-detection (identifier vs keyword vs advanced)
+  - [x] Live suggestions from search history
+  - [x] "Did you mean?" spelling corrections
+  - [x] Visual feedback (animated icon changes)
+  - [x] MD3 compliant design
+  - [x] Proper focus and keyboard handling
+  - **File**: `lib/widgets/intelligent_search_bar.dart` (468 lines)
+  - **Documentation**: `PHASE_5_TASK_2_INTELLIGENT_SEARCH_PROGRESS.md`
+
+- [ ] **Integrate into Home Screen** 🔄 **NEXT**:
+  - [ ] Replace SearchBarWidget with IntelligentSearchBar
+  - [ ] Move search to prominent position (no app bar)
+  - [ ] Add recent searches chips below search bar
+  - [ ] Add quick action buttons (Discover, Advanced Search)
+  - [ ] Show search tips for empty state
+  - [ ] Handle identifier → detail navigation
+  - [ ] Handle keyword → search results navigation
+  - [ ] Save searches to history
+  - [ ] Test tablet layout compatibility
+
+- [ ] **Enhance Discover Screen**:
+  - [ ] Add trending archives section
+  - [ ] Create category grid with icons
+  - [ ] Add featured collections carousel
+  - [ ] Show popular downloads
+  - [ ] Pure browsing experience (no search focus)
 
 - [ ] **Clean up App Bars**:
+  - [ ] Audit all screens for excessive actions
   - [ ] Limit to 2-3 actions per screen max
   - [ ] Move less-used actions to overflow menu (⋮)
-  - [ ] Use contextual app bars when appropriate
-  - [ ] Add proper titles for each screen
-  - [ ] Consider removing app bar from home (search integrated)
-  - [ ] Add floating action button (FAB) for primary actions
+  - [ ] Add contextual app bars where appropriate
+  - [ ] Consider removing app bar from home
+  - [ ] Test navigation flows
 
 - [ ] **Create Overflow Menu** (Secondary Navigation):
   - [ ] History

@@ -9,6 +9,7 @@ import '../services/archive_service.dart';
 import '../utils/semantic_colors.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/cache_statistics_widget.dart';
+import '../widgets/cache_metrics_card.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -263,6 +264,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               const Divider(),
 
+              // Data & Performance Settings Section
+              _buildSectionHeader('Data & Performance'),
+
+              ListTile(
+                leading: const Icon(Icons.speed),
+                title: const Text('API Intensity'),
+                subtitle: const Text('Control data usage and API calls'),
+                trailing: const Icon(Icons.arrow_forward),
+                onTap: () {
+                  Navigator.pushNamed(context, '/api-intensity-settings');
+                },
+              ),
+
+              const Divider(),
+
               // Cache Settings Section
               _buildSectionHeader('Offline Cache'),
 
@@ -279,6 +295,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPurgeStale: _purgeStaleCaches,
                   ),
                 ),
+
+              // Identifier Cache Metrics Card
+              const CacheMetricsCard(),
 
               ListTile(
                 leading: const Icon(Icons.schedule_outlined),

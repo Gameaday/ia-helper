@@ -1,4 +1,23 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+
+/// Metrics for tracking rate limiter operations
+class RateLimiterMetrics {
+  int acquires = 0;
+  int releases = 0;
+  int delays = 0;
+  int queueWaits = 0;
+
+  @override
+  String toString() {
+    return 'RateLimiterMetrics('
+        'acquires: $acquires, '
+        'releases: $releases, '
+        'delays: $delays, '
+        'queueWaits: $queueWaits'
+        ')';
+  }
+}
 
 /// Rate limiter for Archive.org API compliance.
 ///
@@ -25,6 +44,9 @@ class RateLimiter {
   final List<Completer<void>> _queue = [];
   DateTime? _lastReleaseTime;
 
+  // Metrics tracking
+  final RateLimiterMetrics metrics = RateLimiterMetrics();
+
   /// Creates a rate limiter with the specified configuration.
   ///
   /// [maxConcurrent]: Maximum number of concurrent operations (default: 3)
@@ -49,23 +71,47 @@ class RateLimiter {
   ///
   /// Blocks until a permit is available. Always pair with [release] in a finally block.
   Future<void> acquire() async {
+    metrics.acquires++;
+
     // Wait for minimum delay if configured
     if (minDelay != null && _lastReleaseTime != null) {
       final timeSinceLastRelease = DateTime.now().difference(_lastReleaseTime!);
       if (timeSinceLastRelease < minDelay!) {
+        metrics.delays++;
         final remainingDelay = minDelay! - timeSinceLastRelease;
+
+        if (kDebugMode) {
+          debugPrint(
+            '[RateLimiter] Delaying ${remainingDelay.inMilliseconds}ms for min delay',
+          );
+        }
+
         await Future.delayed(remainingDelay);
       }
     }
 
     // If at capacity, queue this request
     if (_active >= maxConcurrent) {
+      metrics.queueWaits++;
+
+      if (kDebugMode) {
+        debugPrint(
+          '[RateLimiter] At capacity ($maxConcurrent), queueing request (queue: ${_queue.length + 1})',
+        );
+      }
+
       final completer = Completer<void>();
       _queue.add(completer);
       await completer.future;
     }
 
     _active++;
+
+    if (kDebugMode) {
+      debugPrint(
+        '[RateLimiter] Acquired permit (active: $_active/$maxConcurrent, queued: ${_queue.length})',
+      );
+    }
   }
 
   /// Releases a permit, allowing the next queued request to proceed.
@@ -74,13 +120,24 @@ class RateLimiter {
   void release() {
     assert(_active > 0, 'Cannot release when no active permits');
 
+    metrics.releases++;
     _active--;
     _lastReleaseTime = DateTime.now();
+
+    if (kDebugMode) {
+      debugPrint(
+        '[RateLimiter] Released permit (active: $_active/$maxConcurrent, queued: ${_queue.length})',
+      );
+    }
 
     // Process next queued request if any
     if (_queue.isNotEmpty) {
       final completer = _queue.removeAt(0);
       completer.complete();
+
+      if (kDebugMode) {
+        debugPrint('[RateLimiter] Processed queued request (remaining: ${_queue.length})');
+      }
     }
   }
 
@@ -132,6 +189,46 @@ class RateLimiter {
       'isAtCapacity': isAtCapacity,
       'minDelayMs': minDelay?.inMilliseconds,
       'lastReleaseTime': _lastReleaseTime?.toIso8601String(),
+    };
+  }
+
+  /// Get current metrics
+  RateLimiterMetrics getMetrics() => metrics;
+
+  /// Reset metrics to zero
+  void resetMetrics() {
+    metrics.acquires = 0;
+    metrics.releases = 0;
+    metrics.delays = 0;
+    metrics.queueWaits = 0;
+    if (kDebugMode) {
+      debugPrint('[RateLimiter] Metrics reset');
+    }
+  }
+
+  /// Get formatted statistics for monitoring
+  Map<String, dynamic> getFormattedStatistics() {
+    final totalOperations = metrics.acquires;
+    final delayRate = totalOperations > 0
+        ? (metrics.delays / totalOperations * 100).toStringAsFixed(1)
+        : '0.0';
+    
+    final queueRate = totalOperations > 0
+        ? (metrics.queueWaits / totalOperations * 100).toStringAsFixed(1)
+        : '0.0';
+
+    return {
+      'totalAcquires': metrics.acquires,
+      'totalReleases': metrics.releases,
+      'delaysApplied': metrics.delays,
+      'delayRate': '$delayRate%',
+      'queueWaits': metrics.queueWaits,
+      'queueRate': '$queueRate%',
+      'currentActive': _active,
+      'currentQueued': _queue.length,
+      'maxConcurrent': maxConcurrent,
+      'isAtCapacity': isAtCapacity,
+      'minDelayMs': minDelay?.inMilliseconds ?? 0,
     };
   }
 }

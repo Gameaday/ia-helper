@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/archive_metadata.dart';
 import '../models/search_result.dart';
 import '../models/rate_limit_status.dart';
+import '../models/api_intensity_settings.dart';
 import 'internet_archive_api.dart';
 import 'history_service.dart';
 import 'metadata_cache.dart';
@@ -77,6 +79,12 @@ class ArchiveService extends ChangeNotifier {
   }
 
   /// Fetch metadata for an archive (cache-first strategy)
+  ///
+  /// Respects API intensity settings:
+  /// - Cache Only: Returns cached data only, never makes API calls
+  /// - Minimal: Fetches basic metadata only
+  /// - Standard: Fetches metadata with standard fields
+  /// - Full: Fetches complete metadata with all available data
   Future<ArchiveMetadata> fetchMetadata(
     String identifier, {
     bool forceRefresh = false,
@@ -96,6 +104,19 @@ class ArchiveService extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Load API intensity settings
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString('api_intensity_settings');
+      final intensitySettings = jsonString != null
+          ? ApiIntensitySettings.fromJson(
+              jsonDecode(jsonString) as Map<String, dynamic>,
+            )
+          : ApiIntensitySettings.standard();
+
+      if (kDebugMode) {
+        print('[ArchiveService] API Intensity: ${intensitySettings.level}');
+      }
+
       ArchiveMetadata metadata;
 
       // Try to get from cache first (unless force refresh)
@@ -125,9 +146,28 @@ class ArchiveService extends ChangeNotifier {
             return metadata;
           }
         }
+
+        // Cache Only mode: If no valid cache, throw exception
+        if (intensitySettings.level == ApiIntensityLevel.cacheOnly) {
+          _error = 'Cache Only mode: No cached data available for $trimmedIdentifier';
+          _isLoading = false;
+          notifyListeners();
+          throw Exception(_error);
+        }
+      }
+
+      // For force refresh, respect Cache Only mode
+      if (forceRefresh && intensitySettings.level == ApiIntensityLevel.cacheOnly) {
+        _error = 'Cache Only mode: Cannot refresh from API';
+        _isLoading = false;
+        notifyListeners();
+        throw Exception(_error);
       }
 
       // Cache miss or stale - fetch from API
+      // Note: Internet Archive's metadata endpoint returns all fields in one call.
+      // Future enhancement: Add parameters to control extended data like reviews, 
+      // related items, or statistics based on intensity level.
       metadata = await _api.fetchMetadata(trimmedIdentifier);
 
       // Cache the fetched metadata
