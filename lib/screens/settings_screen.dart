@@ -506,7 +506,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () async {
               // Capture context-dependent objects before async operations
               final navigator = Navigator.of(context);
-              final messenger = ScaffoldMessenger.of(context);
 
               // Clear all preferences
               await _prefs.clear();
@@ -520,12 +519,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _showHiddenFiles = false;
               });
 
-              if (!mounted) return;
+              if (!context.mounted) return;
 
               navigator.pop();
-              messenger.showSnackBar(
-                const SnackBar(content: Text('Settings reset to defaults')),
-              );
+              SnackBarHelper.showSuccess(context, 'Settings reset to defaults');
             },
             child: const Text('Reset'),
           ),
@@ -684,13 +681,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
 
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Bandwidth limit set to ${selectedPreset.displayName}',
-                    ),
-                    behavior: SnackBarBehavior.floating,
-                  ),
+                SnackBarHelper.showSuccess(
+                  context,
+                  'Bandwidth limit set to ${selectedPreset.displayName}',
                 );
               },
               child: const Text('Apply'),
@@ -727,19 +720,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Cache: ${stats.totalArchives} archives, ${stats.formattedDataSize}',
-          ),
-        ),
+      SnackBarHelper.showInfo(
+        context,
+        'Cache: ${stats.totalArchives} archives, ${stats.formattedDataSize}',
       );
     }
   }
 
   Future<void> _purgeStaleCaches() async {
     final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
 
     // Show progress dialog
     showDialog(
@@ -769,19 +758,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       navigator.pop(); // Close progress dialog
 
-      messenger.showSnackBar(
-        SnackBar(content: Text('Purged $purgedCount stale cache entries')),
+      SnackBarHelper.showSuccess(
+        context,
+        'Purged $purgedCount stale cache entries',
       );
     } catch (e) {
       if (!mounted) return;
       navigator.pop(); // Close progress dialog
 
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Error purging cache: $e'),
-          backgroundColor: SemanticColors.error(context),
-        ),
-      );
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -801,8 +786,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ElevatedButton(
             onPressed: () async {
               final navigator = Navigator.of(context);
-              final messenger = ScaffoldMessenger.of(context);
-              final errorColor = SemanticColors.error(context);
 
               navigator.pop(); // Close dialog
 
@@ -828,24 +811,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Refresh stats
                 await _refreshCacheStats();
 
-                if (!mounted) return;
+                if (!context.mounted) return;
                 navigator.pop(); // Close progress dialog
 
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text('Cleared $count unpinned cache entries'),
-                  ),
+                SnackBarHelper.showSuccess(
+                  context,
+                  'Cleared $count unpinned cache entries',
                 );
               } catch (e) {
-                if (!mounted) return;
+                if (!context.mounted) return;
                 navigator.pop(); // Close progress dialog
 
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text('Error clearing cache: $e'),
-                    backgroundColor: errorColor,
-                  ),
-                );
+                SnackBarHelper.showError(context, e);
               }
             },
             child: const Text('Clear'),
@@ -856,8 +833,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _vacuumDatabase() async {
-    final messenger = ScaffoldMessenger.of(context);
-
     // Show progress
     showDialog(
       context: context,
@@ -883,19 +858,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       Navigator.of(context).pop(); // Close progress dialog
 
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Database vacuumed successfully')),
-      );
+      SnackBarHelper.showSuccess(context, 'Database vacuumed successfully');
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop(); // Close progress dialog
 
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Error vacuuming database: $e'),
-          backgroundColor: SemanticColors.error(context),
-        ),
-      );
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -917,8 +885,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ElevatedButton(
             onPressed: () async {
               final navigator = Navigator.of(context);
-              final messenger = ScaffoldMessenger.of(context);
-              final errorColor = SemanticColors.error(context);
 
               navigator.pop(); // Close dialog
 
@@ -947,24 +913,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Refresh stats
                 await _refreshCacheStats();
 
-                if (!mounted) return;
+                if (!context.mounted) return;
                 navigator.pop(); // Close progress dialog
 
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('All cache cleared successfully'),
-                  ),
+                SnackBarHelper.showSuccess(
+                  context,
+                  'All cache cleared successfully',
                 );
               } catch (e) {
-                if (!mounted) return;
+                if (!context.mounted) return;
                 navigator.pop(); // Close progress dialog
 
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text('Error clearing cache: $e'),
-                    backgroundColor: errorColor,
-                  ),
-                );
+                SnackBarHelper.showError(context, e);
               }
             },
             style: ElevatedButton.styleFrom(

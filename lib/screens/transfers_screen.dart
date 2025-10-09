@@ -4,8 +4,8 @@ import 'package:internet_archive_helper/models/download_task.dart';
 import 'package:internet_archive_helper/models/download_progress.dart';
 import 'package:internet_archive_helper/services/download_scheduler.dart';
 import 'package:internet_archive_helper/database/database_helper.dart';
-import 'package:internet_archive_helper/utils/animation_constants.dart';
 import 'package:internet_archive_helper/core/utils/formatting_utils.dart';
+import 'package:internet_archive_helper/utils/snackbar_helper.dart';
 
 /// Material Design 3 Transfers screen for managing downloads (and future uploads)
 ///
@@ -78,20 +78,9 @@ class _TransfersScreenState extends State<TransfersScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        _showError('Failed to load transfers: $e');
+        SnackBarHelper.showError(context, e);
       }
     }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Theme.of(context).colorScheme.error,
-        duration: MD3Durations.long,
-      ),
-    );
   }
 
   List<DownloadTask> get _filteredTasks {
@@ -110,17 +99,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
     try {
       await _scheduler.pauseTask(task.id);
       await _loadTasks();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Paused: ${task.fileName}'),
-            behavior: SnackBarBehavior.floating,
-            duration: MD3Durations.short,
-          ),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Paused: ${task.fileName}');
     } catch (e) {
-      _showError('Failed to pause: $e');
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -128,17 +111,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
     try {
       await _scheduler.resumeTask(task.id);
       await _loadTasks();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Resumed: ${task.fileName}'),
-            behavior: SnackBarBehavior.floating,
-            duration: MD3Durations.short,
-          ),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Resumed: ${task.fileName}');
     } catch (e) {
-      _showError('Failed to resume: $e');
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -150,17 +127,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
       await _scheduler.removeTask(task.id);
       await DatabaseHelper.instance.deleteDownloadTask(task.id);
       await _loadTasks();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Cancelled: ${task.fileName}'),
-            behavior: SnackBarBehavior.floating,
-            duration: MD3Durations.short,
-          ),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Cancelled: ${task.fileName}');
     } catch (e) {
-      _showError('Failed to cancel: $e');
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -175,17 +146,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
       await DatabaseHelper.instance.updateDownloadTask(updatedTask);
       await _scheduler.enqueueTask(updatedTask);
       await _loadTasks();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Retrying: ${task.fileName}'),
-            behavior: SnackBarBehavior.floating,
-            duration: MD3Durations.short,
-          ),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Retrying: ${task.fileName}');
     } catch (e) {
-      _showError('Failed to retry: $e');
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -222,17 +187,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
       // Delete tasks completed more than 24 hours ago
       await DatabaseHelper.instance.deleteOldCompletedTasks(1);
       await _loadTasks();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cleared completed transfers'),
-            behavior: SnackBarBehavior.floating,
-            duration: MD3Durations.short,
-          ),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Cleared completed transfers');
     } catch (e) {
-      _showError('Failed to clear: $e');
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -240,17 +199,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
     try {
       await _scheduler.pauseAll();
       await _loadTasks();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Paused all active transfers'),
-            behavior: SnackBarBehavior.floating,
-            duration: MD3Durations.short,
-          ),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Paused all active transfers');
     } catch (e) {
-      _showError('Failed to pause all: $e');
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -258,17 +211,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
     try {
       await _scheduler.resumeAll();
       await _loadTasks();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Resumed all paused transfers'),
-            behavior: SnackBarBehavior.floating,
-            duration: MD3Durations.short,
-          ),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Resumed all paused transfers');
     } catch (e) {
-      _showError('Failed to resume all: $e');
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
     }
   }
 
@@ -572,7 +519,8 @@ class _TransfersScreenState extends State<TransfersScreen> {
         );
       }
     } catch (e) {
-      _showError('Failed to reorder: $e');
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/ia_health_service.dart';
 import '../utils/responsive_utils.dart';
+import '../utils/snackbar_helper.dart';
 import 'dart:async';
 
 /// Internet Archive Health Status Screen
@@ -53,17 +54,11 @@ class _IAHealthScreenState extends State<IAHealthScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error checking health: $e'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      SnackBarHelper.showError(context, e);
     }
   }
 

@@ -5,6 +5,7 @@ import '../widgets/cache_statistics_widget.dart';
 import '../utils/responsive_utils.dart';
 import '../core/navigation/navigation_state.dart';
 import 'package:provider/provider.dart';
+import '../utils/snackbar_helper.dart';
 
 /// Data & Storage management screen
 ///
@@ -344,15 +345,12 @@ class _DataStorageScreenState extends State<DataStorageScreen> {
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed == true) {
       final cache = MetadataCache();
       await cache.clearUnpinnedCache();
       _loadData();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cache cleared successfully')),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Cache cleared successfully');
     }
   }
 
@@ -378,15 +376,12 @@ class _DataStorageScreenState extends State<DataStorageScreen> {
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed == true) {
       final cache = MetadataCache();
       final removed = await cache.purgeStaleCaches();
       _loadData();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Removed $removed stale entries')),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Removed $removed stale entries');
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../services/api_settings_service.dart';
 import '../utils/responsive_utils.dart';
+import '../utils/snackbar_helper.dart';
 
 /// Internet Archive API Settings Screen
 ///
@@ -560,14 +561,11 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed == true) {
       await ApiSettingsService.resetToDefaults();
       await _loadSettings();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Settings reset to defaults')),
-        );
-      }
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(context, 'Settings reset to defaults');
     }
   }
 
