@@ -5,7 +5,9 @@ import 'package:internet_archive_helper/models/search_result.dart';
 import 'package:internet_archive_helper/services/advanced_search_service.dart';
 import 'package:internet_archive_helper/services/archive_service.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
+import 'package:internet_archive_helper/utils/snackbar_helper.dart';
 import 'package:internet_archive_helper/widgets/archive_result_card.dart';
+import 'package:internet_archive_helper/widgets/error_card.dart';
 import 'package:internet_archive_helper/widgets/skeleton_loader.dart';
 import 'package:internet_archive_helper/screens/api_intensity_settings_screen.dart';
 import 'archive_detail_screen.dart';
@@ -147,20 +149,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         setState(() {
           _isLoadingMore = false;
         });
-        _showSnackBar('Error loading more results: $e');
+        SnackBarHelper.showError(context, e);
       }
     }
   }
 
   Future<void> _refresh() async {
     await _executeSearch();
-  }
-
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
   }
 
   @override
@@ -352,40 +347,11 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
   Widget _buildErrorState() {
-    return Semantics(
-      label: 'Search error: ${_error ?? 'An unknown error occurred'}. Tap retry button to try again.',
-      liveRegion: true,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ExcludeSemantics(
-                child: Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text('Search Error', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text(
-                _error ?? 'An unknown error occurred',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: _executeSearch,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return ErrorCard(
+      error: _error ?? 'An unknown error occurred',
+      onRetry: _executeSearch,
+      onSecondaryAction: () => Navigator.pop(context),
+      secondaryActionLabel: 'Back to Search',
     );
   }
 
@@ -457,7 +423,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       );
     } catch (e) {
       if (mounted) {
-        _showSnackBar('Error loading archive: $e');
+        SnackBarHelper.showError(context, e);
       }
     }
   }

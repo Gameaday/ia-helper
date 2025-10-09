@@ -4,6 +4,8 @@ import 'package:internet_archive_helper/screens/archive_detail_screen.dart';
 import 'package:internet_archive_helper/services/archive_service.dart';
 import 'package:internet_archive_helper/services/favorites_service.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
+import 'package:internet_archive_helper/utils/snackbar_helper.dart';
+import 'package:internet_archive_helper/widgets/error_card.dart';
 import 'package:internet_archive_helper/widgets/favorite_button.dart';
 import 'package:provider/provider.dart';
 
@@ -186,30 +188,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Error loading favorites',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(_error!),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _loadFavorites,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
+      return ErrorCard(
+        error: _error!,
+        onRetry: _loadFavorites,
       );
     }
 
@@ -652,12 +633,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading archive: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SnackBarHelper.showError(context, e);
     }
   }
 
