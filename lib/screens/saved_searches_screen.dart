@@ -528,6 +528,9 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
                       search.isPinned
                           ? Icons.push_pin
                           : Icons.push_pin_outlined,
+                      color: search.isPinned
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.outline,
                     ),
                     onPressed: () => _togglePin(search),
                     tooltip: search.isPinned ? 'Unpin' : 'Pin',

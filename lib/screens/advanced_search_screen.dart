@@ -805,6 +805,9 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
             child: ListTile(
               leading: Icon(
                 savedSearch.isPinned ? Icons.push_pin : Icons.bookmark_outline,
+                color: savedSearch.isPinned
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
               ),
               title: Text(savedSearch.name),
               subtitle: Text(

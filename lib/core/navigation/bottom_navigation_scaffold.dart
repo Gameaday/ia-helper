@@ -4,7 +4,7 @@ import '../../screens/home_screen.dart';
 import '../../screens/library_screen.dart';
 import '../../screens/discover_screen.dart';
 import '../../screens/transfers_screen.dart';
-import '../../screens/settings_screen.dart';
+import '../../screens/more_screen.dart';
 import '../../utils/animation_constants.dart';
 import 'navigation_state.dart';
 
@@ -18,7 +18,7 @@ import 'navigation_state.dart';
 /// 1. 📚 Library - Downloads, collections, and favorites
 /// 2. 🔍 Discover - Keyword search and trending content
 /// 3. 🔄 Transfers - Download/upload management
-/// 4. ⚙️ Settings - App configuration
+/// 4. ⋯ More - Settings and additional options
 class BottomNavigationScaffold extends StatefulWidget {
   const BottomNavigationScaffold({super.key});
 
@@ -77,7 +77,7 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
         ),
         _TabNavigator(
           navigatorKey: navigationState.getNavigatorKey(4),
-          rootScreen: const SettingsScreen(),
+          rootScreen: const MoreScreen(),
         ),
       ],
     );
@@ -120,10 +120,10 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
           tooltip: 'Download and upload management',
         ),
         NavigationDestination(
-          icon: Icon(Icons.settings_outlined),
-          selectedIcon: Icon(Icons.settings),
-          label: 'Settings',
-          tooltip: 'App configuration',
+          icon: Icon(Icons.more_horiz),
+          selectedIcon: Icon(Icons.more_horiz),
+          label: 'More',
+          tooltip: 'Settings and more options',
         ),
       ],
     );

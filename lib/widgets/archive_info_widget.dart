@@ -108,10 +108,10 @@ class ArchiveInfoWidget extends StatelessWidget {
                                     ? Icons.push_pin
                                     : Icons.push_pin_outlined,
                                 color: isPinned
-                                    ? Theme.of(context).colorScheme.secondary
+                                    ? Theme.of(context).colorScheme.primary
                                     : Theme.of(
                                         context,
-                                      ).colorScheme.onSurfaceVariant,
+                                      ).colorScheme.outline,
                               ),
                               tooltip: isPinned
                                   ? 'Unpin archive'
@@ -292,7 +292,7 @@ class ArchiveInfoWidget extends StatelessWidget {
                             Icon(
                               Icons.push_pin,
                               size: 14,
-                              color: colorScheme.secondary,
+                              color: colorScheme.primary,
                             ),
                             const SizedBox(width: 4),
                             Text(
