@@ -6,6 +6,7 @@ import 'package:internet_archive_helper/services/advanced_search_service.dart';
 import 'package:internet_archive_helper/services/archive_service.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
 import 'package:internet_archive_helper/widgets/archive_result_card.dart';
+import 'package:internet_archive_helper/widgets/skeleton_loader.dart';
 import 'package:internet_archive_helper/screens/api_intensity_settings_screen.dart';
 import 'archive_detail_screen.dart';
 
@@ -295,15 +296,40 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Searching Internet Archive...'),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final isPhone = width < 600;
+        final crossAxisCount = isPhone ? 2 : (width < 900 ? 3 : 4);
+        
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Loading indicator with message
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Column(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Searching Internet Archive...'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Skeleton loaders
+              SkeletonGrid(
+                itemCount: 6,
+                crossAxisCount: crossAxisCount,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

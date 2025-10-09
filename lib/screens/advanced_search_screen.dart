@@ -369,30 +369,46 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   }
 
   Widget _buildBody() {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildSearchField(),
-          const SizedBox(height: 16),
-          _buildFieldSearchToggle(),
-          if (_showFieldSearch) ...[
-            const SizedBox(height: 16),
-            _buildFieldSearchSection(),
-          ],
-          const SizedBox(height: 24),
-          _buildMediatypeFilters(),
-          const SizedBox(height: 24),
-          _buildDateRangeFilter(),
-          const SizedBox(height: 24),
-          _buildSortOptions(),
-          const SizedBox(height: 24),
-          _buildSavedSearches(),
-          const SizedBox(height: 80), // Space for FAB
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive breakpoints
+        final width = constraints.maxWidth;
+        final isPhone = width < 600;
+        final isTablet = width >= 600 && width < 1200;
+        final isDesktop = width >= 1200;
+        
+        // Determine padding based on screen size
+        final horizontalPadding = isPhone ? 16.0 : (isTablet ? 24.0 : 32.0);
+        
+        return SingleChildScrollView(
+          controller: _scrollController,
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildSearchField(),
+              const SizedBox(height: 16),
+              _buildFieldSearchToggle(),
+              if (_showFieldSearch) ...[
+                const SizedBox(height: 16),
+                _buildFieldSearchSection(isPhone: isPhone, isTablet: isTablet, isDesktop: isDesktop),
+              ],
+              const SizedBox(height: 24),
+              _buildMediatypeFilters(),
+              const SizedBox(height: 24),
+              _buildDateRangeFilter(),
+              const SizedBox(height: 24),
+              _buildSortOptions(),
+              const SizedBox(height: 24),
+              _buildSavedSearches(),
+              const SizedBox(height: 80), // Space for FAB
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -449,41 +465,73 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     );
   }
 
-  Widget _buildFieldSearchSection() {
+  Widget _buildFieldSearchSection({
+    required bool isPhone,
+    required bool isTablet,
+    required bool isDesktop,
+  }) {
+    // Determine number of columns based on screen size
+    // Phone: 1 column (stacked vertically)
+    // Tablet: 2 columns
+    // Desktop: 3 columns
+    final columnCount = isPhone ? 1 : (isTablet ? 2 : 3);
+    
+    // List of field widgets
+    final fields = [
+      TextField(
+        controller: _titleController,
+        decoration: const InputDecoration(
+          labelText: 'Title',
+          hintText: 'Search in title field',
+          prefixIcon: Icon(Icons.title),
+        ),
+      ),
+      TextField(
+        controller: _creatorController,
+        decoration: const InputDecoration(
+          labelText: 'Creator',
+          hintText: 'Search by creator/author',
+          prefixIcon: Icon(Icons.person),
+        ),
+      ),
+      TextField(
+        controller: _subjectController,
+        decoration: const InputDecoration(
+          labelText: 'Subject',
+          hintText: 'Search by subject/topic',
+          prefixIcon: Icon(Icons.label),
+        ),
+      ),
+    ];
+    
+    // Build responsive grid layout
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Search in title field',
-                prefixIcon: Icon(Icons.title),
+        child: columnCount == 1
+            // Stacked layout for phone
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (int i = 0; i < fields.length; i++) ...[
+                    fields[i],
+                    if (i < fields.length - 1) const SizedBox(height: 12),
+                  ],
+                ],
+              )
+            // Grid layout for tablet and desktop
+            : Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: fields.map((field) {
+                  return SizedBox(
+                    width: columnCount == 2
+                        ? (MediaQuery.of(context).size.width - 80) / 2
+                        : (MediaQuery.of(context).size.width - 112) / 3,
+                    child: field,
+                  );
+                }).toList(),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _creatorController,
-              decoration: const InputDecoration(
-                labelText: 'Creator',
-                hintText: 'Search by creator/author',
-                prefixIcon: Icon(Icons.person),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _subjectController,
-              decoration: const InputDecoration(
-                labelText: 'Subject',
-                hintText: 'Search by subject/topic',
-                prefixIcon: Icon(Icons.label),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
