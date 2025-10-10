@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/internet_archive_constants.dart';
 
 /// Centralized Archive.org URL Service
@@ -8,72 +7,23 @@ import '../core/constants/internet_archive_constants.dart';
 /// API interactions. This service ensures:
 /// - Consistent URL formatting across the app
 /// - Platform-aware URL construction (web vs native)
-/// - CORS-compliant URLs for web platform (optional)
-/// - CDN optimization with fallback support
 /// - Archive.org best practices compliance
 ///
-/// CDN vs Direct Access:
-/// - **CDN (Default)**: Fast, distributed, Archive.org's preferred method
-///   * Uses dn*.archive.org and ia*.archive.org servers
-///   * Optimized for performance and bandwidth
-///   * NO CORS headers (fails on web browsers)
-/// - **Direct (/download/)**: Slower, but works on web
-///   * Uses archive.org/download/ endpoint
-///   * Has CORS headers for browser compatibility
-///   * User-configurable fallback option
+/// **Thumbnail URLs and Web Platform Limitations:**
+/// - All thumbnails use `/services/img/` endpoint
+/// - This endpoint redirects to CDN nodes (dn*.archive.org, ia*.archive.org)
+/// - CDN nodes lack CORS headers
+/// - **Web browsers will block these redirects** (browser security, not fixable)
+/// - Native platforms work fine (no CORS enforcement)
+/// - This is a platform limitation, not a bug
 ///
 /// References:
 /// - Archive.org API: https://archive.org/developers/
-/// - CDN Policy: Archive.org prefers CDN usage for bandwidth efficiency
-/// - CORS: Only /download/ endpoint guarantees CORS headers on web
+/// - CORS: Browser security prevents CDN access from web apps
 class ArchiveUrlService {
   static final ArchiveUrlService _instance = ArchiveUrlService._internal();
   factory ArchiveUrlService() => _instance;
   ArchiveUrlService._internal();
-  
-  // Preference key for CDN usage
-  static const String _prefKeyUseCdn = 'archive_url_use_cdn';
-  
-  // Cached preference value
-  bool? _useCdnCached;
-  
-  /// Get CDN usage preference
-  /// 
-  /// Returns:
-  /// - true: Use CDN URLs (default, faster, Archive.org's preferred method)
-  /// - false: Use direct /download/ URLs (slower, but works on web)
-  /// 
-  /// On web platform, CDN URLs will cause CORS errors but are faster.
-  /// On native platforms (mobile/desktop), CDN always works fine.
-  Future<bool> getUseCdn() async {
-    // Return cached value if available
-    if (_useCdnCached != null) {
-      return _useCdnCached!;
-    }
-    
-    final prefs = await SharedPreferences.getInstance();
-    // Default to true (use CDN) - Archive.org's preferred method
-    _useCdnCached = prefs.getBool(_prefKeyUseCdn) ?? true;
-    return _useCdnCached!;
-  }
-  
-  /// Set CDN usage preference
-  /// 
-  /// Parameters:
-  /// - useCdn: true to use CDN (faster), false to use /download/ (web-safe)
-  /// 
-  /// Note: Changing this setting will affect all future URL generation.
-  /// Existing cached images may still use old URLs.
-  Future<void> setUseCdn(bool useCdn) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_prefKeyUseCdn, useCdn);
-    _useCdnCached = useCdn;
-    
-    if (kDebugMode) {
-      debugPrint('[ArchiveUrlService] CDN usage preference changed: $useCdn');
-      debugPrint('  ${useCdn ? "Using CDN URLs (faster, Archive.org preferred)" : "Using /download/ URLs (slower, web-safe)"}');
-    }
-  }
 
   // ============================================================================
   // METADATA & API URLS
@@ -137,99 +87,35 @@ class ArchiveUrlService {
   }
 
   // ============================================================================
-  // THUMBNAIL URLS (CDN-AWARE WITH FALLBACK SUPPORT)
+  // THUMBNAIL URLS
   // ============================================================================
 
-  /// Get the best thumbnail URL for the given identifier
+  /// Get thumbnail URL for the given identifier
   ///
-  /// Respects user preference for CDN vs direct access:
-  /// - **CDN (Default)**: Fast, uses Archive.org's CDN infrastructure
-  ///   * Fails on web browsers (CORS errors)
-  ///   * Works perfectly on native platforms
-  /// - **Direct**: Slower, but works on all platforms including web
-  ///   * Uses /download/ endpoint with CORS headers
-  /// 
-  /// Note: This method is async now to check preferences
-  Future<String> getThumbnailUrl(String identifier) async {
-    final useCdn = await getUseCdn();
-    
-    // On web + CDN mode: Show warning in debug
-    if (kIsWeb && useCdn && kDebugMode) {
-      debugPrint('[ArchiveUrlService] WARNING: Using CDN on web (may cause CORS errors)');
-      debugPrint('  To fix: Disable "Use CDN URLs" in Settings → API Settings');
-    }
-    
-    if (useCdn) {
-      return getNativeThumbnailUrl(identifier); // Uses CDN
-    } else {
-      return getWebSafeThumbnailUrl(identifier); // Uses /download/
-    }
-  }
-  
-  /// Get synchronous thumbnail URL (uses cached preference)
+  /// Uses Archive.org's `/services/img/` endpoint which returns a thumbnail
+  /// for any archive item. This endpoint redirects to CDN nodes for delivery.
   ///
-  /// Use this when you need immediate URL without async.
-  /// Defaults to CDN (true) until preference loads.
-  /// 
-  /// First call starts background preference load with safe CDN default.
-  String getThumbnailUrlSync(String identifier) {
-    // If we don't have cached preference yet, load it in background
-    if (_useCdnCached == null) {
-      // Start loading preference in background (don't await)
-      getUseCdn();
-      // Default to CDN (Archive.org's preferred method) until preference loads
-      _useCdnCached = true;
-    }
-    
-    final useCdn = _useCdnCached!;
-    
-    if (useCdn) {
-      return getNativeThumbnailUrl(identifier);
-    } else {
-      return getWebSafeThumbnailUrl(identifier);
-    }
-  }
-
-  /// Get web-safe thumbnail URL (CORS-compliant, no CDN)
-  ///
-  /// Uses archive.org/services/img which properly handles thumbnails
-  /// with CORS headers and automatic fallbacks.
-  /// Slower than CDN but works on all platforms.
+  /// **Web Platform Note:**
+  /// - The `/services/img/` endpoint redirects to CDN (dn*.archive.org, ia*.archive.org)
+  /// - CDN nodes lack CORS headers
+  /// - Web browsers will block these redirects due to CORS policy
+  /// - This is a browser security limitation and cannot be fixed client-side
+  /// - Native platforms work fine (no CORS enforcement)
   ///
   /// Example: https://archive.org/services/img/identifier
-  String getWebSafeThumbnailUrl(String identifier) {
-    // Use /services/img endpoint which handles CORS better than /download/__ia_thumb.jpg
-    // The /download/__ia_thumb.jpg path doesn't always exist for all archives
-    return '${IAEndpoints.thumbnail}/${_sanitizeIdentifier(identifier)}';
-  }
-
-  /// Get native platform thumbnail URL (CDN, services/img endpoint)
-  ///
-  /// Faster endpoint using Archive.org's CDN infrastructure.
-  /// May return CDN URLs (dn*.archive.org, ia*.archive.org).
-  /// Will cause CORS errors on web browsers.
-  /// 
-  /// Example: https://archive.org/services/img/identifier
-  String getNativeThumbnailUrl(String identifier) {
+  String getThumbnailUrl(String identifier) {
     return '${IAEndpoints.thumbnail}/${_sanitizeIdentifier(identifier)}';
   }
 
   /// Get multiple thumbnail URLs to try in order (web platform)
   ///
-  /// Returns a list of URLs in priority order:
-  /// 1. Download endpoint with __ia_thumb.jpg (most reliable on web)
-  /// 2. Services/img endpoint (may work for some items)
+  /// Returns a list of URLs to attempt. Currently returns single URL
+  /// since all paths redirect to CDN.
   ///
   /// Caller should try these in order and use first successful load.
   List<String> getThumbnailUrlsToTry(String identifier) {
-    if (kIsWeb) {
-      return [
-        getWebSafeThumbnailUrl(identifier),
-        getNativeThumbnailUrl(identifier), // May work despite CORS
-      ];
-    }
     return [
-      getNativeThumbnailUrl(identifier),
+      getThumbnailUrl(identifier),
     ];
   }
 
@@ -450,8 +336,7 @@ class ArchiveUrlService {
       'metadata': getMetadataUrl(identifier),
       'details': getDetailsUrl(identifier),
       'directory': getDirectoryUrl(identifier),
-      'thumbnail_web': getWebSafeThumbnailUrl(identifier),
-      'thumbnail_native': getNativeThumbnailUrl(identifier),
+      'thumbnail': getThumbnailUrl(identifier),
     };
   }
 

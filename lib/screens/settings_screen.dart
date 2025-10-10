@@ -7,7 +7,6 @@ import '../providers/bandwidth_manager_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/metadata_cache.dart';
 import '../services/archive_service.dart';
-import '../services/archive_url_service.dart';
 import '../utils/semantic_colors.dart';
 import '../utils/responsive_utils.dart';
 import '../utils/snackbar_helper.dart';
@@ -298,104 +297,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: const Icon(Icons.arrow_forward),
                 onTap: () {
                   Navigator.pushNamed(context, '/api-intensity-settings');
-                },
-              ),
-
-              // CDN Usage Toggle
-              FutureBuilder<bool>(
-                future: ArchiveUrlService().getUseCdn(),
-                builder: (context, snapshot) {
-                  final useCdn = snapshot.data ?? true;
-                  return SwitchListTile(
-                    secondary: Icon(
-                      Icons.dns,
-                      color: useCdn 
-                          ? Theme.of(context).colorScheme.primary 
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    title: const Text('Use CDN URLs'),
-                    subtitle: Text(
-                      useCdn
-                          ? 'Faster loading (Archive.org preferred)\n⚠️ May cause errors on web browsers'
-                          : 'Slower but works on all platforms',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: useCdn && kIsWeb
-                            ? Theme.of(context).colorScheme.error
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    value: useCdn,
-                    onChanged: (value) async {
-                      // Capture context before async
-                      final scaffoldMessenger = ScaffoldMessenger.of(context);
-                      
-                      await ArchiveUrlService().setUseCdn(value);
-                      if (!mounted) return;
-                      setState(() {});
-                      
-                      // Show explanation
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            value
-                                ? 'Using CDN URLs (faster, Archive.org preferred)\n${kIsWeb ? "⚠️ May cause CORS errors on web" : "✓ Works great on mobile/desktop"}'
-                                : 'Using direct URLs (slower but web-safe)\n✓ Works on all platforms including web',
-                          ),
-                          duration: const Duration(seconds: 4),
-                          action: SnackBarAction(
-                            label: 'Info',
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('CDN URL Mode'),
-                                  content: const SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'CDN Mode (ON):',
-                                          style: TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-                                        Text('• Faster loading speeds'),
-                                        Text('• Uses Archive.org\'s CDN infrastructure'),
-                                        Text('• Archive.org\'s preferred method'),
-                                        Text('• ⚠️ Causes CORS errors on web browsers'),
-                                        SizedBox(height: 12),
-                                        Text(
-                                          'Direct Mode (OFF):',
-                                          style: TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-                                        Text('• Slower loading speeds'),
-                                        Text('• Uses /download/ endpoint'),
-                                        Text('• ✓ Works on ALL platforms including web'),
-                                        Text('• Recommended for web browsers'),
-                                        SizedBox(height: 12),
-                                        Text(
-                                          'Recommendation:',
-                                          style: TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-                                        Text('• Mobile/Desktop: Keep ON (faster)'),
-                                        Text('• Web browsers: Turn OFF if you see image errors'),
-                                      ],
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Got it'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  );
                 },
               ),
 

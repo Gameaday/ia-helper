@@ -131,8 +131,9 @@ class ArchiveService extends ChangeNotifier {
         debugPrint('[ArchiveService] Validating identifier: $identifier');
       }
 
-      // Use HEAD request for minimal overhead
-      final response = await http.head(
+      // Use GET request (HEAD returns 405 on Archive.org)
+      // Archive.org returns 200 with empty JSON {} for non-existent items
+      final response = await http.get(
         Uri.parse(url),
       ).timeout(
         const Duration(seconds: 5),
@@ -144,13 +145,34 @@ class ArchiveService extends ChangeNotifier {
         },
       );
 
-      final exists = response.statusCode == 200;
-      
-      if (kDebugMode) {
-        debugPrint('[ArchiveService] Identifier validation: $identifier = $exists (${response.statusCode})');
+      // Check if response is successful
+      if (response.statusCode != 200) {
+        if (kDebugMode) {
+          debugPrint('[ArchiveService] Identifier validation: $identifier = false (${response.statusCode})');
+        }
+        return false;
       }
 
-      return exists;
+      // Archive.org returns {} for non-existent items
+      // Check if response has actual metadata
+      try {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        final exists = json.containsKey('metadata') || 
+                      json.containsKey('files') || 
+                      json.containsKey('created');
+        
+        if (kDebugMode) {
+          debugPrint('[ArchiveService] Identifier validation: $identifier = $exists (has metadata: ${json.containsKey('metadata')})');
+        }
+        
+        return exists;
+      } catch (e) {
+        // JSON parsing error = invalid response
+        if (kDebugMode) {
+          debugPrint('[ArchiveService] JSON parsing error for $identifier: $e');
+        }
+        return false;
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[ArchiveService] Validation error for $identifier: $e');

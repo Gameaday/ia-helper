@@ -40,8 +40,8 @@ class SearchResult {
         thumbnailUrl = _urlService.fixCorsUrl(thumbnailUrl, identifier);
       }
     } else if (identifier != null) {
-      // Generate thumbnail URL (respects CDN preference)
-      thumbnailUrl = _urlService.getThumbnailUrlSync(identifier);
+      // Generate thumbnail URL using services/img endpoint
+      thumbnailUrl = _urlService.getThumbnailUrl(identifier);
     }
 
     return SearchResult(
