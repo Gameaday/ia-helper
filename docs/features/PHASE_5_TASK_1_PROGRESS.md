@@ -2,7 +2,86 @@
 
 **Status**: 95% Complete (5/5 UX subtasks done, visual assets remaining)  
 **Date**: January 2025  
-**Time Spent**: ~6 hours
+**Time Spent**: ~8 hours
+
+## Critical Bug Fixes (October 9, 2025) 🐛
+
+### Archive.org Identifier Validation - COMPLETELY REWRITTEN ✅
+
+**Root Cause Discovered**:
+- Archive.org returns HTTP 200 (not 404) for invalid identifiers
+- Archive.org returns empty JSON `{}` instead of error response  
+- Archive.org HEAD requests return 405 Method Not Allowed
+- Previous validator used HEAD request → Always got 405 errors
+- Previous validator only checked status code → Never actually validated!
+
+**Fixes Applied**:
+1. **archive_service.dart** - `_checkIdentifierExists()`:
+   - Changed HEAD → GET request
+   - Added JSON response body parsing
+   - Check for `metadata`, `files`, or `created` keys in response
+   - Return false if response is empty `{}`
+   - Proper debug logging with validation reasoning
+
+2. **archive_metadata.dart** - `fromJson()`:
+   - Added empty response detection at start of factory
+   - Throws `FormatException('Archive item not found or empty response')` for `{}`
+   - Prevents construction of invalid objects
+   - Fails fast with clear error message
+
+3. **search_result.dart** - `fromJson()`:
+   - Added identifier validation (null/empty check)
+   - Throws `FormatException('Search result missing valid identifier')`
+   - Prevents search results without identifiers from propagating
+
+**Testing Evidence**:
+```bash
+# Uppercase returns empty JSON:
+curl https://archive.org/metadata/Mario → {}
+
+# Lowercase returns full data:
+curl https://archive.org/metadata/mario → {"metadata": {...}, "files": [...]}
+```
+
+**Impact**: Fixes crashes on invalid identifiers, enables proper "Mario" → "mario" lowercase retry
+
+**Status**: ✅ Compiles cleanly (flutter analyze: 0 errors, 0 warnings)
+
+---
+
+### Comprehensive Codebase Audit ✅
+
+**Objective**: Check all API handlers and data models for similar validation issues
+
+**Files Reviewed**:
+- ✅ `lib/services/archive_service.dart` - Validator (FIXED)
+- ✅ `lib/models/archive_metadata.dart` - Parsing (HARDENED)
+- ✅ `lib/services/internet_archive_api.dart` - API layer (already robust)
+- ✅ `lib/models/search_result.dart` - Search parsing (IMPROVED)
+- ✅ `lib/services/file_preview_service.dart` - 6 status checks (all safe)
+- ✅ `lib/models/archive_metadata.dart` - ArchiveFile.fromJson (safe with defaults)
+- ✅ `lib/services/advanced_search_service.dart` - Search handling (proper error handling)
+
+**Key Findings**:
+1. **No additional critical bugs found** ✅
+2. **All status code checks are appropriate** (200, 304, 404, 403, 5xx)
+3. **All fromJson methods handle missing data safely** (defaults or nullables)
+4. **Exception propagation works correctly** (FormatException flows up properly)
+
+**Architectural Decisions Documented**:
+- **ArchiveMetadata**: Fail-fast on empty JSON (critical API response)
+- **SearchResult**: Use defaults for missing fields (search can have partial results)
+- **ArchiveFile**: Safe defaults for name, nullables for other fields
+- **Preview Services**: Throw exceptions with clear error messages
+
+**Archive.org API Quirks** (for future developers):
+- Returns HTTP 200 + `{}` for invalid identifiers (not 404!)
+- HEAD requests return 405 Method Not Allowed
+- Must use GET and parse response body to validate
+- `/services/img/` always redirects to CDN nodes (no CORS headers)
+- CDN nodes lack CORS headers (web thumbnail failures unavoidable)
+
+---
 
 ## Completed Subtasks ✅
 

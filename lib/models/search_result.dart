@@ -28,24 +28,27 @@ class SearchResult {
   /// Factory constructor to handle Internet Archive API quirk where
   /// title and description can be either a string or a list of strings
   factory SearchResult.fromJson(Map<String, dynamic> json) {
+    // Validate required field
+    final identifier = json['identifier'] as String?;
+    if (identifier == null || identifier.trim().isEmpty) {
+      throw const FormatException('Search result missing valid identifier');
+    }
+
     // Extract thumbnail URL
     String? thumbnailUrl;
-    final identifier = json['identifier'] as String?;
     
     if (json['__ia_thumb_url'] != null) {
       thumbnailUrl = json['__ia_thumb_url'] as String;
       
       // CORS FIX: Use centralized URL service to rewrite CDN URLs
-      if (identifier != null) {
-        thumbnailUrl = _urlService.fixCorsUrl(thumbnailUrl, identifier);
-      }
-    } else if (identifier != null) {
+      thumbnailUrl = _urlService.fixCorsUrl(thumbnailUrl, identifier);
+    } else {
       // Generate thumbnail URL using services/img endpoint
       thumbnailUrl = _urlService.getThumbnailUrl(identifier);
     }
 
     return SearchResult(
-      identifier: _extractString(json['identifier'], ''),
+      identifier: identifier,
       title: _extractString(json['title'], 'Untitled'),
       description: _stripHtml(_extractString(json['description'], '')),
       thumbnailUrl: thumbnailUrl,

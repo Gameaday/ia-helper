@@ -49,6 +49,7 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
   // Identifier validation state
   bool _isValidatingIdentifier = false;
   bool? _isValidIdentifier;
+  String? _validatedIdentifier; // Store the actual working identifier (may be lowercase)
   Timer? _validationDebounce;
 
   @override
@@ -156,6 +157,7 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
     setState(() {
       _isValidatingIdentifier = true;
       _isValidIdentifier = null;
+      _validatedIdentifier = null; // Clear previous validated identifier
     });
     
     // Schedule new validation after 500ms
@@ -170,12 +172,13 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
     
     try {
       final archiveService = context.read<ArchiveService>();
-      final isValid = await archiveService.validateIdentifier(identifier);
+      final validatedId = await archiveService.validateIdentifier(identifier);
       
       if (mounted) {
         setState(() {
           _isValidatingIdentifier = false;
-          _isValidIdentifier = isValid;
+          _isValidIdentifier = validatedId != null;
+          _validatedIdentifier = validatedId; // Store the working identifier
         });
       }
     } catch (e) {
@@ -183,6 +186,7 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
         setState(() {
           _isValidatingIdentifier = false;
           _isValidIdentifier = false;
+          _validatedIdentifier = null;
         });
       }
     }
@@ -462,7 +466,9 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
                             _isValidatingIdentifier
                                 ? 'Checking if archive exists...'
                                 : _isValidIdentifier == true
-                                    ? 'Valid archive identifier'
+                                    ? _validatedIdentifier != _controller.text.trim()
+                                        ? 'Valid archive: $_validatedIdentifier'
+                                        : 'Valid archive identifier'
                                     : 'Archive not found on Archive.org',
                             style: textTheme.bodySmall?.copyWith(
                               color: _isValidatingIdentifier
@@ -483,12 +489,11 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
                     // Open Archive button (primary action) - only enabled if validated
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: _isValidIdentifier == true
+                        onPressed: _isValidIdentifier == true && _validatedIdentifier != null
                             ? () {
-                                // Normalize identifier (lowercase) for consistency
-                                // Archive.org identifiers are case-insensitive
-                                final query = _controller.text.trim().toLowerCase();
-                                widget.onSearch?.call(query, SearchType.identifier);
+                                // Use the validated identifier (which may be lowercase)
+                                // instead of user input
+                                widget.onSearch?.call(_validatedIdentifier!, SearchType.identifier);
                                 _focusNode.unfocus();
                               }
                             : null, // Disabled until validation succeeds
