@@ -7,6 +7,7 @@ import '../providers/bandwidth_manager_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/metadata_cache.dart';
 import '../services/archive_service.dart';
+import '../services/archive_url_service.dart';
 import '../utils/semantic_colors.dart';
 import '../utils/responsive_utils.dart';
 import '../utils/snackbar_helper.dart';
@@ -300,6 +301,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
 
+              // CDN Usage Toggle
+              FutureBuilder<bool>(
+                future: ArchiveUrlService().getUseCdn(),
+                builder: (context, snapshot) {
+                  final useCdn = snapshot.data ?? true;
+                  return SwitchListTile(
+                    secondary: Icon(
+                      Icons.dns,
+                      color: useCdn 
+                          ? Theme.of(context).colorScheme.primary 
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    title: const Text('Use CDN URLs'),
+                    subtitle: Text(
+                      useCdn
+                          ? 'Faster loading (Archive.org preferred)\n⚠️ May cause errors on web browsers'
+                          : 'Slower but works on all platforms',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: useCdn && kIsWeb
+                            ? Theme.of(context).colorScheme.error
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    value: useCdn,
+                    onChanged: (value) async {
+                      // Capture context before async
+                      final scaffoldMessenger = ScaffoldMessenger.of(context);
+                      
+                      await ArchiveUrlService().setUseCdn(value);
+                      if (!mounted) return;
+                      setState(() {});
+                      
+                      // Show explanation
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            value
+                                ? 'Using CDN URLs (faster, Archive.org preferred)\n${kIsWeb ? "⚠️ May cause CORS errors on web" : "✓ Works great on mobile/desktop"}'
+                                : 'Using direct URLs (slower but web-safe)\n✓ Works on all platforms including web',
+                          ),
+                          duration: const Duration(seconds: 4),
+                          action: SnackBarAction(
+                            label: 'Info',
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('CDN URL Mode'),
+                                  content: const SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'CDN Mode (ON):',
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                        Text('• Faster loading speeds'),
+                                        Text('• Uses Archive.org\'s CDN infrastructure'),
+                                        Text('• Archive.org\'s preferred method'),
+                                        Text('• ⚠️ Causes CORS errors on web browsers'),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          'Direct Mode (OFF):',
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                        Text('• Slower loading speeds'),
+                                        Text('• Uses /download/ endpoint'),
+                                        Text('• ✓ Works on ALL platforms including web'),
+                                        Text('• Recommended for web browsers'),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          'Recommendation:',
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                        Text('• Mobile/Desktop: Keep ON (faster)'),
+                                        Text('• Web browsers: Turn OFF if you see image errors'),
+                                      ],
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Got it'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+
               const Divider(),
 
               // Cache Settings Section
@@ -385,14 +484,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _clearUnpinnedCache,
-                            icon: const Icon(Icons.delete_sweep),
-                            label: const Text('Clear Unpinned'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _vacuumDatabase,
@@ -935,68 +1026,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _clearUnpinnedCache() async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Unpinned Cache'),
-        content: const Text(
-          'Remove all unpinned cache entries. Pinned and downloaded archives will be preserved.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-
-              navigator.pop(); // Close dialog
-
-              // Show progress
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const AlertDialog(
-                  content: Row(
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(width: 16),
-                      Text('Clearing unpinned cache...'),
-                    ],
-                  ),
-                ),
-              );
-
-              try {
-                final cache = MetadataCache();
-                final count = await cache.clearUnpinnedCache();
-
-                // Refresh stats
-                await _refreshCacheStats();
-
-                if (!context.mounted) return;
-                navigator.pop(); // Close progress dialog
-
-                SnackBarHelper.showSuccess(
-                  context,
-                  'Cleared $count unpinned cache entries',
-                );
-              } catch (e) {
-                if (!context.mounted) return;
-                navigator.pop(); // Close progress dialog
-
-                SnackBarHelper.showError(context, e);
-              }
-            },
-            child: const Text('Clear'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _vacuumDatabase() async {
     // Show progress
     showDialog(
@@ -1038,7 +1067,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Clear All Cache'),
         content: const Text(
-          'This will remove ALL cached metadata including pinned archives. '
+          'This will remove ALL cached metadata. '
           'Downloaded files will NOT be affected.\n\n'
           'Are you sure you want to continue?',
         ),
@@ -1115,7 +1144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Unpinned and non-downloaded archives will be purged after $selectedDays days of inactivity.',
+                'Non-downloaded archives will be purged after $selectedDays days of inactivity.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: SemanticColors.subtitle(context),
                 ),
@@ -1335,7 +1364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 12),
             Text(
               'Set to 0 for unlimited cache size. When limit is reached, '
-              'oldest unpinned entries will be purged.',
+              'oldest entries will be purged.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: SemanticColors.hint(context),
               ),

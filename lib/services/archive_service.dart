@@ -83,6 +83,9 @@ class ArchiveService extends ChangeNotifier {
   /// Uses a lightweight HEAD request to check existence without fetching full metadata.
   /// This is much faster than fetchMetadata() and doesn't affect cache or state.
   ///
+  /// Automatically tries lowercase normalization if original fails (Archive.org identifiers
+  /// are case-insensitive but typically stored in lowercase).
+  ///
   /// Returns:
   /// - true if identifier exists (HTTP 200)
   /// - false if identifier doesn't exist (HTTP 404 or other errors)
@@ -100,12 +103,32 @@ class ArchiveService extends ChangeNotifier {
       return false;
     }
 
+    // Try original identifier first
+    final originalExists = await _checkIdentifierExists(trimmedIdentifier);
+    if (originalExists) {
+      return true;
+    }
+
+    // If original fails and has uppercase, try lowercase normalization
+    final lowercaseId = trimmedIdentifier.toLowerCase();
+    if (lowercaseId != trimmedIdentifier) {
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Trying lowercase: $lowercaseId');
+      }
+      return await _checkIdentifierExists(lowercaseId);
+    }
+
+    return false;
+  }
+
+  /// Internal method to check if a single identifier exists
+  Future<bool> _checkIdentifierExists(String identifier) async {
     try {
       // Use metadata endpoint for validation
-      final url = 'https://archive.org/metadata/$trimmedIdentifier';
+      final url = 'https://archive.org/metadata/$identifier';
       
       if (kDebugMode) {
-        debugPrint('[ArchiveService] Validating identifier: $trimmedIdentifier');
+        debugPrint('[ArchiveService] Validating identifier: $identifier');
       }
 
       // Use HEAD request for minimal overhead
@@ -115,7 +138,7 @@ class ArchiveService extends ChangeNotifier {
         const Duration(seconds: 5),
         onTimeout: () {
           if (kDebugMode) {
-            debugPrint('[ArchiveService] Validation timeout for: $trimmedIdentifier');
+            debugPrint('[ArchiveService] Validation timeout for: $identifier');
           }
           return http.Response('Timeout', 408);
         },
@@ -124,13 +147,13 @@ class ArchiveService extends ChangeNotifier {
       final exists = response.statusCode == 200;
       
       if (kDebugMode) {
-        debugPrint('[ArchiveService] Identifier validation: $trimmedIdentifier = $exists (${response.statusCode})');
+        debugPrint('[ArchiveService] Identifier validation: $identifier = $exists (${response.statusCode})');
       }
 
       return exists;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[ArchiveService] Validation error for $trimmedIdentifier: $e');
+        debugPrint('[ArchiveService] Validation error for $identifier: $e');
       }
       return false;
     }

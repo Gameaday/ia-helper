@@ -80,10 +80,11 @@ class ArchiveMetadata {
     String? thumbnailUrl;
     String? coverImageUrl;
 
-    // ALWAYS use standardized /download/ endpoint for thumbnails
-    // This avoids CORS issues on ALL platforms by using the official API
-    // The misc.image field from API contains CDN redirect paths that cause CORS errors
-    thumbnailUrl = urlService.getThumbnailUrl(identifier);
+    // Use URL service to get thumbnail (respects CDN preference)
+    // CDN mode (default): Fast, but causes CORS errors on web
+    // Direct mode: Slower, but works on all platforms
+    // User can configure in Settings → API Settings
+    thumbnailUrl = urlService.getThumbnailUrlSync(identifier);
     
     // Cover image is the full-size version (remove _thumb suffix)
     coverImageUrl = thumbnailUrl.replaceAll('__ia_thumb.jpg', '.jpg');

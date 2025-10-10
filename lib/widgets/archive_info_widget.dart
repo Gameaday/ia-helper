@@ -38,146 +38,26 @@ class ArchiveInfoWidget extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // Offline indicator and pin button
+                // Offline indicator (only for downloaded files)
                 Consumer<ArchiveService>(
                   builder: (context, service, child) {
-                    return FutureBuilder<bool>(
-                      future: service.isCached(metadata.identifier),
-                      builder: (context, snapshot) {
-                        final isCached = snapshot.data ?? false;
-                        if (!isCached) return const SizedBox.shrink();
+                    // Check if archive has downloaded files
+                    final hasDownloads = service.isDownloaded(metadata.identifier);
+                    if (!hasDownloads) return const SizedBox.shrink();
 
-                        return FutureBuilder<CachedMetadata?>(
-                          future: service
-                              .getCachedMetadata(metadata.identifier)
-                              .then(
-                                (m) => m != null
-                                    ? CachedMetadata.fromMetadata(m)
-                                    : null,
-                              ),
-                          builder: (context, cacheSnapshot) {
-                            final cachedMeta = cacheSnapshot.data;
-                            final isPinned = cachedMeta?.isPinned ?? false;
-
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Offline badge
-                                Tooltip(
-                                  message: 'Available offline',
-                                  child: Builder(
-                                    builder: (builderContext) {
-                                      final colorScheme = Theme.of(
-                                        builderContext,
-                                      ).colorScheme;
-                                      return Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.tertiaryContainer,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.offline_pin,
-                                              size: 14,
-                                              color: colorScheme.tertiary,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'Offline',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                                color: colorScheme.tertiary,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                // Pin/Unpin button
-                                IconButton(
-                                  icon: Icon(
-                                    isPinned
-                                        ? Icons.push_pin
-                                        : Icons.push_pin_outlined,
-                                    color: isPinned
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.outline,
-                                  ),
-                                  tooltip: isPinned
-                                      ? 'Unpin archive'
-                                      : 'Pin archive',
-                                  onPressed: () async {
-                                    await service.togglePin(
-                                      metadata.identifier,
-                                    );
-                                    // No manual rebuild needed - Consumer will handle it
-                                  },
-                                ),
-                                // Sync button
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.sync,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                  tooltip: 'Sync metadata',
-                                  onPressed: () async {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Syncing metadata...'),
-                                        duration: Duration(seconds: 1),
-                                      ),
-                                    );
-                                    try {
-                                      await service.syncMetadata(
-                                        metadata.identifier,
-                                      );
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Metadata synced successfully',
-                                            ),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Sync failed: $e'),
-                                            backgroundColor: Theme.of(
-                                              context,
-                                            ).colorScheme.error,
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Offline icon only (no text/badge)
+                        Tooltip(
+                          message: 'Has downloaded files',
+                          child: Icon(
+                            Icons.offline_pin,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
