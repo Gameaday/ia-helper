@@ -17,6 +17,7 @@ class ArchiveMetadata {
   final String? mediaType;
   final int? downloads;
   final double? rating;
+  final List<String> archiveOrgCollections; // Archive.org collections this item belongs to
 
   ArchiveMetadata({
     required this.identifier,
@@ -34,6 +35,7 @@ class ArchiveMetadata {
     this.mediaType,
     this.downloads,
     this.rating,
+    this.archiveOrgCollections = const [],
   });
 
   factory ArchiveMetadata.fromJson(Map<String, dynamic> json) {
@@ -121,6 +123,25 @@ class ArchiveMetadata {
       rating = null;
     }
 
+    // Extract Archive.org collections (can be string or list)
+    List<String> archiveOrgCollections = [];
+    try {
+      final collectionData = json['metadata']?['collection'];
+      if (collectionData != null) {
+        if (collectionData is List) {
+          archiveOrgCollections = collectionData
+              .map((c) => c.toString())
+              .where((c) => c.isNotEmpty)
+              .toList();
+        } else if (collectionData is String && collectionData.isNotEmpty) {
+          archiveOrgCollections = [collectionData];
+        }
+      }
+    } catch (e) {
+      // Silently handle collection parsing errors
+      archiveOrgCollections = [];
+    }
+
     return ArchiveMetadata(
       identifier: identifier,
       title: json['metadata']?['title'],
@@ -137,6 +158,7 @@ class ArchiveMetadata {
       mediaType: json['metadata']?['mediatype'] as String?,
       downloads: json['downloads'] as int?,
       rating: rating,
+      archiveOrgCollections: archiveOrgCollections,
     );
   }
 

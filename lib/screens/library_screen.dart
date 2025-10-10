@@ -57,6 +57,10 @@ class _LibraryScreenState extends State<LibraryScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    
+    // Listen for favorites changes
+    _favoritesService.addListener(_onFavoritesChanged);
+    
     _loadData();
   }
 
@@ -69,9 +73,17 @@ class _LibraryScreenState extends State<LibraryScreen>
       _loadData();
     }
   }
+  
+  /// Called when favorites change
+  void _onFavoritesChanged() {
+    if (mounted) {
+      _loadData();
+    }
+  }
 
   @override
   void dispose() {
+    _favoritesService.removeListener(_onFavoritesChanged);
     _tabController.dispose();
     super.dispose();
   }

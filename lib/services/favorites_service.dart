@@ -7,14 +7,15 @@ import '../models/favorite.dart';
 ///
 /// Provides CRUD operations for favoriting Internet Archive items.
 /// Uses SQLite for persistent storage with efficient queries.
+/// Extends ChangeNotifier to notify listeners when favorites change.
 ///
 /// Features:
 /// - Add/remove favorites
 /// - Check if item is favorited
 /// - Get all favorites with sorting and filtering
 /// - Count favorites by mediatype
-/// - Stream-based updates for reactive UI
-class FavoritesService {
+/// - Reactive updates via ChangeNotifier
+class FavoritesService extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   /// Singleton pattern
@@ -74,6 +75,10 @@ class FavoritesService {
       _favoritesCache.add(favorite.identifier);
 
       debugPrint('Added favorite: ${favorite.identifier}');
+      
+      // Notify listeners that favorites changed
+      notifyListeners();
+      
       return true;
     } catch (e) {
       debugPrint('Error adding favorite: $e');
@@ -98,6 +103,10 @@ class FavoritesService {
       _favoritesCache.remove(identifier);
 
       debugPrint('Removed favorite: $identifier (rows affected: $count)');
+      
+      // Notify listeners that favorites changed
+      notifyListeners();
+      
       return count > 0;
     } catch (e) {
       debugPrint('Error removing favorite: $e');

@@ -8,6 +8,7 @@ import 'package:internet_archive_helper/services/collections_service.dart';
 /// - Add an archive item to one or more collections
 /// - Create a new collection on-the-fly
 /// - See which collections already contain the item
+/// - View Archive.org collections this item belongs to
 /// - MD3 container transform animation
 class CollectionPicker extends StatefulWidget {
   /// The archive identifier to add to collections
@@ -18,6 +19,9 @@ class CollectionPicker extends StatefulWidget {
 
   /// Optional mediatype for the item
   final String? mediatype;
+  
+  /// Archive.org collections this item belongs to
+  final List<String> archiveOrgCollections;
 
   /// Callback when collections are updated
   final VoidCallback? onCollectionsUpdated;
@@ -27,6 +31,7 @@ class CollectionPicker extends StatefulWidget {
     required this.identifier,
     this.title,
     this.mediatype,
+    this.archiveOrgCollections = const [],
     this.onCollectionsUpdated,
   });
 
@@ -39,6 +44,7 @@ class CollectionPicker extends StatefulWidget {
     required String identifier,
     String? title,
     String? mediatype,
+    List<String> archiveOrgCollections = const [],
     VoidCallback? onCollectionsUpdated,
   }) {
     return showModalBottomSheet(
@@ -49,6 +55,7 @@ class CollectionPicker extends StatefulWidget {
         identifier: identifier,
         title: title,
         mediatype: mediatype,
+        archiveOrgCollections: archiveOrgCollections,
         onCollectionsUpdated: onCollectionsUpdated,
       ),
     );
@@ -315,17 +322,76 @@ class _CollectionPickerState extends State<CollectionPicker> {
       );
     }
 
-    if (_allCollections.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    return ListView.builder(
+    return ListView(
       controller: scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: _allCollections.length,
-      itemBuilder: (context, index) {
-        return _buildCollectionItem(_allCollections[index]);
-      },
+      children: [
+        // Archive.org Collections Section (read-only)
+        if (widget.archiveOrgCollections.isNotEmpty) ...[
+          _buildSectionHeader('Archive.org Collections', Icons.public),
+          const SizedBox(height: 8),
+          ...widget.archiveOrgCollections.map((collection) => 
+            _buildArchiveOrgCollectionItem(collection)
+          ),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
+        ],
+        
+        // My Collections Section (editable)
+        _buildSectionHeader('My Collections', Icons.folder),
+        const SizedBox(height: 8),
+        if (_allCollections.isEmpty)
+          _buildEmptyState()
+        else
+          ..._allCollections.map((collection) => 
+            _buildCollectionItem(collection)
+          ),
+      ],
+    );
+  }
+  
+  Widget _buildSectionHeader(String title, IconData icon) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildArchiveOrgCollectionItem(String collectionName) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 0,
+      color: colorScheme.surfaceContainerHighest,
+      child: ListTile(
+        leading: Icon(
+          Icons.public,
+          color: colorScheme.primary,
+        ),
+        title: Text(collectionName),
+        subtitle: const Text('Archive.org collection'),
+        trailing: Icon(
+          Icons.check_circle,
+          color: colorScheme.primary,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
     );
   }
 
