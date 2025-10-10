@@ -92,21 +92,21 @@ class ArchiveService extends ChangeNotifier {
   ///
   /// Example:
   /// ```dart
-  /// final exists = await archiveService.validateIdentifier('commute_test');
-  /// if (exists) {
-  ///   // Show "Open Archive" button
+  /// final validId = await archiveService.validateIdentifier('Mario');
+  /// if (validId != null) {
+  ///   // Use validId ('mario') to open archive
   /// }
   /// ```
-  Future<bool> validateIdentifier(String identifier) async {
+  Future<String?> validateIdentifier(String identifier) async {
     final trimmedIdentifier = identifier.trim();
     if (trimmedIdentifier.isEmpty) {
-      return false;
+      return null;
     }
 
     // Try original identifier first
     final originalExists = await _checkIdentifierExists(trimmedIdentifier);
     if (originalExists) {
-      return true;
+      return trimmedIdentifier;
     }
 
     // If original fails and has uppercase, try lowercase normalization
@@ -115,10 +115,13 @@ class ArchiveService extends ChangeNotifier {
       if (kDebugMode) {
         debugPrint('[ArchiveService] Trying lowercase: $lowercaseId');
       }
-      return await _checkIdentifierExists(lowercaseId);
+      final lowercaseExists = await _checkIdentifierExists(lowercaseId);
+      if (lowercaseExists) {
+        return lowercaseId; // Return the working lowercase version
+      }
     }
 
-    return false;
+    return null;
   }
 
   /// Internal method to check if a single identifier exists
