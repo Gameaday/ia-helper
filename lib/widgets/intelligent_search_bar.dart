@@ -160,8 +160,8 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
       _validatedIdentifier = null; // Clear previous validated identifier
     });
     
-    // Schedule new validation after 500ms
-    _validationDebounce = Timer(const Duration(milliseconds: 500), () {
+    // Schedule new validation after 300ms (reduced from 500ms for snappier feedback)
+    _validationDebounce = Timer(const Duration(milliseconds: 300), () {
       _validateIdentifier(identifier);
     });
   }

@@ -2,11 +2,11 @@
 
 **Status**: 95% Complete (5/5 UX subtasks done, visual assets remaining)  
 **Date**: January 2025  
-**Time Spent**: ~8 hours
+**Time Spent**: ~10 hours
 
-## Critical Bug Fixes (October 9, 2025) 🐛
+## Critical Bug Fixes & Enhancements (October 9, 2025) 🐛✨
 
-### Archive.org Identifier Validation - COMPLETELY REWRITTEN ✅
+### 1. Archive.org Identifier Validation - COMPLETELY REWRITTEN ✅
 
 **Root Cause Discovered**:
 - Archive.org returns HTTP 200 (not 404) for invalid identifiers
@@ -16,20 +16,30 @@
 - Previous validator only checked status code → Never actually validated!
 
 **Fixes Applied**:
-1. **archive_service.dart** - `_checkIdentifierExists()`:
-   - Changed HEAD → GET request
+
+1. **archive_service.dart** - `validateIdentifier()`:
+   - **Changed return type from `bool` to `String?`**
+   - Returns the **working identifier** (may be lowercase) instead of just true/false
+   - Changed `_checkIdentifierExists()`: HEAD → GET request
    - Added JSON response body parsing
    - Check for `metadata`, `files`, or `created` keys in response
    - Return false if response is empty `{}`
-   - Proper debug logging with validation reasoning
+   - Example: User types "Mario" → Validates "Mario" (fails) → Tries "mario" (succeeds) → Returns `"mario"`
 
-2. **archive_metadata.dart** - `fromJson()`:
+2. **intelligent_search_bar.dart** - Store validated identifier:
+   - Added `_validatedIdentifier` field to store working identifier
+   - Updated `_validateIdentifier()` to store result
+   - "Open Archive" button uses `_validatedIdentifier` instead of user input
+   - Shows informative message: "Valid archive: mario" when lowercase found
+   - **Reduced debounce from 500ms → 300ms** for snappier feedback
+
+3. **archive_metadata.dart** - `fromJson()`:
    - Added empty response detection at start of factory
    - Throws `FormatException('Archive item not found or empty response')` for `{}`
    - Prevents construction of invalid objects
    - Fails fast with clear error message
 
-3. **search_result.dart** - `fromJson()`:
+4. **search_result.dart** - `fromJson()`:
    - Added identifier validation (null/empty check)
    - Throws `FormatException('Search result missing valid identifier')`
    - Prevents search results without identifiers from propagating
@@ -43,9 +53,88 @@ curl https://archive.org/metadata/Mario → {}
 curl https://archive.org/metadata/mario → {"metadata": {...}, "files": [...]}
 ```
 
-**Impact**: Fixes crashes on invalid identifiers, enables proper "Mario" → "mario" lowercase retry
+**User Experience**:
+- Type "Mario" → Shows "Valid archive: mario" → Click Open → Opens "mario" ✅
+- Type "mario" → Shows "Valid archive identifier" → Click Open → Opens "mario" ✅
+- Type "NotReal" → Shows "Archive not found" → Button disabled ✅
 
-**Status**: ✅ Compiles cleanly (flutter analyze: 0 errors, 0 warnings)
+**Status**: ✅ **TESTED AND WORKING**
+
+---
+
+### 2. Favorites Refresh - FIXED ✅
+
+**Problem**: Clicking star required manual refresh in Library tab, but unfavoriting worked immediately.
+
+**Root Cause**: `FavoritesService` wasn't notifying listeners when favorites changed.
+
+**Fixes Applied**:
+
+1. **favorites_service.dart**:
+   - Changed `class FavoritesService` → `class FavoritesService extends ChangeNotifier`
+   - Added `notifyListeners()` to `addFavorite()` method
+   - Added `notifyListeners()` to `removeFavorite()` method
+
+2. **library_screen.dart**:
+   - Added listener in `initState()`: `_favoritesService.addListener(_onFavoritesChanged)`
+   - Added `_onFavoritesChanged()` method to reload data
+   - Removed listener in `dispose()`
+
+**User Experience**:
+- Star an item → Switch to Library → Favorites tab → **Item appears immediately** ✅
+- Unstar an item → **Item disappears immediately** ✅
+
+**Status**: ✅ **FIXED - READY TO RE-TEST**
+
+---
+
+### 3. Collections Enhancement - IMPLEMENTED ✅
+
+**Problem**: Couldn't see which Archive.org collections an archive belongs to.
+
+**Features Implemented**:
+
+1. **archive_metadata.dart** - Added Archive.org collections support:
+   - Added `archiveOrgCollections` field (`List<String>`)
+   - Extracts from `metadata.collection` in JSON
+   - Handles both string and list formats
+   - Examples: `["opensource_movies", "community_video"]`
+
+2. **collection_picker.dart** - Enhanced UI with two sections:
+   - **Archive.org Collections Section** (top):
+     * Read-only display with public icon (🌐)
+     * Shows with checkmark (item is in these collections)
+     * Different background color (surfaceContainerHighest)
+     * Section header: "Archive.org Collections"
+   
+   - **My Collections Section** (bottom):
+     * Editable checkboxes
+     * Can add/remove from local collections
+     * Create new collections on-the-fly
+     * Section header: "My Collections"
+
+3. **archive_detail_screen.dart**:
+   - Collection button now passes `archiveOrgCollections` to picker
+   - Automatically extracted from metadata
+
+**UI Layout**:
+```
+┌─────────────────────────────────────┐
+│ 🌐 Archive.org Collections          │
+├─────────────────────────────────────┤
+│ ✓ opensource_movies      (public)   │
+│ ✓ community_video        (public)   │
+├─────────────────────────────────────┤
+│ 📁 My Collections                   │
+├─────────────────────────────────────┤
+│ ☑ My Favorites                     │
+│ ☐ Educational                       │
+│ ☐ Work Research                     │
+│ ➕ Create New Collection            │
+└─────────────────────────────────────┘
+```
+
+**Status**: ✅ **IMPLEMENTED - READY TO TEST**
 
 ---
 
