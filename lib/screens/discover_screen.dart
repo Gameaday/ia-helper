@@ -42,7 +42,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   bool _hasMoreResults = true;
   bool _showFavorites = false;
   int _currentPage = 0;
-  static const int _pageSize = 40;
+  static const int _pageSize = 20; // Reduced from 40 to halve image API requests
 
   @override
   bool get wantKeepAlive => true;

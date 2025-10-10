@@ -6,7 +6,6 @@ import '../services/metadata_cache.dart';
 /// Shows cache health metrics:
 /// - Total cached archives
 /// - Cache size (data + database)
-/// - Pinned vs unpinned archives
 ///
 /// Provides cache management actions:
 /// - Clear all cache
@@ -103,16 +102,16 @@ class CacheStatisticsWidget extends StatelessWidget {
                 icon: Icons.folder,
                 label: 'Cached',
                 value: '${stats.totalArchives}',
-                subtitle: '${stats.pinnedArchives} pinned',
+                subtitle: stats.formattedDataSize,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                icon: Icons.data_usage,
-                label: 'Data Size',
-                value: stats.formattedDataSize,
-                subtitle: '${stats.formattedDbSize} DB',
+                icon: Icons.storage,
+                label: 'Database',
+                value: stats.formattedDbSize,
+                subtitle: '${stats.totalArchives} entries',
               ),
             ),
           ],

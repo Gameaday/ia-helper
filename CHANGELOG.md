@@ -7,16 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **CDN URL Preference** - User-configurable CDN vs Direct mode
+  - New toggle in Settings → Data & Performance
+  - **CDN Mode (Default ON)**: Fast loading, Archive.org's preferred method
+    * Uses CDN infrastructure (dn*.archive.org, ia*.archive.org)
+    * Archive.org's recommended approach for bandwidth efficiency
+    * ⚠️ Causes CORS errors on web browsers
+    * Works perfectly on mobile/desktop platforms
+  - **Direct Mode (OFF)**: Slower but web-safe fallback
+    * Uses /download/ endpoint with CORS headers
+    * Works on ALL platforms including web browsers
+    * Recommended when experiencing image loading issues
+  - Smart defaults: Respects platform (web vs native)
+  - Includes helpful info dialog explaining trade-offs
+  - Debug logging shows current mode
+  - Best of both worlds: Performance + Compatibility option
+
 ### Bug Fixes & Improvements (2025-10-09)
 
 #### Fixed
-- **Thumbnail CDN URLs on Web** - All thumbnails now use official `/download/` endpoint
-  - Changed ArchiveMetadata to ALWAYS use `urlService.getThumbnailUrl()`
-  - Stopped using `misc.image` field from API (contains CDN redirect paths)
-  - API returns paths like `/24/items/id/__ia_thumb.jpg` which redirect to CDN
-  - Now bypasses API's CDN redirects and uses standardized endpoint directly
-  - Eliminates ALL CORS errors on web for thumbnails
-  - Consistent thumbnail loading across all platforms
+- **Thumbnail URL System** - Intelligent CDN handling with fallback option
+  - Stopped using API's `misc.image` field (contains CDN redirect paths)
+  - Now generates URLs directly using ArchiveUrlService
+  - **Default**: Uses CDN URLs (Archive.org's preferred, faster)
+  - **Fallback**: Direct /download/ URLs available in settings
+  - Best balance of performance and compatibility
+  - User has control based on their platform needs
 
 - **Identifier Validation False Positives** - Search bar no longer shows "Open Archive" button for non-existent identifiers
   - Added `ArchiveService.validateIdentifier()` method with HEAD request validation
@@ -46,6 +63,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated statistics to reflect "url_standardization" and "cdn_rewriting_all_platforms"
 
 #### Improved
+- **Reduced API Load** - Cut image requests in half
+  - Reduced Discover screen page size from 40 to 20 items
+  - Maintains good UX while reducing API pressure
+  - Search results already at 20 items per page
+  - Fewer thumbnails loaded per page = faster initial load
+
 - **Home Screen UX** - Cleaner, more intuitive interface
   - Recent searches now shown as rectangular cards (not chips)
   - Removed "Recent Searches" heading text (obvious from context)

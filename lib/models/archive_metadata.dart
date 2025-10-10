@@ -37,6 +37,13 @@ class ArchiveMetadata {
   });
 
   factory ArchiveMetadata.fromJson(Map<String, dynamic> json) {
+    // Archive.org returns empty {} for non-existent items
+    // Detect this early and throw a meaningful exception
+    if (json.isEmpty || 
+        (!json.containsKey('metadata') && !json.containsKey('files') && !json.containsKey('created'))) {
+      throw const FormatException('Archive item not found or empty response');
+    }
+
     final filesList = json['files'] as List<dynamic>? ?? [];
     final server = json['server'] as String? ?? json['d1'] as String? ?? '';
     final dir = json['dir'] as String? ?? '';
@@ -80,9 +87,10 @@ class ArchiveMetadata {
     String? thumbnailUrl;
     String? coverImageUrl;
 
-    // ALWAYS use standardized /download/ endpoint for thumbnails
-    // This avoids CORS issues on ALL platforms by using the official API
-    // The misc.image field from API contains CDN redirect paths that cause CORS errors
+    // Use URL service to get thumbnail
+    // Note: /services/img/ redirects to CDN which lacks CORS headers
+    // Web browsers may block these thumbnails (platform limitation)
+    // Native platforms work fine
     thumbnailUrl = urlService.getThumbnailUrl(identifier);
     
     // Cover image is the full-size version (remove _thumb suffix)

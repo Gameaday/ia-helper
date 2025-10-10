@@ -83,6 +83,9 @@ class ArchiveService extends ChangeNotifier {
   /// Uses a lightweight HEAD request to check existence without fetching full metadata.
   /// This is much faster than fetchMetadata() and doesn't affect cache or state.
   ///
+  /// Automatically tries lowercase normalization if original fails (Archive.org identifiers
+  /// are case-insensitive but typically stored in lowercase).
+  ///
   /// Returns:
   /// - true if identifier exists (HTTP 200)
   /// - false if identifier doesn't exist (HTTP 404 or other errors)
@@ -100,37 +103,79 @@ class ArchiveService extends ChangeNotifier {
       return false;
     }
 
+    // Try original identifier first
+    final originalExists = await _checkIdentifierExists(trimmedIdentifier);
+    if (originalExists) {
+      return true;
+    }
+
+    // If original fails and has uppercase, try lowercase normalization
+    final lowercaseId = trimmedIdentifier.toLowerCase();
+    if (lowercaseId != trimmedIdentifier) {
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Trying lowercase: $lowercaseId');
+      }
+      return await _checkIdentifierExists(lowercaseId);
+    }
+
+    return false;
+  }
+
+  /// Internal method to check if a single identifier exists
+  Future<bool> _checkIdentifierExists(String identifier) async {
     try {
       // Use metadata endpoint for validation
-      final url = 'https://archive.org/metadata/$trimmedIdentifier';
+      final url = 'https://archive.org/metadata/$identifier';
       
       if (kDebugMode) {
-        debugPrint('[ArchiveService] Validating identifier: $trimmedIdentifier');
+        debugPrint('[ArchiveService] Validating identifier: $identifier');
       }
 
-      // Use HEAD request for minimal overhead
-      final response = await http.head(
+      // Use GET request (HEAD returns 405 on Archive.org)
+      // Archive.org returns 200 with empty JSON {} for non-existent items
+      final response = await http.get(
         Uri.parse(url),
       ).timeout(
         const Duration(seconds: 5),
         onTimeout: () {
           if (kDebugMode) {
-            debugPrint('[ArchiveService] Validation timeout for: $trimmedIdentifier');
+            debugPrint('[ArchiveService] Validation timeout for: $identifier');
           }
           return http.Response('Timeout', 408);
         },
       );
 
-      final exists = response.statusCode == 200;
-      
-      if (kDebugMode) {
-        debugPrint('[ArchiveService] Identifier validation: $trimmedIdentifier = $exists (${response.statusCode})');
+      // Check if response is successful
+      if (response.statusCode != 200) {
+        if (kDebugMode) {
+          debugPrint('[ArchiveService] Identifier validation: $identifier = false (${response.statusCode})');
+        }
+        return false;
       }
 
-      return exists;
+      // Archive.org returns {} for non-existent items
+      // Check if response has actual metadata
+      try {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        final exists = json.containsKey('metadata') || 
+                      json.containsKey('files') || 
+                      json.containsKey('created');
+        
+        if (kDebugMode) {
+          debugPrint('[ArchiveService] Identifier validation: $identifier = $exists (has metadata: ${json.containsKey('metadata')})');
+        }
+        
+        return exists;
+      } catch (e) {
+        // JSON parsing error = invalid response
+        if (kDebugMode) {
+          debugPrint('[ArchiveService] JSON parsing error for $identifier: $e');
+        }
+        return false;
+      }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[ArchiveService] Validation error for $trimmedIdentifier: $e');
+        debugPrint('[ArchiveService] Validation error for $identifier: $e');
       }
       return false;
     }

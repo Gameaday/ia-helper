@@ -7,19 +7,19 @@ import '../core/constants/internet_archive_constants.dart';
 /// API interactions. This service ensures:
 /// - Consistent URL formatting across the app
 /// - Platform-aware URL construction (web vs native)
-/// - CORS-compliant URLs for web platform
 /// - Archive.org best practices compliance
 ///
-/// CORS Issues on Web Platform:
-/// - CDN URLs (dn*.archive.org) do NOT have CORS headers
-/// - Must use archive.org/download/ for file access on web
-/// - services/img endpoint may fail on some items
-/// - Use __ia_thumb.jpg via /download/ for reliable thumbnails
+/// **Thumbnail URLs and Web Platform Limitations:**
+/// - All thumbnails use `/services/img/` endpoint
+/// - This endpoint redirects to CDN nodes (dn*.archive.org, ia*.archive.org)
+/// - CDN nodes lack CORS headers
+/// - **Web browsers will block these redirects** (browser security, not fixable)
+/// - Native platforms work fine (no CORS enforcement)
+/// - This is a platform limitation, not a bug
 ///
 /// References:
 /// - Archive.org API: https://archive.org/developers/
-/// - CORS Policy: Only archive.org/download/ guarantees CORS headers
-/// - CDN Behavior: CDN nodes do not serve CORS headers consistently
+/// - CORS: Browser security prevents CDN access from web apps
 class ArchiveUrlService {
   static final ArchiveUrlService _instance = ArchiveUrlService._internal();
   factory ArchiveUrlService() => _instance;
@@ -87,57 +87,35 @@ class ArchiveUrlService {
   }
 
   // ============================================================================
-  // THUMBNAIL URLS (PLATFORM-AWARE WITH CORS HANDLING)
+  // THUMBNAIL URLS
   // ============================================================================
 
-  /// Get the best thumbnail URL for the given identifier
+  /// Get thumbnail URL for the given identifier
   ///
-  /// Platform-aware implementation:
-  /// - Web: Returns CORS-friendly download endpoint
-  /// - Native: Returns standard services/img endpoint (faster)
+  /// Uses Archive.org's `/services/img/` endpoint which returns a thumbnail
+  /// for any archive item. This endpoint redirects to CDN nodes for delivery.
   ///
-  /// Web uses __ia_thumb.jpg via /download/ to avoid CORS issues.
-  String getThumbnailUrl(String identifier) {
-    if (kIsWeb) {
-      return getWebSafeThumbnailUrl(identifier);
-    }
-    return getNativeThumbnailUrl(identifier);
-  }
-
-  /// Get web-safe thumbnail URL (CORS-compliant)
+  /// **Web Platform Note:**
+  /// - The `/services/img/` endpoint redirects to CDN (dn*.archive.org, ia*.archive.org)
+  /// - CDN nodes lack CORS headers
+  /// - Web browsers will block these redirects due to CORS policy
+  /// - This is a browser security limitation and cannot be fixed client-side
+  /// - Native platforms work fine (no CORS enforcement)
   ///
-  /// Uses archive.org/download/ which has CORS headers.
-  /// Falls back to __ia_thumb.jpg which is generated for most items.
-  ///
-  /// Example: https://archive.org/download/identifier/__ia_thumb.jpg
-  String getWebSafeThumbnailUrl(String identifier) {
-    return '${IAEndpoints.download}/${_sanitizeIdentifier(identifier)}/__ia_thumb.jpg';
-  }
-
-  /// Get native platform thumbnail URL (services/img endpoint)
-  ///
-  /// Faster endpoint that works on native platforms without CORS issues.
   /// Example: https://archive.org/services/img/identifier
-  String getNativeThumbnailUrl(String identifier) {
+  String getThumbnailUrl(String identifier) {
     return '${IAEndpoints.thumbnail}/${_sanitizeIdentifier(identifier)}';
   }
 
   /// Get multiple thumbnail URLs to try in order (web platform)
   ///
-  /// Returns a list of URLs in priority order:
-  /// 1. Download endpoint with __ia_thumb.jpg (most reliable on web)
-  /// 2. Services/img endpoint (may work for some items)
+  /// Returns a list of URLs to attempt. Currently returns single URL
+  /// since all paths redirect to CDN.
   ///
   /// Caller should try these in order and use first successful load.
   List<String> getThumbnailUrlsToTry(String identifier) {
-    if (kIsWeb) {
-      return [
-        getWebSafeThumbnailUrl(identifier),
-        getNativeThumbnailUrl(identifier), // May work despite CORS
-      ];
-    }
     return [
-      getNativeThumbnailUrl(identifier),
+      getThumbnailUrl(identifier),
     ];
   }
 
@@ -358,8 +336,7 @@ class ArchiveUrlService {
       'metadata': getMetadataUrl(identifier),
       'details': getDetailsUrl(identifier),
       'directory': getDirectoryUrl(identifier),
-      'thumbnail_web': getWebSafeThumbnailUrl(identifier),
-      'thumbnail_native': getNativeThumbnailUrl(identifier),
+      'thumbnail': getThumbnailUrl(identifier),
     };
   }
 

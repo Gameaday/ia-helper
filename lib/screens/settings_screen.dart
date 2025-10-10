@@ -387,14 +387,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: _clearUnpinnedCache,
-                            icon: const Icon(Icons.delete_sweep),
-                            label: const Text('Clear Unpinned'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: OutlinedButton.icon(
                             onPressed: _vacuumDatabase,
                             icon: const Icon(Icons.compress),
                             label: const Text('Vacuum DB'),
@@ -935,68 +927,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _clearUnpinnedCache() async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Unpinned Cache'),
-        content: const Text(
-          'Remove all unpinned cache entries. Pinned and downloaded archives will be preserved.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-
-              navigator.pop(); // Close dialog
-
-              // Show progress
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const AlertDialog(
-                  content: Row(
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(width: 16),
-                      Text('Clearing unpinned cache...'),
-                    ],
-                  ),
-                ),
-              );
-
-              try {
-                final cache = MetadataCache();
-                final count = await cache.clearUnpinnedCache();
-
-                // Refresh stats
-                await _refreshCacheStats();
-
-                if (!context.mounted) return;
-                navigator.pop(); // Close progress dialog
-
-                SnackBarHelper.showSuccess(
-                  context,
-                  'Cleared $count unpinned cache entries',
-                );
-              } catch (e) {
-                if (!context.mounted) return;
-                navigator.pop(); // Close progress dialog
-
-                SnackBarHelper.showError(context, e);
-              }
-            },
-            child: const Text('Clear'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _vacuumDatabase() async {
     // Show progress
     showDialog(
@@ -1038,7 +968,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Clear All Cache'),
         content: const Text(
-          'This will remove ALL cached metadata including pinned archives. '
+          'This will remove ALL cached metadata. '
           'Downloaded files will NOT be affected.\n\n'
           'Are you sure you want to continue?',
         ),
@@ -1115,7 +1045,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Unpinned and non-downloaded archives will be purged after $selectedDays days of inactivity.',
+                'Non-downloaded archives will be purged after $selectedDays days of inactivity.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: SemanticColors.subtitle(context),
                 ),
@@ -1335,7 +1265,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 12),
             Text(
               'Set to 0 for unlimited cache size. When limit is reached, '
-              'oldest unpinned entries will be purged.',
+              'oldest entries will be purged.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: SemanticColors.hint(context),
               ),

@@ -485,7 +485,9 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
                       child: FilledButton.icon(
                         onPressed: _isValidIdentifier == true
                             ? () {
-                                final query = _controller.text.trim();
+                                // Normalize identifier (lowercase) for consistency
+                                // Archive.org identifiers are case-insensitive
+                                final query = _controller.text.trim().toLowerCase();
                                 widget.onSearch?.call(query, SearchType.identifier);
                                 _focusNode.unfocus();
                               }
