@@ -31,6 +31,14 @@ class ArchiveService extends ChangeNotifier {
   late final InternetArchiveApi _api;
   final HistoryService? _historyService;
   final LocalArchiveStorage? _localArchiveStorage;
+  
+  // Validation cache - stores identifier validation results
+  final Map<String, bool> _validationCache = {};
+  static const _validationCacheDuration = Duration(minutes: 30);
+  final Map<String, DateTime> _validationCacheTimestamps = {};
+  static const _validationCacheKey = 'archive_service_validation_cache';
+  static const _validationCacheTimestampsKey = 'archive_service_validation_cache_timestamps';
+  bool _cacheLoaded = false;
 
   ArchiveService({
     HistoryService? historyService,
@@ -75,7 +83,98 @@ class ArchiveService extends ChangeNotifier {
   Future<void> initialize() async {
     _isInitialized = true;
     _error = null;
+    
+    // Load validation cache from persistent storage
+    await _loadValidationCache();
+    
     notifyListeners();
+  }
+
+  /// Load validation cache from SharedPreferences
+  Future<void> _loadValidationCache() async {
+    if (_cacheLoaded) return;
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Load cache map
+      final cacheJson = prefs.getString(_validationCacheKey);
+      if (cacheJson != null) {
+        final Map<String, dynamic> decoded = jsonDecode(cacheJson);
+        _validationCache.addAll(decoded.map((key, value) => MapEntry(key, value as bool)));
+      }
+      
+      // Load timestamps
+      final timestampsJson = prefs.getString(_validationCacheTimestampsKey);
+      if (timestampsJson != null) {
+        final Map<String, dynamic> decoded = jsonDecode(timestampsJson);
+        _validationCacheTimestamps.addAll(
+          decoded.map((key, value) => MapEntry(key, DateTime.parse(value as String)))
+        );
+      }
+      
+      // Clean expired entries
+      _cleanExpiredCacheEntries();
+      
+      _cacheLoaded = true;
+      
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Loaded validation cache: ${_validationCache.length} entries');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Failed to load validation cache: $e');
+      }
+      // Don't throw - just start with empty cache
+    }
+  }
+
+  /// Save validation cache to SharedPreferences
+  Future<void> _saveValidationCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Save cache map
+      final cacheJson = jsonEncode(_validationCache);
+      await prefs.setString(_validationCacheKey, cacheJson);
+      
+      // Save timestamps
+      final timestampsJson = jsonEncode(
+        _validationCacheTimestamps.map((key, value) => MapEntry(key, value.toIso8601String()))
+      );
+      await prefs.setString(_validationCacheTimestampsKey, timestampsJson);
+      
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Saved validation cache: ${_validationCache.length} entries');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Failed to save validation cache: $e');
+      }
+      // Don't throw - cache will just not persist
+    }
+  }
+
+  /// Remove expired entries from cache
+  void _cleanExpiredCacheEntries() {
+    final now = DateTime.now();
+    final expiredKeys = <String>[];
+    
+    for (final entry in _validationCacheTimestamps.entries) {
+      final age = now.difference(entry.value);
+      if (age > _validationCacheDuration) {
+        expiredKeys.add(entry.key);
+      }
+    }
+    
+    for (final key in expiredKeys) {
+      _validationCache.remove(key);
+      _validationCacheTimestamps.remove(key);
+    }
+    
+    if (expiredKeys.isNotEmpty && kDebugMode) {
+      debugPrint('[ArchiveService] Cleaned ${expiredKeys.length} expired cache entries');
+    }
   }
 
   /// Validate if an identifier exists on Archive.org
@@ -103,9 +202,23 @@ class ArchiveService extends ChangeNotifier {
       return null;
     }
 
+    // Check cache first - instant result!
+    final cachedResult = _getValidationFromCache(trimmedIdentifier);
+    if (cachedResult != null) {
+      if (kDebugMode) {
+        debugPrint('[ArchiveService] Validation cache hit: $trimmedIdentifier = ${cachedResult.isValid}');
+      }
+      return cachedResult.isValid ? cachedResult.identifier : null;
+    }
+
+    if (kDebugMode) {
+      debugPrint('[ArchiveService] Validation cache miss: $trimmedIdentifier');
+    }
+
     // Try original identifier first
     final originalExists = await _checkIdentifierExists(trimmedIdentifier);
     if (originalExists) {
+      _cacheValidationResult(trimmedIdentifier, isValid: true, workingIdentifier: trimmedIdentifier);
       return trimmedIdentifier;
     }
 
@@ -117,11 +230,53 @@ class ArchiveService extends ChangeNotifier {
       }
       final lowercaseExists = await _checkIdentifierExists(lowercaseId);
       if (lowercaseExists) {
+        // Cache both the original (invalid) and lowercase (valid) versions
+        _cacheValidationResult(trimmedIdentifier, isValid: false);
+        _cacheValidationResult(lowercaseId, isValid: true, workingIdentifier: lowercaseId);
         return lowercaseId; // Return the working lowercase version
       }
     }
 
+    // Cache negative result
+    _cacheValidationResult(trimmedIdentifier, isValid: false);
     return null;
+  }
+
+  /// Get validation result from cache if available and not expired
+  ({bool isValid, String? identifier})? _getValidationFromCache(String identifier) {
+    if (!_validationCache.containsKey(identifier)) {
+      return null;
+    }
+
+    final timestamp = _validationCacheTimestamps[identifier];
+    if (timestamp == null) {
+      return null;
+    }
+
+    // Check if cache entry is still valid
+    final age = DateTime.now().difference(timestamp);
+    if (age > _validationCacheDuration) {
+      // Cache expired - remove it
+      _validationCache.remove(identifier);
+      _validationCacheTimestamps.remove(identifier);
+      return null;
+    }
+
+    final isValid = _validationCache[identifier]!;
+    return (isValid: isValid, identifier: isValid ? identifier : null);
+  }
+
+  /// Cache a validation result with timestamp
+  void _cacheValidationResult(String identifier, {required bool isValid, String? workingIdentifier}) {
+    _validationCache[identifier] = isValid;
+    _validationCacheTimestamps[identifier] = DateTime.now();
+    
+    if (kDebugMode) {
+      debugPrint('[ArchiveService] Cached validation: $identifier = $isValid${workingIdentifier != null && workingIdentifier != identifier ? ' (working: $workingIdentifier)' : ''}');
+    }
+    
+    // Persist cache to disk asynchronously (don't await to avoid blocking)
+    _saveValidationCache();
   }
 
   /// Internal method to check if a single identifier exists

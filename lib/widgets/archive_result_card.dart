@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/search_result.dart';
 import 'favorite_button.dart';
 
@@ -267,31 +268,59 @@ class ArchiveResultCard extends StatelessWidget {
       return _buildPlaceholder(context);
     }
 
-    return Image.network(
-      result.thumbnailUrl!,
-      fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) {
-          return child;
-        }
+    // Wrap in error boundary to prevent scrolling crashes
+    return Builder(
+      builder: (context) {
+        try {
+          return Image.network(
+            result.thumbnailUrl!,
+            fit: BoxFit.cover,
+            // Add cache headers for better performance
+            headers: const {
+              'Cache-Control': 'max-age=86400', // 24 hours
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              // Check if widget is still mounted
+              if (!context.mounted) {
+                return const SizedBox.shrink();
+              }
 
-        // Show loading indicator
-        return Container(
-          color: colorScheme.surfaceContainerHighest,
-          child: Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                  : null,
-              strokeWidth: 2,
-            ),
-          ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        // Show error placeholder
-        return _buildPlaceholder(context, isError: true);
+              if (loadingProgress == null) {
+                return child;
+              }
+
+              // Show loading indicator
+              return Container(
+                color: colorScheme.surfaceContainerHighest,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                        : null,
+                    strokeWidth: 2,
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              // Silently log error but don't crash
+              if (kDebugMode && error.toString().contains('404')) {
+                // Only log 404s in debug mode to avoid noise
+                debugPrint('[ArchiveResultCard] Thumbnail 404: ${result.identifier}');
+              }
+
+              // Show error placeholder
+              return _buildPlaceholder(context, isError: true);
+            },
+          );
+        } catch (e) {
+          // Catch any synchronous errors during widget build
+          if (kDebugMode) {
+            debugPrint('[ArchiveResultCard] Error building thumbnail: $e');
+          }
+          return _buildPlaceholder(context, isError: true);
+        }
       },
     );
   }

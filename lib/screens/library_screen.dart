@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:internet_archive_helper/core/navigation/navigation_state.dart';
 import 'package:internet_archive_helper/models/collection.dart';
 import 'package:internet_archive_helper/models/downloaded_archive.dart';
 import 'package:internet_archive_helper/models/favorite.dart';
@@ -8,8 +10,11 @@ import 'package:internet_archive_helper/screens/search_results_screen.dart';
 import 'package:internet_archive_helper/services/archive_service.dart';
 import 'package:internet_archive_helper/services/collections_service.dart';
 import 'package:internet_archive_helper/services/favorites_service.dart';
+import 'package:internet_archive_helper/services/file_opener_service.dart';
 import 'package:internet_archive_helper/services/local_archive_storage.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:internet_archive_helper/core/utils/formatting_utils.dart';
 import 'package:internet_archive_helper/utils/snackbar_helper.dart';
 import 'package:internet_archive_helper/widgets/error_card.dart';
@@ -50,6 +55,8 @@ class _LibraryScreenState extends State<LibraryScreen>
   String _searchQuery = '';
   _SortOption _sortOption = _SortOption.dateDesc;
 
+  static const String _keySortOption = 'library_sort_option';
+
   @override
   bool get wantKeepAlive => true; // Keep state alive when switching tabs
 
@@ -61,7 +68,69 @@ class _LibraryScreenState extends State<LibraryScreen>
     // Listen for favorites changes
     _favoritesService.addListener(_onFavoritesChanged);
     
-    _loadData();
+    // Listen for archive storage changes (critical for mobile!)
+    _localArchiveStorage.addListener(_onArchivesChanged);
+    
+    // Initialize and load data
+    _initializeAndLoad();
+  }
+
+  /// Initialize services and load all data
+  Future<void> _initializeAndLoad() async {
+    if (kDebugMode) {
+      debugPrint('[LibraryScreen] Initializing services...');
+    }
+    
+    // Load saved sort preference
+    await _loadSortPreference();
+    
+    // Ensure LocalArchiveStorage is initialized before loading
+    await _localArchiveStorage.initialize();
+    
+    if (kDebugMode) {
+      debugPrint('[LibraryScreen] Services initialized, loading data...');
+    }
+    
+    await _loadData();
+  }
+
+  /// Load sort preference from SharedPreferences
+  Future<void> _loadSortPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final sortIndex = prefs.getInt(_keySortOption);
+      
+      if (sortIndex != null && sortIndex < _SortOption.values.length) {
+        setState(() {
+          _sortOption = _SortOption.values[sortIndex];
+        });
+        
+        if (kDebugMode) {
+          debugPrint('[LibraryScreen] Loaded sort preference: ${_sortOption.label}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] Error loading sort preference: $e');
+      }
+      // Continue with default sort
+    }
+  }
+
+  /// Save sort preference to SharedPreferences
+  Future<void> _saveSortPreference(_SortOption option) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_keySortOption, option.index);
+      
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] Saved sort preference: ${option.label}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] Error saving sort preference: $e');
+      }
+    }
   }
 
   @override
@@ -81,9 +150,20 @@ class _LibraryScreenState extends State<LibraryScreen>
     }
   }
 
+  /// Called when archives change (downloads added/removed)
+  void _onArchivesChanged() {
+    if (mounted) {
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] Archives changed, reloading data');
+      }
+      _loadData();
+    }
+  }
+
   @override
   void dispose() {
     _favoritesService.removeListener(_onFavoritesChanged);
+    _localArchiveStorage.removeListener(_onArchivesChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -95,10 +175,19 @@ class _LibraryScreenState extends State<LibraryScreen>
     });
 
     try {
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] Loading data...');
+      }
+      
       await _localArchiveStorage.initialize();
       final archives = _localArchiveStorage.archives.values.toList();
       final collections = await _collectionsService.getAllCollections();
       final favorites = await _favoritesService.getAllFavorites();
+
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] Loaded ${archives.length} archives, '
+            '${collections.length} collections, ${favorites.length} favorites');
+      }
 
       // Load item counts for collections
       final counts = <int, int>{};
@@ -117,6 +206,9 @@ class _LibraryScreenState extends State<LibraryScreen>
         _isLoading = false;
       });
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] Error loading data: $e');
+      }
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -133,6 +225,20 @@ class _LibraryScreenState extends State<LibraryScreen>
         title: const Text('Library'),
         actions: [
           if (_tabController.index == 0) ...[
+            // Sort indicator chip
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: ActionChip(
+                avatar: Icon(
+                  _sortOption.icon,
+                  size: 18,
+                ),
+                label: Text(_sortOption.shortLabel),
+                onPressed: _showSortOptions,
+                tooltip: 'Sort: ${_sortOption.label}',
+              ),
+            ),
+            const SizedBox(width: 4),
             IconButton(
               icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
               onPressed: () => setState(() => _isGridView = !_isGridView),
@@ -224,13 +330,35 @@ class _LibraryScreenState extends State<LibraryScreen>
   Widget _buildAllDownloadsTab() {
     final filtered = _getFilteredArchives();
 
+    if (kDebugMode) {
+      debugPrint('[LibraryScreen] Building downloads tab, '
+          '${filtered.length} filtered archives, '
+          'isGridView: $_isGridView');
+    }
+
     if (filtered.isEmpty) {
+      // Check if we have archives but they're filtered out
+      if (_archives.isNotEmpty && _searchQuery.isNotEmpty) {
+        return _buildEmptyState(
+          icon: Icons.search_off,
+          title: 'No matches found',
+          subtitle: 'No downloads match "$_searchQuery"',
+          actionLabel: 'Clear Search',
+          onAction: () => setState(() => _searchQuery = ''),
+        );
+      }
+      
+      // Truly no downloads
       return _buildEmptyState(
         icon: Icons.download_done,
         title: 'No downloads yet',
         subtitle: 'Downloaded archives will appear here',
-        actionLabel: 'Explore Archives',
-        onAction: () => _tabController.animateTo(2),
+        actionLabel: 'Start Searching',
+        onAction: () {
+          // Navigate to home/search screen
+          final navState = context.read<NavigationState>();
+          navState.changeTab(0); // Home screen
+        },
       );
     }
 
@@ -563,12 +691,21 @@ class _LibraryScreenState extends State<LibraryScreen>
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         
+        if (kDebugMode) {
+          debugPrint('[LibraryScreen] Building list view: '
+              'width=$width, archives=${archives.length}');
+        }
+        
         // Responsive list layout:
         // Phone (<600dp): Single column
         // Tablet/Desktop (≥600dp): Two columns for better space utilization
         
         if (width < 600) {
           // Single column list for phones
+          if (kDebugMode) {
+            debugPrint('[LibraryScreen] Using single-column phone layout');
+          }
+          
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: archives.length,
@@ -578,6 +715,10 @@ class _LibraryScreenState extends State<LibraryScreen>
           );
         } else {
           // Two-column grid for tablets and desktops
+          if (kDebugMode) {
+            debugPrint('[LibraryScreen] Using two-column tablet layout');
+          }
+          
           return GridView.builder(
             padding: const EdgeInsets.all(16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -649,11 +790,28 @@ class _LibraryScreenState extends State<LibraryScreen>
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      FormattingUtils.formatBytes(archive.downloadedBytes),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            FormattingUtils.formatBytes(archive.downloadedBytes),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        // Quick action button for opening files
+                        IconButton(
+                          icon: const Icon(Icons.folder_open, size: 18),
+                          onPressed: () => _openArchiveFiles(archive),
+                          tooltip: 'Open files',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -698,9 +856,19 @@ class _LibraryScreenState extends State<LibraryScreen>
               value: 'open',
               child: Row(
                 children: [
+                  Icon(Icons.info_outline),
+                  SizedBox(width: 12),
+                  Text('View Details'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'open_files',
+              child: Row(
+                children: [
                   Icon(Icons.folder_open),
                   SizedBox(width: 12),
-                  Text('Open'),
+                  Text('Open Files'),
                 ],
               ),
             ),
@@ -884,6 +1052,11 @@ class _LibraryScreenState extends State<LibraryScreen>
   List<DownloadedArchive> _getFilteredArchives() {
     var filtered = _archives;
 
+    if (kDebugMode) {
+      debugPrint('[LibraryScreen] Filtering ${_archives.length} archives, '
+          'searchQuery: "$_searchQuery"');
+    }
+
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
@@ -891,6 +1064,10 @@ class _LibraryScreenState extends State<LibraryScreen>
         return archive.identifier.toLowerCase().contains(query) ||
             (archive.metadata.title?.toLowerCase().contains(query) ?? false);
       }).toList();
+
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] After search filter: ${filtered.length} archives');
+      }
     }
 
     // Apply sort
@@ -924,13 +1101,27 @@ class _LibraryScreenState extends State<LibraryScreen>
         break;
     }
 
+    if (kDebugMode) {
+      debugPrint('[LibraryScreen] Final filtered count: ${filtered.length}');
+    }
+
     return filtered;
   }
 
   void _handleMenuAction(String action) {
     switch (action) {
       case 'refresh':
-        _loadData();
+        if (kDebugMode) {
+          debugPrint('[LibraryScreen] Manual refresh triggered');
+        }
+        _loadData().then((_) {
+          if (mounted) {
+            SnackBarHelper.showSuccess(
+              context,
+              'Library refreshed',
+            );
+          }
+        });
         break;
       case 'search':
         _showSearchDialog();
@@ -986,6 +1177,11 @@ class _LibraryScreenState extends State<LibraryScreen>
             children: [
               Row(
                 children: [
+                  Icon(
+                    Icons.sort,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
                   Text(
                     'Sort by',
                     style: Theme.of(context).textTheme.titleLarge,
@@ -996,6 +1192,13 @@ class _LibraryScreenState extends State<LibraryScreen>
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Current: ${_sortOption.label}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 16),
               ..._SortOption.values.map((option) {
@@ -1011,15 +1214,26 @@ class _LibraryScreenState extends State<LibraryScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     leading: Icon(
-                      isSelected ? Icons.check_circle : Icons.circle_outlined,
+                      option.icon,
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     title: Text(option.label),
-                    onTap: () {
+                    trailing: isSelected
+                        ? Icon(
+                            Icons.check_circle,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
+                    onTap: () async {
+                      // Capture navigator before async operation
+                      final navigator = Navigator.of(context);
+                      
                       setState(() => _sortOption = option);
-                      Navigator.pop(context);
+                      await _saveSortPreference(option);
+                      
+                      navigator.pop();
                     },
                   ),
                 );
@@ -1037,6 +1251,9 @@ class _LibraryScreenState extends State<LibraryScreen>
       case 'open':
         _openArchive(archive);
         break;
+      case 'open_files':
+        _openArchiveFiles(archive);
+        break;
       case 'add_to_collection':
         _addToCollection(archive);
         break;
@@ -1052,6 +1269,134 @@ class _LibraryScreenState extends State<LibraryScreen>
       context,
       ArchiveDetailScreen.routeName,
       arguments: archive.identifier,
+    );
+  }
+
+  /// Open the downloaded files folder for an archive
+  Future<void> _openArchiveFiles(DownloadedArchive archive) async {
+    if (kDebugMode) {
+      debugPrint('[LibraryScreen] Opening files for: ${archive.identifier}');
+    }
+
+    // Show loading indicator
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 12),
+              Text('Opening files...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+
+    try {
+      final fileOpener = FileOpenerService.instance;
+      final result = await fileOpener.openArchiveDirectory(archive.identifier);
+
+      if (!mounted) return;
+
+      // Clear loading snackbar
+      ScaffoldMessenger.of(context).clearSnackBars();
+
+      if (result.success) {
+        // Success feedback
+        SnackBarHelper.showSuccess(
+          context,
+          'Opened files for ${archive.metadata.title ?? archive.identifier}',
+        );
+      } else {
+        // Handle different error types
+        if (result.needsPermission) {
+          _showPermissionError();
+        } else if (result.canInstallApp) {
+          _showNoAppError(archive);
+        } else {
+          SnackBarHelper.showError(
+            context,
+            result.message,
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[LibraryScreen] Error opening files: $e');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        SnackBarHelper.showError(
+          context,
+          'Failed to open files: $e',
+        );
+      }
+    }
+  }
+
+  /// Show permission error dialog
+  void _showPermissionError() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.lock_outline, size: 48),
+        title: const Text('Permission Required'),
+        content: const Text(
+          'Storage permission is required to open downloaded files. '
+          'Please grant permission in your device settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          FilledButton.icon(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Open system app settings where user can grant storage permission
+              await openAppSettings();
+            },
+            icon: const Icon(Icons.settings),
+            label: const Text('Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show no app error dialog
+  void _showNoAppError(DownloadedArchive archive) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.app_blocking, size: 48),
+        title: const Text('No File Manager Found'),
+        content: const Text(
+          'No file manager app is installed to open folders. '
+          'You can view the archive details instead or install a file manager app.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _openArchive(archive);
+            },
+            icon: const Icon(Icons.info_outline),
+            label: const Text('View Details'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1226,13 +1571,16 @@ class _LibraryScreenState extends State<LibraryScreen>
 }
 
 enum _SortOption {
-  nameAsc('Name (A-Z)'),
-  nameDesc('Name (Z-A)'),
-  dateAsc('Date (Oldest)'),
-  dateDesc('Date (Newest)'),
-  sizeAsc('Size (Smallest)'),
-  sizeDesc('Size (Largest)');
+  nameAsc('Name (A-Z)', 'Name ↑', Icons.sort_by_alpha),
+  nameDesc('Name (Z-A)', 'Name ↓', Icons.sort_by_alpha),
+  dateAsc('Date (Oldest)', 'Date ↑', Icons.calendar_today),
+  dateDesc('Date (Newest)', 'Date ↓', Icons.calendar_today),
+  sizeAsc('Size (Smallest)', 'Size ↑', Icons.data_usage),
+  sizeDesc('Size (Largest)', 'Size ↓', Icons.data_usage);
 
   final String label;
-  const _SortOption(this.label);
+  final String shortLabel;
+  final IconData icon;
+  
+  const _SortOption(this.label, this.shortLabel, this.icon);
 }

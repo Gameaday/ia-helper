@@ -7,6 +7,7 @@ import '../widgets/download_controls_widget.dart';
 import '../widgets/download_manager_widget.dart';
 import '../widgets/favorite_button.dart';
 import '../widgets/collection_picker.dart';
+import '../widgets/error_state_widget.dart';
 
 /// Screen showing archive details with files and download options
 class ArchiveDetailScreen extends StatefulWidget {
@@ -124,110 +125,115 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
 
   /// Phone layout: Vertical stack (metadata → files → controls)
   Widget _buildPhoneLayout(ArchiveService service) {
-    return Column(
-      children: [
-        // Archive information
-        ArchiveInfoWidget(metadata: service.currentMetadata!),
+    return RefreshIndicator(
+      onRefresh: () async {
+        final identifier = service.currentMetadata?.identifier;
+        if (identifier != null) {
+          await service.fetchMetadata(identifier);
+        }
+      },
+      child: CustomScrollView(
+        slivers: [
+          // Archive information
+          SliverToBoxAdapter(
+            child: ArchiveInfoWidget(metadata: service.currentMetadata!),
+          ),
 
-        // File list (with integrated filter controls)
-        Expanded(child: FileListWidget(files: service.filteredFiles)),
+          // File list (with integrated filter controls)
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: FileListWidget(files: service.filteredFiles),
+          ),
 
-        // Download controls
-        const DownloadControlsWidget(),
+          // Download controls
+          const SliverToBoxAdapter(
+            child: DownloadControlsWidget(),
+          ),
 
-        // Active downloads manager
-        const DownloadManagerWidget(),
-      ],
+          // Active downloads manager
+          const SliverToBoxAdapter(
+            child: DownloadManagerWidget(),
+          ),
+        ],
+      ),
     );
   }
 
   /// Tablet/Desktop layout: Side-by-side (metadata | files/controls)
   Widget _buildTabletLayout(ArchiveService service) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Left sidebar: Archive metadata (30% width, scrollable)
-        SizedBox(
-          width: 360, // Fixed width for consistency (roughly 30% of 1200dp)
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: ArchiveInfoWidget(metadata: service.currentMetadata!),
+    return RefreshIndicator(
+      onRefresh: () async {
+        final identifier = service.currentMetadata?.identifier;
+        if (identifier != null) {
+          await service.fetchMetadata(identifier);
+        }
+      },
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Left sidebar: Archive metadata (30% width, scrollable)
+                  SizedBox(
+                    width: 360, // Fixed width for consistency (roughly 30% of 1200dp)
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: ArchiveInfoWidget(metadata: service.currentMetadata!),
+                    ),
+                  ),
+
+                  // Vertical divider
+                  VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+
+                  // Right content: Files, controls, and downloads (70% width)
+                  Expanded(
+                    child: Column(
+                      children: [
+                        // File list (with integrated filter controls)
+                        Expanded(child: FileListWidget(files: service.filteredFiles)),
+
+                        // Download controls
+                        const DownloadControlsWidget(),
+
+                        // Active downloads manager
+                        const DownloadManagerWidget(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-
-        // Vertical divider
-        VerticalDivider(
-          width: 1,
-          thickness: 1,
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
-
-        // Right content: Files, controls, and downloads (70% width)
-        Expanded(
-          child: Column(
-            children: [
-              // File list (with integrated filter controls)
-              Expanded(child: FileListWidget(files: service.filteredFiles)),
-
-              // Download controls
-              const DownloadControlsWidget(),
-
-              // Active downloads manager
-              const DownloadManagerWidget(),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildErrorState(BuildContext context, ArchiveService service) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 80, color: colorScheme.error),
-            const SizedBox(height: 24),
-            Text(
-              'Failed to Load Archive',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              service.error ?? 'An unknown error occurred',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            FilledButton.icon(
-              onPressed: () {
-                final identifier = service.currentMetadata?.identifier;
-                if (identifier != null) {
-                  service.fetchMetadata(identifier);
-                } else {
-                  Navigator.of(context).pop();
-                }
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Go Back'),
-            ),
-          ],
-        ),
+    final identifier = service.currentMetadata?.identifier;
+    
+    return ErrorStateWidget(
+      icon: Icons.error_outline,
+      title: 'Failed to Load Archive',
+      message: service.error ?? 'An unknown error occurred while loading the archive.',
+      primaryAction: ErrorAction(
+        label: 'Retry',
+        icon: Icons.refresh,
+        onPressed: () {
+          if (identifier != null) {
+            service.fetchMetadata(identifier);
+          }
+        },
+      ),
+      secondaryAction: ErrorAction(
+        label: 'Go Back',
+        onPressed: () => Navigator.of(context).pop(),
       ),
     );
   }

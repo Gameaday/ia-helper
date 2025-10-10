@@ -60,36 +60,61 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
       icon: Icons.library_books_rounded,
       title: 'Welcome to Internet Archive Helper',
       description:
-          'Your comprehensive companion for accessing the vast digital collection of the Internet Archive.',
+          'Your gateway to millions of free books, movies, music, software, and historical documents from the Internet Archive.',
       iconColor: Color(0xFF004B87),
     ),
     const OnboardingPage(
-      icon: Icons.search_rounded,
-      title: 'Find What You Need',
+      icon: Icons.home_rounded,
+      title: '🏠 Home - Your Search Hub',
       description:
-          'Search and browse millions of books, movies, music, software, and historical documents.',
+          'Start here! Search by archive identifier or keywords. The intelligent search bar auto-detects what you\'re looking for.',
+      iconColor: Color(0xFF1976D2),
+      showBottomNavHighlight: true,
+      highlightedTab: 0,
+    ),
+    const OnboardingPage(
+      icon: Icons.folder_rounded,
+      title: '📚 Library - Your Content',
+      description:
+          'Access your favorites, downloaded archives, and browsing history. Everything you\'ve saved in one place.',
+      iconColor: Color(0xFF388E3C),
+      showBottomNavHighlight: true,
+      highlightedTab: 1,
+    ),
+    const OnboardingPage(
+      icon: Icons.explore_rounded,
+      title: '🔍 Discover - Browse & Explore',
+      description:
+          'Explore trending archives, browse by category, and discover featured collections. Perfect for finding new content.',
       iconColor: Color(0xFFFF6B35),
+      showBottomNavHighlight: true,
+      highlightedTab: 2,
     ),
     const OnboardingPage(
       icon: Icons.download_rounded,
-      title: 'Download with Ease',
+      title: '⬇️ Transfers - Manage Downloads',
       description:
-          'High-performance downloads with smart resume capability and progress tracking.',
+          'Track active downloads, pause/resume, and manage your download queue. Smart downloads with auto-retry.',
       iconColor: Color(0xFF0088CC),
+      showBottomNavHighlight: true,
+      highlightedTab: 3,
     ),
     const OnboardingPage(
-      icon: Icons.mobile_friendly_rounded,
-      title: 'Optimized for Mobile',
+      icon: Icons.more_horiz_rounded,
+      title: '⚙️ More - Settings & About',
       description:
-          'Touch-friendly interface designed for seamless browsing and downloading on your phone.',
-      iconColor: Color(0xFF2E7D32),
+          'Customize your experience with bandwidth controls, storage settings, and more. Access help and app info.',
+      iconColor: Color(0xFF757575),
+      showBottomNavHighlight: true,
+      highlightedTab: 4,
     ),
     const OnboardingPage(
-      icon: Icons.security_rounded,
-      title: 'Privacy & Security',
+      icon: Icons.rocket_launch_rounded,
+      title: 'Ready to Get Started!',
       description:
-          'Your data stays private. We only access what you choose to download from the Internet Archive.',
-      iconColor: Color(0xFFED6C02),
+          'Tap the search bar on the Home screen to begin. Try searching for "nasa_images" or browse the Discover tab for inspiration.',
+      iconColor: Color(0xFF6A1B9A),
+      callToAction: true,
     ),
   ];
 
@@ -187,6 +212,9 @@ class OnboardingPage extends StatelessWidget {
   final String title;
   final String description;
   final Color iconColor;
+  final bool showBottomNavHighlight;
+  final int highlightedTab;
+  final bool callToAction;
 
   const OnboardingPage({
     super.key,
@@ -194,13 +222,20 @@ class OnboardingPage extends StatelessWidget {
     required this.title,
     required this.description,
     required this.iconColor,
+    this.showBottomNavHighlight = false,
+    this.highlightedTab = 0,
+    this.callToAction = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        // Icon with background circle
         Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
@@ -210,24 +245,114 @@ class OnboardingPage extends StatelessWidget {
           child: Icon(icon, size: 80, color: iconColor),
         ),
         const SizedBox(height: 32),
+
+        // Title
         Text(
           title,
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          description,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.color?.withValues(alpha: 0.7),
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 16),
+
+        // Description
+        Text(
+          description,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+
+        // Bottom navigation preview (if enabled)
+        if (showBottomNavHighlight) ...[
+          const SizedBox(height: 32),
+          _buildBottomNavPreview(context),
+        ],
+
+        // Call to action card (for last page)
+        if (callToAction) ...[
+          const SizedBox(height: 32),
+          Card(
+            color: colorScheme.primaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.touch_app,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Swipe up to begin your journey!',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
+    );
+  }
+
+  /// Build a preview of the bottom navigation bar with highlighted tab
+  Widget _buildBottomNavPreview(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    final tabs = [
+      (Icons.home_rounded, 'Home'),
+      (Icons.folder_rounded, 'Library'),
+      (Icons.explore_rounded, 'Discover'),
+      (Icons.download_rounded, 'Transfers'),
+      (Icons.more_horiz_rounded, 'More'),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(tabs.length, (index) {
+          final (icon, label) = tabs[index];
+          final isHighlighted = index == highlightedTab;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isHighlighted
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+                size: isHighlighted ? 28 : 24,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isHighlighted
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                  fontSize: isHighlighted ? 13 : 11,
+                  fontWeight:
+                      isHighlighted ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
     );
   }
 }

@@ -51,6 +51,8 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
   bool? _isValidIdentifier;
   String? _validatedIdentifier; // Store the actual working identifier (may be lowercase)
   Timer? _validationDebounce;
+  int _validationSequence = 0; // Track validation request order
+  final Map<String, bool> _validationCache = {}; // Cache validation results
 
   @override
   void initState() {
@@ -153,36 +155,63 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
     // Cancel previous validation timer
     _validationDebounce?.cancel();
     
-    // Reset validation state
+    // Increment sequence number for this new request
+    _validationSequence++;
+    final requestId = _validationSequence;
+    
+    // Check cache first - instant result!
+    if (_validationCache.containsKey(identifier)) {
+      final isValid = _validationCache[identifier]!;
+      setState(() {
+        _isValidatingIdentifier = false;
+        _isValidIdentifier = isValid;
+        _validatedIdentifier = isValid ? identifier : null;
+      });
+      return;
+    }
+    
+    // Not in cache - show loading and schedule validation
     setState(() {
       _isValidatingIdentifier = true;
       _isValidIdentifier = null;
-      _validatedIdentifier = null; // Clear previous validated identifier
+      _validatedIdentifier = null;
     });
     
     // Schedule new validation after 300ms (reduced from 500ms for snappier feedback)
     _validationDebounce = Timer(const Duration(milliseconds: 300), () {
-      _validateIdentifier(identifier);
+      _validateIdentifier(identifier, requestId);
     });
   }
 
   /// Validate identifier using ArchiveService
-  Future<void> _validateIdentifier(String identifier) async {
+  Future<void> _validateIdentifier(String identifier, int requestId) async {
     if (!mounted) return;
     
     try {
       final archiveService = context.read<ArchiveService>();
       final validatedId = await archiveService.validateIdentifier(identifier);
       
-      if (mounted) {
+      final isValid = validatedId != null;
+      
+      // ALWAYS cache the result - even if it's not the latest request
+      // This ensures we don't waste the API call and have it for future use
+      _validationCache[identifier] = isValid;
+      
+      // Only update UI state if this is still the latest request
+      // This prevents race conditions where older requests complete after newer ones
+      if (requestId == _validationSequence && mounted) {
         setState(() {
           _isValidatingIdentifier = false;
-          _isValidIdentifier = validatedId != null;
-          _validatedIdentifier = validatedId; // Store the working identifier
+          _isValidIdentifier = isValid;
+          _validatedIdentifier = validatedId;
         });
       }
     } catch (e) {
-      if (mounted) {
+      // ALWAYS cache negative result - don't waste the API call
+      _validationCache[identifier] = false;
+      
+      // Only update UI state if this is still the latest request
+      if (requestId == _validationSequence && mounted) {
         setState(() {
           _isValidatingIdentifier = false;
           _isValidIdentifier = false;

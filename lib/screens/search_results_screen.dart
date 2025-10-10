@@ -6,9 +6,14 @@ import 'package:internet_archive_helper/services/advanced_search_service.dart';
 import 'package:internet_archive_helper/services/archive_service.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
 import 'package:internet_archive_helper/utils/snackbar_helper.dart';
+import 'package:internet_archive_helper/utils/responsive_utils.dart';
 import 'package:internet_archive_helper/widgets/archive_result_card.dart';
+import 'package:internet_archive_helper/widgets/download_controls_widget.dart';
+import 'package:internet_archive_helper/widgets/empty_state_widget.dart';
 import 'package:internet_archive_helper/widgets/error_card.dart';
 import 'package:internet_archive_helper/widgets/skeleton_loader.dart';
+import 'package:internet_archive_helper/widgets/archive_info_widget.dart';
+import 'package:internet_archive_helper/widgets/file_list_widget.dart';
 import 'package:internet_archive_helper/screens/api_intensity_settings_screen.dart';
 import 'archive_detail_screen.dart';
 
@@ -51,6 +56,10 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   bool _hasMore = true;
   bool _showThumbnails = true;
   ArchiveResultCardLayout _viewLayout = ArchiveResultCardLayout.grid;
+  
+  // Master-detail state
+  SearchResult? _selectedResult;
+  bool _isLoadingDetail = false;
 
   static const _pageSize = 20;
 
@@ -212,7 +221,14 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       return _buildEmptyState();
     }
 
-    // Smooth transition between grid and list views
+    // Use master-detail layout on tablets
+    final isTablet = ResponsiveUtils.isTabletOrLarger(context);
+    
+    if (isTablet) {
+      return _buildMasterDetailLayout();
+    }
+
+    // Phone: Standard list/grid view
     return RefreshIndicator(
       onRefresh: _refresh,
       child: AnimatedSwitcher(
@@ -235,6 +251,281 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
 
+  /// Build master-detail layout for tablets
+  Widget _buildMasterDetailLayout() {
+    return Row(
+      children: [
+        // Master panel: Results list (40% width)
+        Expanded(
+          flex: 40,
+          child: RefreshIndicator(
+            onRefresh: _refresh,
+            child: _buildResultsList(),
+          ),
+        ),
+
+        // Vertical divider
+        VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+
+        // Detail panel: Archive preview (60% width)
+        Expanded(
+          flex: 60,
+          child: _buildDetailPanel(),
+        ),
+      ],
+    );
+  }
+
+  /// Build results list for master panel
+  Widget _buildResultsList() {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _results.length + (_isLoadingMore ? 1 : (!_hasMore ? 1 : 0)),
+      itemBuilder: (context, index) {
+        if (index >= _results.length) {
+          if (_isLoadingMore) {
+            return _buildLoadingMoreIndicator();
+          }
+          if (!_hasMore) {
+            return _buildEndOfListIndicator();
+          }
+        }
+
+        final result = _results[index];
+        final isSelected = _selectedResult?.identifier == result.identifier;
+
+        return Container(
+          color: isSelected
+              ? Theme.of(context).colorScheme.surfaceContainerHighest
+              : null,
+          child: ArchiveResultCard(
+            result: result,
+            layout: ArchiveResultCardLayout.list,
+            showThumbnail: _showThumbnails,
+            onTap: () => _selectResult(result),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Build detail panel showing selected archive
+  Widget _buildDetailPanel() {
+    if (_selectedResult == null) {
+      return _buildDetailEmptyState();
+    }
+
+    return Consumer<ArchiveService>(
+      builder: (context, service, child) {
+        // Show loading while fetching metadata
+        if (_isLoadingDetail) {
+          return _buildDetailLoadingState();
+        }
+
+        // Show error if metadata failed to load
+        if (service.error != null) {
+          return _buildDetailErrorState(service.error!);
+        }
+
+        // Show detail content if metadata loaded
+        if (service.currentMetadata != null) {
+          return _buildDetailContent(service);
+        }
+
+        // Empty state (shouldn't normally reach here)
+        return _buildDetailEmptyState();
+      },
+    );
+  }
+
+  /// Detail panel empty state (no selection)
+  Widget _buildDetailEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.touch_app,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Select an archive to preview',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Detail panel loading state
+  Widget _buildDetailLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Loading archive details...'),
+        ],
+      ),
+    );
+  }
+
+  /// Detail panel error state
+  Widget _buildDetailErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Failed to load archive',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () {
+                if (_selectedResult != null) {
+                  _selectResult(_selectedResult!);
+                }
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Detail panel content (archive info + files)
+  Widget _buildDetailContent(ArchiveService service) {
+    final metadata = service.currentMetadata!;
+    
+    return Column(
+      children: [
+        // Header with open button
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).dividerColor,
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  metadata.title ?? 'Untitled Archive',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: () => _openFullDetail(),
+                icon: const Icon(Icons.open_in_new),
+                label: const Text('Open'),
+              ),
+            ],
+          ),
+        ),
+
+        // Scrollable content
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ArchiveInfoWidget(metadata: metadata),
+                const SizedBox(height: 16),
+                Text(
+                  'Files',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                FileListWidget(files: service.filteredFiles),
+                const SizedBox(height: 16),
+                const DownloadControlsWidget(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Select a result and load its metadata
+  Future<void> _selectResult(SearchResult result) async {
+    if (_selectedResult?.identifier == result.identifier) {
+      return; // Already selected
+    }
+
+    setState(() {
+      _selectedResult = result;
+      _isLoadingDetail = true;
+    });
+
+    final archiveService = context.read<ArchiveService>();
+    
+    try {
+      await archiveService.fetchMetadata(result.identifier);
+      
+      if (mounted) {
+        setState(() {
+          _isLoadingDetail = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingDetail = false;
+        });
+        // Error will be shown by the Consumer in _buildDetailPanel
+      }
+    }
+  }
+
+  /// Open full detail screen (from tablet preview)
+  Future<void> _openFullDetail() async {
+    await Navigator.push(
+      context,
+      MD3PageTransitions.fadeThrough(
+        page: const ArchiveDetailScreen(),
+        settings: const RouteSettings(name: '/archive-detail'),
+      ),
+    );
+  }
+
   /// Build grid view with responsive columns
   Widget _buildGridView() {
     return LayoutBuilder(
@@ -251,10 +542,21 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
           ),
-          itemCount: _results.length + (_isLoadingMore ? 1 : 0),
+          itemCount: _results.length + (_isLoadingMore ? 1 : (!_hasMore ? 1 : 0)),
           itemBuilder: (context, index) {
             if (index >= _results.length) {
-              return _buildLoadingMoreIndicator();
+              if (_isLoadingMore) {
+                return _buildLoadingMoreIndicator();
+              }
+              if (!_hasMore) {
+                // Span all columns for end-of-list indicator
+                return GridView.count(
+                  crossAxisCount: 1,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [_buildEndOfListIndicator()],
+                );
+              }
             }
 
             final result = _results[index];
@@ -275,10 +577,15 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: _results.length + (_isLoadingMore ? 1 : 0),
+      itemCount: _results.length + (_isLoadingMore ? 1 : (!_hasMore ? 1 : 0)),
       itemBuilder: (context, index) {
         if (index >= _results.length) {
-          return _buildLoadingMoreIndicator();
+          if (_isLoadingMore) {
+            return _buildLoadingMoreIndicator();
+          }
+          if (!_hasMore) {
+            return _buildEndOfListIndicator();
+          }
         }
 
         final result = _results[index];
@@ -404,8 +711,24 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
 
+  Widget _buildEndOfListIndicator() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: EmptyStateWidget.endOfList(
+        totalCount: _totalResults,
+      ),
+    );
+  }
+
   Future<void> _navigateToDetail(SearchResult result) async {
-    // Load metadata into ArchiveService
+    // On tablets: Select result instead of navigating
+    final isTablet = ResponsiveUtils.isTabletOrLarger(context);
+    if (isTablet) {
+      await _selectResult(result);
+      return;
+    }
+
+    // On phones: Navigate to full detail screen
     final archiveService = context.read<ArchiveService>();
 
     try {
