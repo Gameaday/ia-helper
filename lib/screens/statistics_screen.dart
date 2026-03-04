@@ -191,7 +191,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               'Successful',
               _successfulDownloads.toString(),
               Icons.check_circle_outline_rounded,
-              color: Colors.green,
+              color: const Color(0xFF2E7D32),
             ),
             const Divider(height: 24),
             _buildStatRow(
@@ -199,7 +199,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               'Failed',
               _failedDownloads.toString(),
               Icons.error_outline_rounded,
-              color: Colors.red,
+              color: Theme.of(context).colorScheme.error,
             ),
             const Divider(height: 24),
             _buildStatRow(
@@ -207,7 +207,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               'In Progress',
               _inProgressDownloads.toString(),
               Icons.hourglass_empty_rounded,
-              color: Colors.orange,
+              color: Theme.of(context).colorScheme.secondary,
             ),
             const Divider(height: 24),
             _buildStatRow(

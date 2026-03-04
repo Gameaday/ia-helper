@@ -328,7 +328,7 @@ class _AppInitializerState extends State<AppInitializer> {
                     backgroundColor: Theme.of(context).colorScheme.error,
                     action: SnackBarAction(
                       label: 'Retry',
-                      textColor: Colors.white,
+                      textColor: Theme.of(context).colorScheme.onError,
                       onPressed: () {
                         archiveService.fetchMetadata(identifier);
                       },

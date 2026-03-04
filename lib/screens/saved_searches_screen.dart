@@ -555,13 +555,13 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, color: Colors.red),
+                            Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
                             SizedBox(width: 12),
-                            Text('Delete', style: TextStyle(color: Colors.red)),
+                            Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
                           ],
                         ),
                       ),

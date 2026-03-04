@@ -178,7 +178,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
               const SizedBox(height: 16),
               Text(
                 _error!,
@@ -229,7 +229,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                  Icon(Icons.broken_image, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(height: 16),
                   Text('Failed to load image: $error'),
                 ],
@@ -261,17 +261,17 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.video_library, size: 64, color: Colors.grey),
+          Icon(Icons.video_library, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(height: 16),
           Text(
             'Video preview loaded (${_formatSize(_fileData!.length)})',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Video playback requires additional dependencies.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           const Padding(
@@ -294,7 +294,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.description, size: 64, color: Colors.grey),
+            Icon(Icons.description, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(height: 16),
             Text(
               'Preview not supported for ${widget.file.format ?? "unknown"} format',
@@ -304,7 +304,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
             const SizedBox(height: 8),
             Text(
               'File loaded in memory (${_formatSize(_fileData!.length)})',
-              style: const TextStyle(color: Colors.grey),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -323,17 +323,17 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.picture_as_pdf, size: 64, color: Colors.red),
+          Icon(Icons.picture_as_pdf, size: 64, color: Theme.of(context).colorScheme.error),
           const SizedBox(height: 16),
           Text(
             'PDF preview loaded (${_formatSize(_fileData!.length)})',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'PDF rendering requires additional package.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           const Padding(
@@ -354,7 +354,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.audiotrack, size: 64, color: Colors.blue),
+          Icon(Icons.audiotrack, size: 64, color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 16),
           Text(
             'Audio file loaded (${_formatSize(_fileData!.length)})',
@@ -363,7 +363,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
           const SizedBox(height: 8),
           Text(
             'Format: ${widget.file.format?.toUpperCase()}',
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           const Padding(
