@@ -18,7 +18,7 @@ class SnackBarHelper {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.info_outline, color: Colors.white, size: 20),
+            Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onInverseSurface, size: 20),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
@@ -75,12 +75,12 @@ class SnackBarHelper {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.warning_amber_outlined, color: Colors.white, size: 20),
+            Icon(Icons.warning_amber_outlined, color: Theme.of(context).colorScheme.onTertiaryContainer, size: 20),
             const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            Expanded(child: Text(message, style: TextStyle(color: Theme.of(context).colorScheme.onTertiaryContainer))),
           ],
         ),
-        backgroundColor: Colors.orange.shade700,
+        backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
         behavior: SnackBarBehavior.floating,
         duration: duration,
         action: action,
@@ -116,7 +116,7 @@ class SnackBarHelper {
               children: [
                 Icon(
                   _getErrorIcon(errorInfo.type),
-                  color: Colors.white,
+                  color: colorScheme.onError,
                   size: 20,
                 ),
                 const SizedBox(width: 12),
@@ -145,7 +145,7 @@ class SnackBarHelper {
         action: errorInfo.canRetry && onRetry != null
             ? SnackBarAction(
                 label: 'Retry',
-                textColor: Colors.white,
+                textColor: colorScheme.onError,
                 onPressed: onRetry,
               )
             : null,
@@ -167,12 +167,12 @@ class SnackBarHelper {
       SnackBar(
         content: Row(
           children: [
-            const SizedBox(
+            SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onInverseSurface),
               ),
             ),
             const SizedBox(width: 12),

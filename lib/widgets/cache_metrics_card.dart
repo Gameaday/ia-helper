@@ -47,7 +47,7 @@ class CacheMetricsCard extends StatelessWidget {
               icon: Icons.check_circle_outline,
               label: 'Cache Hit Rate',
               value: stats['hitRate'] as String,
-              color: Colors.green,
+              color: theme.colorScheme.primary,
             ),
             const SizedBox(height: 8),
             _buildMetricRow(
@@ -56,7 +56,7 @@ class CacheMetricsCard extends StatelessWidget {
               label: 'API Calls Saved',
               value:
                   '${metrics.apiCallsSaved} / ${metrics.apiCallsSaved + metrics.apiCallsMade}',
-              color: Colors.blue,
+              color: theme.colorScheme.tertiary,
             ),
             const SizedBox(height: 8),
             _buildMetricRow(
@@ -64,7 +64,7 @@ class CacheMetricsCard extends StatelessWidget {
               icon: Icons.trending_down,
               label: 'API Reduction',
               value: stats['apiReduction'] as String,
-              color: Colors.orange,
+              color: theme.colorScheme.secondary,
             ),
 
             if (metrics.totalSuccesses > 0) ...[
@@ -79,7 +79,7 @@ class CacheMetricsCard extends StatelessWidget {
                 label: 'Standard (Case Preserved)',
                 value:
                     '${metrics.standardHits} (${stats['standardSuccessRate']})',
-                color: Colors.purple,
+                color: theme.colorScheme.tertiary,
                 dense: true,
               ),
               const SizedBox(height: 4),
@@ -88,7 +88,7 @@ class CacheMetricsCard extends StatelessWidget {
                 icon: Icons.text_format,
                 label: 'Strict (Lowercase)',
                 value: '${metrics.strictHits} (${stats['strictSuccessRate']})',
-                color: Colors.teal,
+                color: theme.colorScheme.primary,
                 dense: true,
               ),
               const SizedBox(height: 4),
@@ -98,7 +98,7 @@ class CacheMetricsCard extends StatelessWidget {
                 label: 'Alternatives',
                 value:
                     '${metrics.alternativeHits} (${stats['alternativeSuccessRate']})',
-                color: Colors.amber,
+                color: theme.colorScheme.secondary,
                 dense: true,
               ),
             ],
