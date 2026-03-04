@@ -459,7 +459,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
               if (_titleController.text.isNotEmpty ||
                   _creatorController.text.isNotEmpty ||
                   _subjectController.text.isNotEmpty)
-                const Icon(Icons.check_circle, color: Colors.green),
+                const Icon(Icons.check_circle, color: Color(0xFF2E7D32)),
             ],
           ),
         ),

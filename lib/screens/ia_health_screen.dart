@@ -285,7 +285,7 @@ class _IAHealthScreenState extends State<IAHealthScreen> {
             Text(
               endpoint.isAvailable ? 'Available' : 'Unavailable',
               style: TextStyle(
-                color: isHealthy ? Colors.green : Colors.red,
+                color: isHealthy ? const Color(0xFF2E7D32) : colorScheme.error,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -313,14 +313,15 @@ class _IAHealthScreenState extends State<IAHealthScreen> {
     Color badgeColor;
     String label;
 
+    final colorScheme = Theme.of(context).colorScheme;
     if (responseTimeMs < 1000) {
-      badgeColor = Colors.green;
+      badgeColor = const Color(0xFF2E7D32);
       label = 'Fast';
     } else if (responseTimeMs < 3000) {
-      badgeColor = Colors.orange;
+      badgeColor = colorScheme.secondary;
       label = 'OK';
     } else {
-      badgeColor = Colors.red;
+      badgeColor = colorScheme.error;
       label = 'Slow';
     }
 
@@ -393,11 +394,11 @@ class _IAHealthScreenState extends State<IAHealthScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildLegendRow(context, 'Fast', '< 1 second', Colors.green),
+            _buildLegendRow(context, 'Fast', '< 1 second', const Color(0xFF2E7D32)),
             const SizedBox(height: 8),
-            _buildLegendRow(context, 'OK', '1-3 seconds', Colors.orange),
+            _buildLegendRow(context, 'OK', '1-3 seconds', Theme.of(context).colorScheme.secondary),
             const SizedBox(height: 8),
-            _buildLegendRow(context, 'Slow', '> 3 seconds', Colors.red),
+            _buildLegendRow(context, 'Slow', '> 3 seconds', Theme.of(context).colorScheme.error),
             const SizedBox(height: 12),
             Text(
               'Note: Response times may vary based on your network connection and Internet Archive server load.',
