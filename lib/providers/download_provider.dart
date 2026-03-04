@@ -327,7 +327,7 @@ class DownloadProvider extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           'Download queued: $identifier (${_downloadQueue.length} in queue)',
         );
       }
@@ -486,11 +486,11 @@ class DownloadProvider extends ChangeNotifier {
             }
 
             if (kDebugMode) {
-              print('Checksum validated for ${file.name}');
+              debugPrint('Checksum validated for ${file.name}');
             }
           } catch (e) {
             if (kDebugMode) {
-              print('Warning: Checksum validation failed: $e');
+              debugPrint('Warning: Checksum validation failed: $e');
             }
           }
         }
@@ -504,13 +504,13 @@ class DownloadProvider extends ChangeNotifier {
             );
 
             if (kDebugMode) {
-              print(
+              debugPrint(
                 'Extracted ${extractedFiles.length} files from ${file.name}',
               );
             }
           } catch (e) {
             if (kDebugMode) {
-              print('Warning: Failed to decompress ${file.name}: $e');
+              debugPrint('Warning: Failed to decompress ${file.name}: $e');
             }
           }
         }
@@ -533,8 +533,8 @@ class DownloadProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        print('Download failed: $e');
-        print('Stack trace: $stackTrace');
+        debugPrint('Download failed: $e');
+        debugPrint('Stack trace: $stackTrace');
       }
 
       // Enhanced: More specific error messages
@@ -614,7 +614,7 @@ class DownloadProvider extends ChangeNotifier {
         final queued = _downloadQueue.removeAt(0);
 
         if (kDebugMode) {
-          print(
+          debugPrint(
             'Processing queued download: ${queued.identifier} (priority: ${queued.priority.displayName})',
           );
         }
@@ -628,7 +628,7 @@ class DownloadProvider extends ChangeNotifier {
           queued.priority,
         ).catchError((error) {
           if (kDebugMode) {
-            print('Queued download failed: ${queued.identifier} - $error');
+            debugPrint('Queued download failed: ${queued.identifier} - $error');
           }
         });
       }
@@ -650,7 +650,7 @@ class DownloadProvider extends ChangeNotifier {
     }
 
     if (kDebugMode) {
-      print(
+      debugPrint(
         'Starting batch download: $identifier with ${fileNames.length} files',
       );
     }
@@ -835,7 +835,7 @@ class DownloadProvider extends ChangeNotifier {
       );
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           'Download priority changed: $identifier -> ${newPriority.displayName}',
         );
       }

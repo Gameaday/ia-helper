@@ -72,7 +72,7 @@ class MetadataCache {
     metrics.writes++;
 
     if (kDebugMode) {
-      print('[MetadataCache] WRITE: ${metadata.identifier} '
+      debugPrint('[MetadataCache] WRITE: ${metadata.identifier} '
           '(${cached.totalSize ~/ 1024} KB, pinned: $isPinned)');
     }
   }
@@ -95,7 +95,7 @@ class MetadataCache {
       // Cache miss
       metrics.misses++;
       if (kDebugMode) {
-        print('[MetadataCache] MISS: $identifier');
+        debugPrint('[MetadataCache] MISS: $identifier');
       }
       return null;
     }
@@ -106,7 +106,7 @@ class MetadataCache {
 
     if (kDebugMode) {
       final ageHours = DateTime.now().difference(cached.cachedAt).inHours;
-      print('[MetadataCache] HIT: $identifier (age: ${ageHours}h)');
+      debugPrint('[MetadataCache] HIT: $identifier (age: ${ageHours}h)');
     }
 
     // Update last accessed time
@@ -288,7 +288,7 @@ class MetadataCache {
     final bytesToFree = stats.totalDataSize - maxSizeBytes;
 
     if (kDebugMode) {
-      print('[MetadataCache] Size limit exceeded: '
+      debugPrint('[MetadataCache] Size limit exceeded: '
           '${stats.formattedDataSize} > $maxSizeMB MB, '
           'evicting ~${(bytesToFree / (1024 * 1024)).toStringAsFixed(1)} MB');
     }
@@ -321,12 +321,12 @@ class MetadataCache {
       metrics.evictions++;
 
       if (kDebugMode) {
-        print('[MetadataCache] EVICT: $identifier (${size ~/ 1024} KB)');
+        debugPrint('[MetadataCache] EVICT: $identifier (${size ~/ 1024} KB)');
       }
     }
 
     if (kDebugMode) {
-      print('[MetadataCache] Evicted $evictionCount entries, '
+      debugPrint('[MetadataCache] Evicted $evictionCount entries, '
           'freed ${(freedBytes / (1024 * 1024)).toStringAsFixed(1)} MB');
     }
   }
@@ -459,7 +459,7 @@ class MetadataCache {
       metrics.deletes++;
 
       if (kDebugMode) {
-        print('[MetadataCache] DELETE: $identifier');
+        debugPrint('[MetadataCache] DELETE: $identifier');
       }
     }
   }
@@ -580,7 +580,7 @@ class MetadataCache {
     metrics.writes += successCount;
 
     if (kDebugMode) {
-      print('[MetadataCache] BATCH WRITE: $successCount items');
+      debugPrint('[MetadataCache] BATCH WRITE: $successCount items');
     }
 
     // Enforce size limits after batch operation
@@ -616,7 +616,7 @@ class MetadataCache {
     metrics.deletes += successCount;
 
     if (kDebugMode) {
-      print('[MetadataCache] BATCH DELETE: $successCount items');
+      debugPrint('[MetadataCache] BATCH DELETE: $successCount items');
     }
 
     return successCount;
@@ -631,7 +631,7 @@ class MetadataCache {
   /// should not be closed here.
   void dispose() {
     if (kDebugMode) {
-      print('[MetadataCache] Final metrics: $metrics');
+      debugPrint('[MetadataCache] Final metrics: $metrics');
     }
   }
 
@@ -647,7 +647,7 @@ class MetadataCache {
   void resetMetrics() {
     metrics.reset();
     if (kDebugMode) {
-      print('[MetadataCache] Metrics reset');
+      debugPrint('[MetadataCache] Metrics reset');
     }
   }
 }

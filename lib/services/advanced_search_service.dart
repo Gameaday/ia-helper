@@ -63,9 +63,9 @@ class AdvancedSearchService extends ChangeNotifier {
       final url = adjustedQuery.buildApiUrl(IAEndpoints.advancedSearch);
 
       if (kDebugMode) {
-        print('[AdvancedSearchService] API Intensity: ${settings.level.name}');
-        print('[AdvancedSearchService] Searching: $url');
-        print(
+        debugPrint('[AdvancedSearchService] API Intensity: ${settings.level.name}');
+        debugPrint('[AdvancedSearchService] Searching: $url');
+        debugPrint(
           '[AdvancedSearchService] Query string: ${adjustedQuery.buildQueryString()}',
         );
       }
@@ -87,7 +87,7 @@ class AdvancedSearchService extends ChangeNotifier {
             .toList();
 
         if (kDebugMode) {
-          print(
+          debugPrint(
             '[AdvancedSearchService] Found $_totalResults total results, returned ${_currentResults.length}',
           );
         }
@@ -106,7 +106,7 @@ class AdvancedSearchService extends ChangeNotifier {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('[AdvancedSearchService] Error executing search: $e');
+        debugPrint('[AdvancedSearchService] Error executing search: $e');
       }
       _error = e.toString();
       _isSearching = false;
@@ -190,7 +190,7 @@ class AdvancedSearchService extends ChangeNotifier {
       // Fire and forget - don't await
       ThumbnailCacheService().preloadThumbnails(thumbnailUrls).catchError((e) {
         if (kDebugMode) {
-          print('[AdvancedSearchService] Thumbnail preload error: $e');
+          debugPrint('[AdvancedSearchService] Thumbnail preload error: $e');
         }
       });
     }
@@ -273,7 +273,7 @@ class AdvancedSearchService extends ChangeNotifier {
       return await search(searchQuery);
     } catch (e) {
       if (kDebugMode) {
-        print('[AdvancedSearchService] Error getting suggestions: $e');
+        debugPrint('[AdvancedSearchService] Error getting suggestions: $e');
       }
       return [];
     }
