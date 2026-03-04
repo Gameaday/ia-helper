@@ -451,7 +451,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title,
         style: Theme.of(
           context,
-        ).textTheme.labelLarge?.copyWith(color: Theme.of(context).primaryColor),
+        ).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary),
       ),
     );
   }

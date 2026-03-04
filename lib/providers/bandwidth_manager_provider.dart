@@ -64,14 +64,14 @@ class BandwidthManagerProvider extends ChangeNotifier {
     if (!preset.isUnlimited) {
       _manager = BandwidthManager(totalBytesPerSecond: preset.bytesPerSecond);
       if (kDebugMode) {
-        print(
+        debugPrint(
           '[BandwidthManagerProvider] Initialized with ${preset.displayName}',
         );
       }
     } else {
       _manager = null;
       if (kDebugMode) {
-        print('[BandwidthManagerProvider] Unlimited bandwidth mode');
+        debugPrint('[BandwidthManagerProvider] Unlimited bandwidth mode');
       }
     }
 
@@ -83,7 +83,7 @@ class BandwidthManagerProvider extends ChangeNotifier {
     if (newPreset == _currentPreset) return;
 
     if (kDebugMode) {
-      print(
+      debugPrint(
         '[BandwidthManagerProvider] Changing preset: '
         '${_currentPreset.displayName} → ${newPreset.displayName}',
       );
@@ -102,7 +102,7 @@ class BandwidthManagerProvider extends ChangeNotifier {
   BandwidthThrottle? createThrottle(String downloadId) {
     if (_manager == null) {
       if (kDebugMode) {
-        print(
+        debugPrint(
           '[BandwidthManagerProvider] Unlimited mode - no throttle for $downloadId',
         );
       }
@@ -113,7 +113,7 @@ class BandwidthManagerProvider extends ChangeNotifier {
     _activeThrottles[downloadId] = throttle;
 
     if (kDebugMode) {
-      print(
+      debugPrint(
         '[BandwidthManagerProvider] Created throttle for $downloadId '
         '(${_activeThrottles.length} active)',
       );
@@ -129,7 +129,7 @@ class BandwidthManagerProvider extends ChangeNotifier {
       _manager?.removeThrottle(downloadId);
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           '[BandwidthManagerProvider] Removed throttle for $downloadId '
           '(${_activeThrottles.length} remaining)',
         );
@@ -155,7 +155,7 @@ class BandwidthManagerProvider extends ChangeNotifier {
     }
 
     if (kDebugMode) {
-      print('[BandwidthManagerProvider] Paused all throttles');
+      debugPrint('[BandwidthManagerProvider] Paused all throttles');
     }
 
     notifyListeners();
@@ -170,7 +170,7 @@ class BandwidthManagerProvider extends ChangeNotifier {
     }
 
     if (kDebugMode) {
-      print('[BandwidthManagerProvider] Resumed all throttles');
+      debugPrint('[BandwidthManagerProvider] Resumed all throttles');
     }
 
     notifyListeners();
@@ -182,7 +182,7 @@ class BandwidthManagerProvider extends ChangeNotifier {
     _totalBytesTransferred = 0;
 
     if (kDebugMode) {
-      print('[BandwidthManagerProvider] Reset statistics');
+      debugPrint('[BandwidthManagerProvider] Reset statistics');
     }
 
     notifyListeners();

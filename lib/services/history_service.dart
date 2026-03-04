@@ -160,7 +160,7 @@ class HistoryService extends ChangeNotifier {
     _scheduleSave();
 
     if (kDebugMode) {
-      print('[HistoryService] Add: ${entry.identifier}');
+      debugPrint('[HistoryService] Add: ${entry.identifier}');
     }
   }
 
@@ -177,7 +177,7 @@ class HistoryService extends ChangeNotifier {
       _scheduleSave();
 
       if (kDebugMode) {
-        print('[HistoryService] Remove: $identifier');
+        debugPrint('[HistoryService] Remove: $identifier');
       }
     }
   }
@@ -192,7 +192,7 @@ class HistoryService extends ChangeNotifier {
     _scheduleSave();
 
     if (kDebugMode) {
-      print('[HistoryService] Clear: all history removed');
+      debugPrint('[HistoryService] Clear: all history removed');
     }
   }
 
@@ -205,11 +205,11 @@ class HistoryService extends ChangeNotifier {
       await prefs.setString(_historyKey, jsonString);
 
       if (kDebugMode) {
-        print('History saved: ${_history.length} entries');
+        debugPrint('History saved: ${_history.length} entries');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error saving history: $e');
+        debugPrint('Error saving history: $e');
       }
     }
   }
@@ -234,11 +234,11 @@ class HistoryService extends ChangeNotifier {
         );
 
         if (kDebugMode) {
-          print('History loaded: ${_history.length} entries');
+          debugPrint('History loaded: ${_history.length} entries');
         }
       } else {
         if (kDebugMode) {
-          print('No saved history found');
+          debugPrint('No saved history found');
         }
       }
 
@@ -246,7 +246,7 @@ class HistoryService extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading history: $e');
+        debugPrint('Error loading history: $e');
       }
       _isLoaded =
           true; // Mark as loaded even on error to prevent repeated attempts
@@ -273,7 +273,7 @@ class HistoryService extends ChangeNotifier {
     }).toList();
 
     if (kDebugMode) {
-      print('[HistoryService] Search "$query": ${results.length} results');
+      debugPrint('[HistoryService] Search "$query": ${results.length} results');
     }
 
     return results;
@@ -290,7 +290,7 @@ class HistoryService extends ChangeNotifier {
     }).toList();
 
     if (kDebugMode) {
-      print('[HistoryService] Filter by date: ${results.length} results');
+      debugPrint('[HistoryService] Filter by date: ${results.length} results');
     }
 
     return results;
@@ -382,7 +382,7 @@ class HistoryService extends ChangeNotifier {
     _scheduleSave();
 
     if (kDebugMode) {
-      print('[HistoryService] Batch add: $addedCount entries');
+      debugPrint('[HistoryService] Batch add: $addedCount entries');
     }
 
     return addedCount;
@@ -405,7 +405,7 @@ class HistoryService extends ChangeNotifier {
       _scheduleSave();
 
       if (kDebugMode) {
-        print('[HistoryService] Batch remove: $removedCount entries');
+        debugPrint('[HistoryService] Batch remove: $removedCount entries');
       }
     }
 
@@ -432,7 +432,7 @@ class HistoryService extends ChangeNotifier {
       _scheduleSave();
 
       if (kDebugMode) {
-        print('[HistoryService] Removed $removedCount entries older than '
+        debugPrint('[HistoryService] Removed $removedCount entries older than '
             '${duration.inDays} days');
       }
     }
@@ -505,7 +505,7 @@ class HistoryService extends ChangeNotifier {
       return addBatch(entries);
     } catch (e) {
       if (kDebugMode) {
-        print('[HistoryService] Error importing: $e');
+        debugPrint('[HistoryService] Error importing: $e');
       }
       return 0;
     }
@@ -534,7 +534,7 @@ class HistoryService extends ChangeNotifier {
     }
 
     if (kDebugMode) {
-      print('[HistoryService] Final metrics: $metrics');
+      debugPrint('[HistoryService] Final metrics: $metrics');
     }
 
     super.dispose();
@@ -547,7 +547,7 @@ class HistoryService extends ChangeNotifier {
   void resetMetrics() {
     metrics.reset();
     if (kDebugMode) {
-      print('[HistoryService] Metrics reset');
+      debugPrint('[HistoryService] Metrics reset');
     }
   }
 }

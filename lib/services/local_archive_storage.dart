@@ -172,7 +172,7 @@ class LocalArchiveStorage extends ChangeNotifier {
     notifyListeners();
 
     if (kDebugMode) {
-      print('[LocalArchiveStorage] Save: ${archive.identifier}');
+      debugPrint('[LocalArchiveStorage] Save: ${archive.identifier}');
     }
   }
 
@@ -196,7 +196,7 @@ class LocalArchiveStorage extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print('[LocalArchiveStorage] Remove: $identifier');
+        debugPrint('[LocalArchiveStorage] Remove: $identifier');
       }
     }
   }
@@ -370,7 +370,7 @@ class LocalArchiveStorage extends ChangeNotifier {
     }
 
     if (kDebugMode) {
-      print('[LocalArchiveStorage] Final metrics: $metrics');
+      debugPrint('[LocalArchiveStorage] Final metrics: $metrics');
     }
 
     super.dispose();
@@ -503,7 +503,7 @@ class LocalArchiveStorage extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print('[LocalArchiveStorage] Removed ${toRemove.length} archives '
+        debugPrint('[LocalArchiveStorage] Removed ${toRemove.length} archives '
             'older than ${duration.inDays} days');
       }
     }
@@ -527,7 +527,7 @@ class LocalArchiveStorage extends ChangeNotifier {
     notifyListeners();
 
     if (kDebugMode) {
-      print('[LocalArchiveStorage] Batch save: ${archives.length} archives');
+      debugPrint('[LocalArchiveStorage] Batch save: ${archives.length} archives');
     }
 
     return archives.length;
@@ -553,7 +553,7 @@ class LocalArchiveStorage extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print('[LocalArchiveStorage] Batch remove: ${removed.length} archives');
+        debugPrint('[LocalArchiveStorage] Batch remove: ${removed.length} archives');
       }
     }
 
@@ -607,7 +607,7 @@ class LocalArchiveStorage extends ChangeNotifier {
   void resetMetrics() {
     metrics.reset();
     if (kDebugMode) {
-      print('[LocalArchiveStorage] Metrics reset');
+      debugPrint('[LocalArchiveStorage] Metrics reset');
     }
   }
 }

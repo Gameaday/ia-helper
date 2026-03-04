@@ -220,7 +220,7 @@ class ArchiveService extends ChangeNotifier {
           : ApiIntensitySettings.standard();
 
       if (kDebugMode) {
-        print('[ArchiveService] API Intensity: ${intensitySettings.level}');
+        debugPrint('[ArchiveService] API Intensity: ${intensitySettings.level}');
       }
 
       ArchiveMetadata metadata;
@@ -325,14 +325,14 @@ class ArchiveService extends ChangeNotifier {
           _suggestions = suggestions;
         } catch (suggestionError) {
           if (kDebugMode) {
-            print('Failed to get suggestions: $suggestionError');
+            debugPrint('Failed to get suggestions: $suggestionError');
           }
         }
       }
 
       if (kDebugMode) {
-        print('Error fetching metadata: $e');
-        print('Stack trace: $stackTrace');
+        debugPrint('Error fetching metadata: $e');
+        debugPrint('Stack trace: $stackTrace');
       }
 
       notifyListeners();
@@ -448,7 +448,7 @@ class ArchiveService extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
-        print('Error applying filters: $e');
+        debugPrint('Error applying filters: $e');
       }
       // On error, show all files
       _filteredFiles = _currentMetadata!.files;
@@ -523,7 +523,7 @@ class ArchiveService extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
-        print('Error applying filters: $e');
+        debugPrint('Error applying filters: $e');
       }
       // On error, show all files
       _filteredFiles = _currentMetadata!.files;
@@ -624,7 +624,7 @@ class ArchiveService extends ChangeNotifier {
             .toList();
       } else {
         if (kDebugMode) {
-          print('Search API returned status ${response.statusCode}');
+          debugPrint('Search API returned status ${response.statusCode}');
         }
         _suggestions = [];
       }
@@ -632,7 +632,7 @@ class ArchiveService extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
-        print('Error searching archives: $e');
+        debugPrint('Error searching archives: $e');
       }
       _suggestions = [];
       notifyListeners();
@@ -688,7 +688,7 @@ class ArchiveService extends ChangeNotifier {
       await _api.downloadFile(url, outputPath, onProgress: onProgress);
     } catch (e) {
       if (kDebugMode) {
-        print('Error downloading file: $e');
+        debugPrint('Error downloading file: $e');
       }
       rethrow;
     }
@@ -710,7 +710,7 @@ class ArchiveService extends ChangeNotifier {
       return await _api.validateChecksum(filePath, expectedHash, hashType);
     } catch (e) {
       if (kDebugMode) {
-        print('Error validating checksum: $e');
+        debugPrint('Error validating checksum: $e');
       }
       rethrow;
     }
@@ -730,7 +730,7 @@ class ArchiveService extends ChangeNotifier {
       return await _api.decompressFile(archivePath, outputDir);
     } catch (e) {
       if (kDebugMode) {
-        print('Error decompressing file: $e');
+        debugPrint('Error decompressing file: $e');
       }
       rethrow;
     }

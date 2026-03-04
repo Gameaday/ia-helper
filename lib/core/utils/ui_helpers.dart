@@ -27,10 +27,10 @@ class UIHelpers {
       SnackBar(
         content: Text(message),
         duration: duration,
-        backgroundColor: Colors.red[700],
+        backgroundColor: Theme.of(context).colorScheme.error,
         action: SnackBarAction(
           label: 'Dismiss',
-          textColor: Colors.white,
+          textColor: Theme.of(context).colorScheme.onError,
           onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           },
@@ -49,7 +49,7 @@ class UIHelpers {
       SnackBar(
         content: Text(message),
         duration: duration,
-        backgroundColor: Colors.green[700],
+        backgroundColor: const Color(0xFF2E7D32),
       ),
     );
   }
@@ -64,7 +64,7 @@ class UIHelpers {
       SnackBar(
         content: Text(message),
         duration: duration,
-        backgroundColor: Colors.orange[700],
+        backgroundColor: const Color(0xFFED6C02),
       ),
     );
   }
@@ -91,7 +91,7 @@ class UIHelpers {
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: isDangerous
-                ? TextButton.styleFrom(foregroundColor: Colors.red)
+                ? TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error)
                 : null,
             child: Text(confirmText),
           ),
@@ -136,7 +136,7 @@ class UIHelpers {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.error, color: Colors.red[700]),
+            Icon(Icons.error, color: Theme.of(context).colorScheme.error),
             const SizedBox(width: 8),
             Text(title),
           ],

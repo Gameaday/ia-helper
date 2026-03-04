@@ -30,7 +30,7 @@ class DownloadStatisticsWidget extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.analytics_outlined,
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -131,7 +131,7 @@ class DownloadStatisticsWidget extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColor,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                           ),
                         ],

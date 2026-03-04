@@ -78,7 +78,7 @@ class InternetArchiveApi {
     }
 
     if (kDebugMode) {
-      print('[InternetArchiveApi] Fetching metadata from: $metadataUrl');
+      debugPrint('[InternetArchiveApi] Fetching metadata from: $metadataUrl');
     }
 
     try {
@@ -87,7 +87,7 @@ class InternetArchiveApi {
       if (_cache != null) {
         etag = await _cache.getETag(extractedId);
         if (kDebugMode && etag != null) {
-          print('[InternetArchiveApi] Found cached ETag: $etag');
+          debugPrint('[InternetArchiveApi] Found cached ETag: $etag');
         }
       }
 
@@ -100,7 +100,7 @@ class InternetArchiveApi {
       // Handle 304 Not Modified - return cached data
       if (response.statusCode == 304) {
         if (kDebugMode) {
-          print('[InternetArchiveApi] Cache hit (304 Not Modified)');
+          debugPrint('[InternetArchiveApi] Cache hit (304 Not Modified)');
         }
 
         // Get cached metadata
@@ -131,7 +131,7 @@ class InternetArchiveApi {
           if (newEtag != null) {
             await _cache.updateETag(extractedId, newEtag);
             if (kDebugMode) {
-              print('[InternetArchiveApi] Updated ETag in cache: $newEtag');
+              debugPrint('[InternetArchiveApi] Updated ETag in cache: $newEtag');
             }
           }
         }
@@ -162,7 +162,7 @@ class InternetArchiveApi {
       rethrow;
     } catch (e) {
       if (kDebugMode) {
-        print('[InternetArchiveApi] Error fetching metadata: $e');
+        debugPrint('[InternetArchiveApi] Error fetching metadata: $e');
       }
       throw IAHttpException(
         'Failed to fetch metadata: ${e.toString()}',
@@ -196,8 +196,8 @@ class InternetArchiveApi {
     bool? useReducedPriority,
   }) async {
     if (kDebugMode) {
-      print('[InternetArchiveApi] Downloading from: $url');
-      print('[InternetArchiveApi] Saving to: $outputPath');
+      debugPrint('[InternetArchiveApi] Downloading from: $url');
+      debugPrint('[InternetArchiveApi] Saving to: $outputPath');
     }
 
     try {
@@ -207,7 +207,7 @@ class InternetArchiveApi {
           int.tryParse(headResponse.headers['content-length'] ?? '') ?? 0;
 
       if (kDebugMode) {
-        print('[InternetArchiveApi] Content length: $contentLength bytes');
+        debugPrint('[InternetArchiveApi] Content length: $contentLength bytes');
       }
 
       // Determine if we should use reduced priority
@@ -223,7 +223,7 @@ class InternetArchiveApi {
               IADownloadPriority.defaultReducedPriority;
 
       if (shouldReducePriority && kDebugMode) {
-        print(
+        debugPrint(
           '[InternetArchiveApi] Using reduced priority (good citizen mode)',
         );
       }
@@ -287,7 +287,7 @@ class InternetArchiveApi {
           await sink.close();
 
           if (kDebugMode) {
-            print('[InternetArchiveApi] Download complete: $outputPath');
+            debugPrint('[InternetArchiveApi] Download complete: $outputPath');
           }
 
           return outputPath;
@@ -306,7 +306,7 @@ class InternetArchiveApi {
       rethrow;
     } catch (e) {
       if (kDebugMode) {
-        print('[InternetArchiveApi] Download error: $e');
+        debugPrint('[InternetArchiveApi] Download error: $e');
       }
       throw IAHttpException(
         'Failed to download file: ${e.toString()}',
@@ -333,7 +333,7 @@ class InternetArchiveApi {
     }
 
     if (kDebugMode) {
-      print('Validating $hashType checksum for: $filePath');
+      debugPrint('Validating $hashType checksum for: $filePath');
     }
 
     final bytes = await file.readAsBytes();
@@ -357,9 +357,9 @@ class InternetArchiveApi {
     final matches = actualHash.toLowerCase() == expectedHash.toLowerCase();
 
     if (kDebugMode) {
-      print('Expected: $expectedHash');
-      print('Actual:   $actualHash');
-      print('Match: $matches');
+      debugPrint('Expected: $expectedHash');
+      debugPrint('Actual:   $actualHash');
+      debugPrint('Match: $matches');
     }
 
     return matches;
@@ -393,9 +393,9 @@ class InternetArchiveApi {
     final bytes = await file.readAsBytes();
 
     if (kDebugMode) {
-      print('Decompressing: $archivePath');
-      print('Output directory: $outputDir');
-      print('File size: ${bytes.length} bytes');
+      debugPrint('Decompressing: $archivePath');
+      debugPrint('Output directory: $outputDir');
+      debugPrint('File size: ${bytes.length} bytes');
     }
 
     final extractedFiles = <String>[];
@@ -432,7 +432,7 @@ class InternetArchiveApi {
       }
 
       if (kDebugMode) {
-        print('Successfully extracted ${extractedFiles.length} file(s)');
+        debugPrint('Successfully extracted ${extractedFiles.length} file(s)');
       }
 
       return extractedFiles;
@@ -469,7 +469,7 @@ class InternetArchiveApi {
         extractedFiles.add(outputPath);
 
         if (kDebugMode) {
-          print('Extracted: ${file.name} (${file.size} bytes)');
+          debugPrint('Extracted: ${file.name} (${file.size} bytes)');
         }
       }
     }

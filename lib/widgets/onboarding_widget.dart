@@ -111,10 +111,10 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         color: index <= _currentPage
-                            ? Theme.of(context).primaryColor
+                            ? Theme.of(context).colorScheme.primary
                             : Theme.of(
                                 context,
-                              ).primaryColor.withValues(alpha: 0.3),
+                              ).colorScheme.primary.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

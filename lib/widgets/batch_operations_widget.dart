@@ -37,10 +37,10 @@ class BatchOperationsWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -84,7 +84,7 @@ class BatchOperationsWidget extends StatelessWidget {
             icon: const Icon(Icons.download, size: 20),
             label: const Text('Download'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),

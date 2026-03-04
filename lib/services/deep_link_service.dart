@@ -18,7 +18,7 @@ class DeepLinkService {
         const Duration(seconds: 3),
         onTimeout: () {
           if (kDebugMode) {
-            print('Deep link: getInitialLink timed out');
+            debugPrint('Deep link: getInitialLink timed out');
           }
           return null;
         },
@@ -35,18 +35,18 @@ class DeepLinkService {
         },
         onError: (err) {
           if (kDebugMode) {
-            print('Deep link error: $err');
+            debugPrint('Deep link error: $err');
           }
         },
         cancelOnError: false, // Continue listening even after errors
       );
 
       if (kDebugMode) {
-        print('Deep link service initialized');
+        debugPrint('Deep link service initialized');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to initialize deep link service: $e');
+        debugPrint('Failed to initialize deep link service: $e');
       }
       // Non-critical error - app can continue without deep linking
     }
@@ -55,7 +55,7 @@ class DeepLinkService {
   /// Handle incoming deep link
   void _handleDeepLink(Uri uri) {
     if (kDebugMode) {
-      print('Received deep link: $uri');
+      debugPrint('Received deep link: $uri');
     }
 
     try {
@@ -65,21 +65,21 @@ class DeepLinkService {
           onArchiveLinkReceived!(identifier);
 
           if (kDebugMode) {
-            print('Extracted archive identifier: $identifier');
+            debugPrint('Extracted archive identifier: $identifier');
           }
         } else {
           if (kDebugMode) {
-            print('Deep link handler not set for identifier: $identifier');
+            debugPrint('Deep link handler not set for identifier: $identifier');
           }
         }
       } else {
         if (kDebugMode) {
-          print('Could not extract archive identifier from: $uri');
+          debugPrint('Could not extract archive identifier from: $uri');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error handling deep link: $e');
+        debugPrint('Error handling deep link: $e');
       }
     }
   }

@@ -70,6 +70,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Filter Files'),
@@ -78,10 +79,10 @@ class _FiltersScreenState extends State<FiltersScreen> {
           if (_hasActiveFilters())
             TextButton.icon(
               onPressed: _clearAllFilters,
-              icon: const Icon(Icons.clear_all, color: Colors.white),
-              label: const Text(
+              icon: Icon(Icons.clear_all, color: colorScheme.onPrimary),
+              label: Text(
                 'Clear All',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: colorScheme.onPrimary),
               ),
             ),
         ],
@@ -91,18 +92,18 @@ class _FiltersScreenState extends State<FiltersScreen> {
         children: [
           // Info card
           Card(
-            color: Colors.blue.shade50,
+            color: colorScheme.primaryContainer,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  Icon(Icons.info_outline, color: colorScheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Select filters to refine your file selection',
                       style: TextStyle(
-                        color: Colors.blue.shade900,
+                        color: colorScheme.primary,
                         fontSize: 14,
                       ),
                     ),
@@ -119,7 +120,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
           const SizedBox(height: 8),
           const Text(
             'Filter by where files originate from',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -134,8 +135,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
                     _includeOriginal = selected;
                   });
                 },
-                selectedColor: Colors.green.shade200,
-                checkmarkColor: Colors.green.shade700,
+                selectedColor: colorScheme.primaryContainer,
+                checkmarkColor: const Color(0xFF2E7D32),
                 avatar: _includeOriginal
                     ? null
                     : const Icon(Icons.upload_file, size: 18),
@@ -148,8 +149,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
                     _includeDerivative = selected;
                   });
                 },
-                selectedColor: Colors.orange.shade200,
-                checkmarkColor: Colors.orange.shade700,
+                selectedColor: colorScheme.secondaryContainer,
+                checkmarkColor: colorScheme.secondary,
                 avatar: _includeDerivative
                     ? null
                     : const Icon(Icons.auto_awesome, size: 18),
@@ -178,7 +179,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             '• Metadata: Archive-generated metadata files',
             style: TextStyle(
               fontSize: 11,
-              color: Colors.grey.shade600,
+              color: colorScheme.onSurfaceVariant,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -195,7 +196,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             _availableFormats.isEmpty
                 ? 'Loading available formats...'
                 : 'Show only these file formats (${_availableFormats.length} available)',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           if (_availableFormats.isEmpty)
@@ -224,8 +225,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
                       }
                     });
                   },
-                  selectedColor: Colors.blue.shade200,
-                  checkmarkColor: Colors.blue.shade700,
+                  selectedColor: colorScheme.primaryContainer,
+                  checkmarkColor: colorScheme.primary,
                 );
               }).toList(),
             ),
@@ -237,9 +238,9 @@ class _FiltersScreenState extends State<FiltersScreen> {
           // Exclude formats section
           _buildSectionSubheader('Exclude Formats'),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Hide these file formats',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           if (_availableFormats.isEmpty)
@@ -268,8 +269,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
                       }
                     });
                   },
-                  selectedColor: Colors.red.shade200,
-                  checkmarkColor: Colors.red.shade700,
+                  selectedColor: colorScheme.errorContainer,
+                  checkmarkColor: colorScheme.error,
                 );
               }).toList(),
             ),
@@ -281,9 +282,9 @@ class _FiltersScreenState extends State<FiltersScreen> {
           // Max file size section
           _buildSectionHeader('Maximum File Size'),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Show only files smaller than this size',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
@@ -337,7 +338,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
+                    color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -346,13 +347,13 @@ class _FiltersScreenState extends State<FiltersScreen> {
                       Icon(
                         Icons.filter_list,
                         size: 16,
-                        color: Colors.blue.shade700,
+                        color: colorScheme.primary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${_getActiveFilterCount()} active',
                         style: TextStyle(
-                          color: Colors.blue.shade900,
+                          color: colorScheme.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

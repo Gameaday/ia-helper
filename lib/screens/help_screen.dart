@@ -23,7 +23,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -39,19 +39,21 @@ class HelpScreen extends StatelessWidget {
                     'Internet Archive Helper is your comprehensive companion for accessing the vast digital collection of the Internet Archive. Download books, movies, music, software, and historical documents with ease.',
                   ),
                   const SizedBox(height: 16),
-                  Container(
+                  Builder(builder: (context) {
+                    final primaryColor = Theme.of(context).colorScheme.primary;
+                    return Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
+                      color: primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.blue.withValues(alpha: 0.3),
+                        color: primaryColor.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.info, size: 20, color: Colors.blue[700]),
+                        Icon(Icons.info, size: 20, color: primaryColor),
                         const SizedBox(width: 8),
                         const Expanded(
                           child: Text(
@@ -61,7 +63,8 @@ class HelpScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
+                  );
+                  }),
                   const SizedBox(height: 16),
                   const Text('Version: 1.6.0'),
                   const SizedBox(height: 8),
@@ -86,7 +89,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.help_outline,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -138,7 +141,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.star_outline,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -180,7 +183,7 @@ class HelpScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.link, color: Theme.of(context).primaryColor),
+                      Icon(Icons.link, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
                         'Useful Links',
@@ -235,7 +238,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.privacy_tip_outlined,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -279,7 +282,7 @@ class HelpScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -305,7 +308,7 @@ class HelpScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle, size: 16, color: Colors.green),
+          const Icon(Icons.check_circle, size: 16, color: Color(0xFF2E7D32)),
           const SizedBox(width: 8),
           Expanded(child: Text(text)),
         ],
@@ -329,7 +332,7 @@ class HelpScreen extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           child: Row(
             children: [
-              Icon(icon, color: Theme.of(context).primaryColor),
+              Icon(icon, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
