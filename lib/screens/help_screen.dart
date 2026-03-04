@@ -23,7 +23,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -86,7 +86,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.help_outline,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -138,7 +138,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.star_outline,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -180,7 +180,7 @@ class HelpScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.link, color: Theme.of(context).primaryColor),
+                      Icon(Icons.link, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
                         'Useful Links',
@@ -235,7 +235,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.privacy_tip_outlined,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -279,7 +279,7 @@ class HelpScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -329,7 +329,7 @@ class HelpScreen extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           child: Row(
             children: [
-              Icon(icon, color: Theme.of(context).primaryColor),
+              Icon(icon, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

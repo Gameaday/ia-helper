@@ -203,11 +203,11 @@ class _FileListWidgetState extends State<FileListWidget> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
             child: Text(
               '$selectedCount files selected • ${_formatSize(totalSize)}',
               style: TextStyle(
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),

@@ -325,7 +325,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
         children: [
           // Animated loading indicator
           SpinKitFadingCircle(
-            color: Theme.of(context).primaryColor,
+            color: Theme.of(context).colorScheme.primary,
             size: 60.0,
           ),
           const SizedBox(height: 24),

@@ -486,7 +486,7 @@ class _AppInitializerState extends State<AppInitializer> {
               Icon(
                 Icons.library_books,
                 size: 64,
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(height: 16),
               Text(
