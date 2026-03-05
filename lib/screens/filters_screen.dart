@@ -118,7 +118,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
           // Source Type filtering section
           _buildSectionHeader('Content Source Type'),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Filter by where files originate from',
             style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
