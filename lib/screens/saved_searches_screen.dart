@@ -560,7 +560,7 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
                         child: Row(
                           children: [
                             Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
                           ],
                         ),
