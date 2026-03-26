@@ -186,17 +186,11 @@ class ErrorBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.error.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: colorScheme.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            color: colorScheme.error,
-            size: 24,
-          ),
+          Icon(Icons.error_outline, color: colorScheme.error, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -215,7 +209,9 @@ class ErrorBanner extends StatelessWidget {
                   Text(
                     errorInfo.suggestion!,
                     style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onErrorContainer.withValues(alpha: 0.8),
+                      color: colorScheme.onErrorContainer.withValues(
+                        alpha: 0.8,
+                      ),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

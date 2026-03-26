@@ -79,7 +79,8 @@ class ThumbnailUrlService {
     final b = (hash & 0x0000FF);
 
     // Create SVG placeholder with identifier's color
-    final svg = '''
+    final svg =
+        '''
 <svg xmlns="http://www.w3.org/2000/svg" width="$size" height="$size">
   <rect width="$size" height="$size" fill="rgb($r,$g,$b)" opacity="0.3"/>
   <text x="50%" y="50%" font-family="sans-serif" font-size="${size * 0.4}" 

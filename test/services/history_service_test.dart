@@ -412,7 +412,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       service.removeFromHistory('archive-1');
-      
+
       // Wait for debounced save (2 seconds) plus buffer
       await Future.delayed(const Duration(milliseconds: 2100));
 
@@ -439,7 +439,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       service.clearHistory();
-      
+
       // Wait for debounced save (2 seconds) plus buffer
       await Future.delayed(const Duration(milliseconds: 2100));
 

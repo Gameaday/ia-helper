@@ -14,7 +14,7 @@ class PlatformUtils {
   static bool get supportsPathProvider => !kIsWeb;
 
   /// Check if CORS-restricted resources can be loaded
-  /// 
+  ///
   /// On web, some resources may be blocked by CORS policies.
   /// This helper indicates when we should use fallback strategies.
   static bool get hasCorsRestrictions => kIsWeb;

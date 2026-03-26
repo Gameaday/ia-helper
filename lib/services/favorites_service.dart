@@ -75,10 +75,10 @@ class FavoritesService extends ChangeNotifier {
       _favoritesCache.add(favorite.identifier);
 
       debugPrint('Added favorite: ${favorite.identifier}');
-      
+
       // Notify listeners that favorites changed
       notifyListeners();
-      
+
       return true;
     } catch (e) {
       debugPrint('Error adding favorite: $e');
@@ -103,10 +103,10 @@ class FavoritesService extends ChangeNotifier {
       _favoritesCache.remove(identifier);
 
       debugPrint('Removed favorite: $identifier (rows affected: $count)');
-      
+
       // Notify listeners that favorites changed
       notifyListeners();
-      
+
       return count > 0;
     } catch (e) {
       debugPrint('Error removing favorite: $e');

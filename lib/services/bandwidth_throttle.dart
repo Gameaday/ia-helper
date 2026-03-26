@@ -239,7 +239,7 @@ class BandwidthThrottle {
         : '0.0';
     final avgDelayMs = metrics.throttleEvents > 0
         ? (metrics.totalDelay.inMilliseconds / metrics.throttleEvents)
-            .toStringAsFixed(1)
+              .toStringAsFixed(1)
         : '0.0';
     final throughputKBps = (metrics.bytesConsumed / 1024).toStringAsFixed(2);
 

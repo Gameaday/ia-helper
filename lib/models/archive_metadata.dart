@@ -17,7 +17,8 @@ class ArchiveMetadata {
   final String? mediaType;
   final int? downloads;
   final double? rating;
-  final List<String> archiveOrgCollections; // Archive.org collections this item belongs to
+  final List<String>
+  archiveOrgCollections; // Archive.org collections this item belongs to
 
   ArchiveMetadata({
     required this.identifier,
@@ -41,8 +42,10 @@ class ArchiveMetadata {
   factory ArchiveMetadata.fromJson(Map<String, dynamic> json) {
     // Archive.org returns empty {} for non-existent items
     // Detect this early and throw a meaningful exception
-    if (json.isEmpty || 
-        (!json.containsKey('metadata') && !json.containsKey('files') && !json.containsKey('created'))) {
+    if (json.isEmpty ||
+        (!json.containsKey('metadata') &&
+            !json.containsKey('files') &&
+            !json.containsKey('created'))) {
       throw const FormatException('Archive item not found or empty response');
     }
 
@@ -94,7 +97,7 @@ class ArchiveMetadata {
     // Web browsers may block these thumbnails (platform limitation)
     // Native platforms work fine
     thumbnailUrl = urlService.getThumbnailUrl(identifier);
-    
+
     // Cover image is the full-size version (remove _thumb suffix)
     coverImageUrl = thumbnailUrl.replaceAll('__ia_thumb.jpg', '.jpg');
 

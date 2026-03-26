@@ -503,8 +503,10 @@ class LocalArchiveStorage extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        debugPrint('[LocalArchiveStorage] Removed ${toRemove.length} archives '
-            'older than ${duration.inDays} days');
+        debugPrint(
+          '[LocalArchiveStorage] Removed ${toRemove.length} archives '
+          'older than ${duration.inDays} days',
+        );
       }
     }
 
@@ -527,7 +529,9 @@ class LocalArchiveStorage extends ChangeNotifier {
     notifyListeners();
 
     if (kDebugMode) {
-      debugPrint('[LocalArchiveStorage] Batch save: ${archives.length} archives');
+      debugPrint(
+        '[LocalArchiveStorage] Batch save: ${archives.length} archives',
+      );
     }
 
     return archives.length;
@@ -553,7 +557,9 @@ class LocalArchiveStorage extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        debugPrint('[LocalArchiveStorage] Batch remove: ${removed.length} archives');
+        debugPrint(
+          '[LocalArchiveStorage] Batch remove: ${removed.length} archives',
+        );
       }
     }
 
@@ -569,7 +575,10 @@ class LocalArchiveStorage extends ChangeNotifier {
     }
 
     final sorted = getSorted(ArchiveSortOption.recentFirst);
-    final toRemove = sorted.skip(_maxArchives).map((a) => a.identifier).toList();
+    final toRemove = sorted
+        .skip(_maxArchives)
+        .map((a) => a.identifier)
+        .toList();
 
     return await removeBatch(toRemove);
   }

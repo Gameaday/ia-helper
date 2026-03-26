@@ -558,11 +558,11 @@ class IAHttpClient {
     final successRate = metrics.requests > 0
         ? (successfulRequests / metrics.requests * 100).toStringAsFixed(1)
         : '0.0';
-    
+
     final retryRate = metrics.requests > 0
         ? (metrics.retries / metrics.requests * 100).toStringAsFixed(1)
         : '0.0';
-    
+
     final cacheHitRate = metrics.requests > 0
         ? (metrics.cacheHits / metrics.requests * 100).toStringAsFixed(1)
         : '0.0';

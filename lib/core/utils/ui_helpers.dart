@@ -91,7 +91,9 @@ class UIHelpers {
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: isDangerous
-                ? TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error)
+                ? TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  )
                 : null,
             child: Text(confirmText),
           ),

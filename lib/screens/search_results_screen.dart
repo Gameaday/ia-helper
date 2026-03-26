@@ -220,10 +220,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         switchInCurve: MD3Curves.emphasized,
         switchOutCurve: MD3Curves.emphasized,
         transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
         child: KeyedSubtree(
           key: ValueKey(_viewLayout),
@@ -314,7 +311,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           final width = constraints.maxWidth;
           final isPhone = width < 600;
           final crossAxisCount = isPhone ? 2 : (width < 900 ? 3 : 4);
-          
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -333,12 +330,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Skeleton loaders
-                SkeletonGrid(
-                  itemCount: 6,
-                  crossAxisCount: crossAxisCount,
-                ),
+                SkeletonGrid(itemCount: 6, crossAxisCount: crossAxisCount),
               ],
             ),
           );
@@ -346,6 +340,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       ),
     );
   }
+
   Widget _buildErrorState() {
     return ErrorCard(
       error: _error ?? 'An unknown error occurred',
@@ -357,7 +352,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
   Widget _buildEmptyState() {
     return Semantics(
-      label: 'No search results found. Try adjusting your search query or filters. Tap back to search button to return.',
+      label:
+          'No search results found. Try adjusting your search query or filters. Tap back to search button to return.',
       liveRegion: true,
       child: Center(
         child: Padding(

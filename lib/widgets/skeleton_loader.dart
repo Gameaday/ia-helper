@@ -9,19 +9,10 @@ class SkeletonLoader extends StatefulWidget {
   final double? height;
   final BorderRadius? borderRadius;
 
-  const SkeletonLoader({
-    super.key,
-    this.width,
-    this.height,
-    this.borderRadius,
-  });
+  const SkeletonLoader({super.key, this.width, this.height, this.borderRadius});
 
   /// Skeleton for a single line of text
-  factory SkeletonLoader.text({
-    Key? key,
-    double? width,
-    double height = 16,
-  }) {
+  factory SkeletonLoader.text({Key? key, double? width, double height = 16}) {
     return SkeletonLoader(
       key: key,
       width: width,
@@ -31,11 +22,7 @@ class SkeletonLoader extends StatefulWidget {
   }
 
   /// Skeleton for a card
-  factory SkeletonLoader.card({
-    Key? key,
-    double? width,
-    double? height,
-  }) {
+  factory SkeletonLoader.card({Key? key, double? width, double? height}) {
     return SkeletonLoader(
       key: key,
       width: width,
@@ -45,10 +32,7 @@ class SkeletonLoader extends StatefulWidget {
   }
 
   /// Skeleton for a circular avatar
-  factory SkeletonLoader.circle({
-    Key? key,
-    required double size,
-  }) {
+  factory SkeletonLoader.circle({Key? key, required double size}) {
     return SkeletonLoader(
       key: key,
       width: size,
@@ -74,9 +58,10 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
       vsync: this,
     )..repeat();
 
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: -1.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -122,10 +107,7 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
 class ArchiveResultCardSkeleton extends StatelessWidget {
   final bool isListLayout;
 
-  const ArchiveResultCardSkeleton({
-    super.key,
-    this.isListLayout = false,
-  });
+  const ArchiveResultCardSkeleton({super.key, this.isListLayout = false});
 
   @override
   Widget build(BuildContext context) {
@@ -146,10 +128,7 @@ class ArchiveResultCardSkeleton extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Thumbnail skeleton
-          AspectRatio(
-            aspectRatio: 4 / 3,
-            child: SkeletonLoader.card(),
-          ),
+          AspectRatio(aspectRatio: 4 / 3, child: SkeletonLoader.card()),
 
           // Content skeleton
           Padding(
@@ -190,11 +169,7 @@ class ArchiveResultCardSkeleton extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Thumbnail skeleton
-          SizedBox(
-            width: 120,
-            height: 120,
-            child: SkeletonLoader.card(),
-          ),
+          SizedBox(width: 120, height: 120, child: SkeletonLoader.card()),
 
           // Content skeleton
           Expanded(
@@ -229,11 +204,7 @@ class SkeletonGrid extends StatelessWidget {
   final int itemCount;
   final int crossAxisCount;
 
-  const SkeletonGrid({
-    super.key,
-    this.itemCount = 6,
-    this.crossAxisCount = 2,
-  });
+  const SkeletonGrid({super.key, this.itemCount = 6, this.crossAxisCount = 2});
 
   @override
   Widget build(BuildContext context) {
@@ -256,10 +227,7 @@ class SkeletonGrid extends StatelessWidget {
 class SkeletonList extends StatelessWidget {
   final int itemCount;
 
-  const SkeletonList({
-    super.key,
-    this.itemCount = 5,
-  });
+  const SkeletonList({super.key, this.itemCount = 5});
 
   @override
   Widget build(BuildContext context) {

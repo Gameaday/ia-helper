@@ -19,7 +19,7 @@ class CollectionPicker extends StatefulWidget {
 
   /// Optional mediatype for the item
   final String? mediatype;
-  
+
   /// Archive.org collections this item belongs to
   final List<String> archiveOrgCollections;
 
@@ -143,19 +143,19 @@ class _CollectionPickerState extends State<CollectionPicker> {
       if (toAdd.isEmpty && toRemove.isEmpty) {
         message = 'No changes made';
       } else if (toAdd.isNotEmpty && toRemove.isEmpty) {
-        message = 'Added to ${toAdd.length} ${toAdd.length == 1 ? 'collection' : 'collections'}';
+        message =
+            'Added to ${toAdd.length} ${toAdd.length == 1 ? 'collection' : 'collections'}';
       } else if (toAdd.isEmpty && toRemove.isNotEmpty) {
-        message = 'Removed from ${toRemove.length} ${toRemove.length == 1 ? 'collection' : 'collections'}';
+        message =
+            'Removed from ${toRemove.length} ${toRemove.length == 1 ? 'collection' : 'collections'}';
       } else {
         // Both added and removed
-        message = 'Updated collections (added: ${toAdd.length}, removed: ${toRemove.length})';
+        message =
+            'Updated collections (added: ${toAdd.length}, removed: ${toRemove.length})';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
     } catch (e) {
       setState(() {
@@ -330,27 +330,27 @@ class _CollectionPickerState extends State<CollectionPicker> {
         if (widget.archiveOrgCollections.isNotEmpty) ...[
           _buildSectionHeader('Archive.org Collections', Icons.public),
           const SizedBox(height: 8),
-          ...widget.archiveOrgCollections.map((collection) => 
-            _buildArchiveOrgCollectionItem(collection)
+          ...widget.archiveOrgCollections.map(
+            (collection) => _buildArchiveOrgCollectionItem(collection),
           ),
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 16),
         ],
-        
+
         // My Collections Section (editable)
         _buildSectionHeader('My Collections', Icons.folder),
         const SizedBox(height: 8),
         if (_allCollections.isEmpty)
           _buildEmptyState()
         else
-          ..._allCollections.map((collection) => 
-            _buildCollectionItem(collection)
+          ..._allCollections.map(
+            (collection) => _buildCollectionItem(collection),
           ),
       ],
     );
   }
-  
+
   Widget _buildSectionHeader(String title, IconData icon) {
     final theme = Theme.of(context);
     return Padding(
@@ -370,26 +370,20 @@ class _CollectionPickerState extends State<CollectionPicker> {
       ),
     );
   }
-  
+
   Widget _buildArchiveOrgCollectionItem(String collectionName) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 0,
       color: colorScheme.surfaceContainerHighest,
       child: ListTile(
-        leading: Icon(
-          Icons.public,
-          color: colorScheme.primary,
-        ),
+        leading: Icon(Icons.public, color: colorScheme.primary),
         title: Text(collectionName),
         subtitle: const Text('Archive.org collection'),
-        trailing: Icon(
-          Icons.check_circle,
-          color: colorScheme.primary,
-        ),
+        trailing: Icon(Icons.check_circle, color: colorScheme.primary),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );

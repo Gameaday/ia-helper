@@ -261,9 +261,7 @@ class MoreScreen extends StatelessWidget {
         Center(
           child: Text(
             '© 2025 Internet Archive Helper',
-            style: textTheme.labelSmall?.copyWith(
-              color: colorScheme.outline,
-            ),
+            style: textTheme.labelSmall?.copyWith(color: colorScheme.outline),
             textAlign: TextAlign.center,
           ),
         ),
@@ -335,18 +333,15 @@ class MoreScreen extends StatelessWidget {
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
             ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final item = menuItems[index];
-                return _MenuItemCard(
-                  icon: item.icon,
-                  title: item.title,
-                  subtitle: item.subtitle,
-                  onTap: item.onTap,
-                );
-              },
-              childCount: menuItems.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final item = menuItems[index];
+              return _MenuItemCard(
+                icon: item.icon,
+                title: item.title,
+                subtitle: item.subtitle,
+                onTap: item.onTap,
+              );
+            }, childCount: menuItems.length),
           ),
         ),
 
@@ -645,10 +640,7 @@ class _MenuItemCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right,
-                color: colorScheme.outline,
-              ),
+              Icon(Icons.chevron_right, color: colorScheme.outline),
             ],
           ),
         ),

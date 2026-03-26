@@ -18,7 +18,11 @@ class SnackBarHelper {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onInverseSurface, size: 20),
+            Icon(
+              Icons.info_outline,
+              color: Theme.of(context).colorScheme.onInverseSurface,
+              size: 20,
+            ),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
@@ -75,9 +79,20 @@ class SnackBarHelper {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.warning_amber_outlined, color: Theme.of(context).colorScheme.onTertiaryContainer, size: 20),
+            Icon(
+              Icons.warning_amber_outlined,
+              color: Theme.of(context).colorScheme.onTertiaryContainer,
+              size: 20,
+            ),
             const SizedBox(width: 12),
-            Expanded(child: Text(message, style: TextStyle(color: Theme.of(context).colorScheme.onTertiaryContainer))),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onTertiaryContainer,
+                ),
+              ),
+            ),
           ],
         ),
         backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
@@ -101,7 +116,8 @@ class SnackBarHelper {
     final colorScheme = Theme.of(context).colorScheme;
 
     // Use longer duration for errors with suggestions
-    final snackBarDuration = duration ??
+    final snackBarDuration =
+        duration ??
         (errorInfo.suggestion != null
             ? const Duration(seconds: 6)
             : const Duration(seconds: 4));
@@ -154,8 +170,7 @@ class SnackBarHelper {
   }
 
   /// Show a loading SnackBar (persistent until dismissed)
-  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>
-      showLoading(
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showLoading(
     BuildContext context,
     String message,
   ) {
@@ -172,7 +187,9 @@ class SnackBarHelper {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onInverseSurface),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.onInverseSurface,
+                ),
               ),
             ),
             const SizedBox(width: 12),

@@ -129,29 +129,33 @@ class ArchiveService extends ChangeNotifier {
     try {
       // Use metadata endpoint for validation
       final url = 'https://archive.org/metadata/$identifier';
-      
+
       if (kDebugMode) {
         debugPrint('[ArchiveService] Validating identifier: $identifier');
       }
 
       // Use GET request (HEAD returns 405 on Archive.org)
       // Archive.org returns 200 with empty JSON {} for non-existent items
-      final response = await http.get(
-        Uri.parse(url),
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          if (kDebugMode) {
-            debugPrint('[ArchiveService] Validation timeout for: $identifier');
-          }
-          return http.Response('Timeout', 408);
-        },
-      );
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              if (kDebugMode) {
+                debugPrint(
+                  '[ArchiveService] Validation timeout for: $identifier',
+                );
+              }
+              return http.Response('Timeout', 408);
+            },
+          );
 
       // Check if response is successful
       if (response.statusCode != 200) {
         if (kDebugMode) {
-          debugPrint('[ArchiveService] Identifier validation: $identifier = false (${response.statusCode})');
+          debugPrint(
+            '[ArchiveService] Identifier validation: $identifier = false (${response.statusCode})',
+          );
         }
         return false;
       }
@@ -160,14 +164,17 @@ class ArchiveService extends ChangeNotifier {
       // Check if response has actual metadata
       try {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
-        final exists = json.containsKey('metadata') || 
-                      json.containsKey('files') || 
-                      json.containsKey('created');
-        
+        final exists =
+            json.containsKey('metadata') ||
+            json.containsKey('files') ||
+            json.containsKey('created');
+
         if (kDebugMode) {
-          debugPrint('[ArchiveService] Identifier validation: $identifier = $exists (has metadata: ${json.containsKey('metadata')})');
+          debugPrint(
+            '[ArchiveService] Identifier validation: $identifier = $exists (has metadata: ${json.containsKey('metadata')})',
+          );
         }
-        
+
         return exists;
       } catch (e) {
         // JSON parsing error = invalid response
@@ -220,7 +227,9 @@ class ArchiveService extends ChangeNotifier {
           : ApiIntensitySettings.standard();
 
       if (kDebugMode) {
-        debugPrint('[ArchiveService] API Intensity: ${intensitySettings.level}');
+        debugPrint(
+          '[ArchiveService] API Intensity: ${intensitySettings.level}',
+        );
       }
 
       ArchiveMetadata metadata;
@@ -255,7 +264,8 @@ class ArchiveService extends ChangeNotifier {
 
         // Cache Only mode: If no valid cache, throw exception
         if (intensitySettings.level == ApiIntensityLevel.cacheOnly) {
-          _error = 'Cache Only mode: No cached data available for $trimmedIdentifier';
+          _error =
+              'Cache Only mode: No cached data available for $trimmedIdentifier';
           _isLoading = false;
           notifyListeners();
           throw Exception(_error);
@@ -263,7 +273,8 @@ class ArchiveService extends ChangeNotifier {
       }
 
       // For force refresh, respect Cache Only mode
-      if (forceRefresh && intensitySettings.level == ApiIntensityLevel.cacheOnly) {
+      if (forceRefresh &&
+          intensitySettings.level == ApiIntensityLevel.cacheOnly) {
         _error = 'Cache Only mode: Cannot refresh from API';
         _isLoading = false;
         notifyListeners();
@@ -272,7 +283,7 @@ class ArchiveService extends ChangeNotifier {
 
       // Cache miss or stale - fetch from API
       // Note: Internet Archive's metadata endpoint returns all fields in one call.
-      // Future enhancement: Add parameters to control extended data like reviews, 
+      // Future enhancement: Add parameters to control extended data like reviews,
       // related items, or statistics based on intensity level.
       metadata = await _api.fetchMetadata(trimmedIdentifier);
 

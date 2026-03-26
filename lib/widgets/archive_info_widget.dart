@@ -42,7 +42,9 @@ class ArchiveInfoWidget extends StatelessWidget {
                 Consumer<ArchiveService>(
                   builder: (context, service, child) {
                     // Check if archive has downloaded files
-                    final hasDownloads = service.isDownloaded(metadata.identifier);
+                    final hasDownloads = service.isDownloaded(
+                      metadata.identifier,
+                    );
                     if (!hasDownloads) return const SizedBox.shrink();
 
                     return Row(

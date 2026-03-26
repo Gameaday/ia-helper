@@ -143,69 +143,71 @@ class IAGetMobileApp extends StatelessWidget {
           home: const AppInitializer(),
           debugShowCheckedModeBanner: false,
 
-        // Clamp text scaling to prevent layout issues
-        builder: (context, child) {
-          final mediaQuery = MediaQuery.of(context);
-          final scaleFactor = mediaQuery.textScaler.scale(1.0).clamp(0.8, 1.2);
-          return MediaQuery(
-            data: mediaQuery.copyWith(
-              textScaler: TextScaler.linear(scaleFactor),
-            ),
-            child: child!,
-          );
-        },
+          // Clamp text scaling to prevent layout issues
+          builder: (context, child) {
+            final mediaQuery = MediaQuery.of(context);
+            final scaleFactor = mediaQuery.textScaler
+                .scale(1.0)
+                .clamp(0.8, 1.2);
+            return MediaQuery(
+              data: mediaQuery.copyWith(
+                textScaler: TextScaler.linear(scaleFactor),
+              ),
+              child: child!,
+            );
+          },
 
-        // Navigation performance
-        onGenerateRoute: (settings) {
-          // Implement custom route generation with Material Design 3 transitions
-          switch (settings.name) {
-            case '/':
-              return MD3PageTransitions.fadeThrough(
-                page: const AppInitializer(),
-                settings: settings,
-              );
-            case '/home':
-              return MD3PageTransitions.fadeThrough(
-                page: const BottomNavigationScaffold(),
-                settings: settings,
-              );
-            case ArchiveDetailScreen.routeName:
-              return MD3PageTransitions.fadeThrough(
-                page: const ArchiveDetailScreen(),
-                settings: settings,
-              );
-            case AdvancedSearchScreen.routeName:
-              return MD3PageTransitions.sharedAxis(
-                page: const AdvancedSearchScreen(),
-                settings: settings,
-              );
-            case SavedSearchesScreen.routeName:
-              return MD3PageTransitions.sharedAxis(
-                page: const SavedSearchesScreen(),
-                settings: settings,
-              );
-            case '/api-intensity-settings':
-              return MD3PageTransitions.sharedAxis(
-                page: const ApiIntensitySettingsScreen(),
-                settings: settings,
-              );
-            case SearchResultsScreen.routeName:
-              // Pass SearchQuery through settings.arguments
-              final args = settings.arguments as Map<String, dynamic>?;
-              final query =
-                  args?['query'] as SearchQuery? ?? const SearchQuery();
-              final title = args?['title'] as String?;
-              return MD3PageTransitions.fadeThrough(
-                page: SearchResultsScreen(query: query, title: title),
-                settings: settings,
-              );
-            default:
-              return MD3PageTransitions.fadeThrough(
-                page: const AppInitializer(),
-                settings: settings,
-              );
-          }
-        },
+          // Navigation performance
+          onGenerateRoute: (settings) {
+            // Implement custom route generation with Material Design 3 transitions
+            switch (settings.name) {
+              case '/':
+                return MD3PageTransitions.fadeThrough(
+                  page: const AppInitializer(),
+                  settings: settings,
+                );
+              case '/home':
+                return MD3PageTransitions.fadeThrough(
+                  page: const BottomNavigationScaffold(),
+                  settings: settings,
+                );
+              case ArchiveDetailScreen.routeName:
+                return MD3PageTransitions.fadeThrough(
+                  page: const ArchiveDetailScreen(),
+                  settings: settings,
+                );
+              case AdvancedSearchScreen.routeName:
+                return MD3PageTransitions.sharedAxis(
+                  page: const AdvancedSearchScreen(),
+                  settings: settings,
+                );
+              case SavedSearchesScreen.routeName:
+                return MD3PageTransitions.sharedAxis(
+                  page: const SavedSearchesScreen(),
+                  settings: settings,
+                );
+              case '/api-intensity-settings':
+                return MD3PageTransitions.sharedAxis(
+                  page: const ApiIntensitySettingsScreen(),
+                  settings: settings,
+                );
+              case SearchResultsScreen.routeName:
+                // Pass SearchQuery through settings.arguments
+                final args = settings.arguments as Map<String, dynamic>?;
+                final query =
+                    args?['query'] as SearchQuery? ?? const SearchQuery();
+                final title = args?['title'] as String?;
+                return MD3PageTransitions.fadeThrough(
+                  page: SearchResultsScreen(query: query, title: title),
+                  settings: settings,
+                );
+              default:
+                return MD3PageTransitions.fadeThrough(
+                  page: const AppInitializer(),
+                  settings: settings,
+                );
+            }
+          },
         ),
       ),
     );

@@ -52,123 +52,20 @@ class ArchiveResultCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
           onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Thumbnail section with Hero animation
-            Hero(
-              tag: 'archive-thumbnail-${result.identifier}',
-              child: AspectRatio(
-                aspectRatio: _getAspectRatio(),
-                child: _buildThumbnail(context),
-              ),
-            ),
-
-            // Content section
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    result.title,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  // Creator (if available)
-                  if (result.creator != null && result.creator!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      result.creator!,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-
-                  const SizedBox(height: 8),
-
-                  // Metadata chips
-                  Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
-                    children: [
-                      if (result.mediaType != null)
-                        _buildMetadataChip(
-                          context,
-                          _formatMediaType(result.mediaType!),
-                          Icons.category_outlined,
-                        ),
-                      if (result.downloads != null && result.downloads! > 0)
-                        _buildMetadataChip(
-                          context,
-                          _formatDownloads(result.downloads!),
-                          Icons.download_outlined,
-                        ),
-                      if (result.date != null)
-                        _buildMetadataChip(
-                          context,
-                          _formatDate(result.date!),
-                          Icons.calendar_today_outlined,
-                        ),
-                    ],
-                  ),
-
-                  // Favorite button
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: FavoriteIconButton(
-                      identifier: result.identifier,
-                      iconSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    );
-  }
-
-  /// Build list layout card (thumbnail on left)
-  Widget _buildListCard(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Semantics(
-      label: _buildSemanticLabel(),
-      button: true,
-      enabled: true,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        elevation: 1,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
-          onTap: onTap,
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Thumbnail section with Hero animation
               Hero(
                 tag: 'archive-thumbnail-${result.identifier}',
-              child: SizedBox(
-                  width: 120, height: 120, child: _buildThumbnail(context)),
-            ),
+                child: AspectRatio(
+                  aspectRatio: _getAspectRatio(),
+                  child: _buildThumbnail(context),
+                ),
+              ),
 
-            // Content section
-            Expanded(
-              child: Padding(
+              // Content section
+              Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,19 +91,6 @@ class ArchiveResultCard extends StatelessWidget {
                           color: colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-
-                    // Description (if available)
-                    if (result.description.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        result.description,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
-                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -238,23 +122,143 @@ class ArchiveResultCard extends StatelessWidget {
                           ),
                       ],
                     ),
+
+                    // Favorite button
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: FavoriteIconButton(
+                        identifier: result.identifier,
+                        iconSize: 18,
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-
-            // Favorite button
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: FavoriteIconButton(
-                identifier: result.identifier,
-                iconSize: 18,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
+    );
+  }
+
+  /// Build list layout card (thumbnail on left)
+  Widget _buildListCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Semantics(
+      label: _buildSemanticLabel(),
+      button: true,
+      enabled: true,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        elevation: 1,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: InkWell(
+          onTap: onTap,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail section with Hero animation
+              Hero(
+                tag: 'archive-thumbnail-${result.identifier}',
+                child: SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: _buildThumbnail(context),
+                ),
+              ),
+
+              // Content section
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title
+                      Text(
+                        result.title,
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      // Creator (if available)
+                      if (result.creator != null &&
+                          result.creator!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          result.creator!,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+
+                      // Description (if available)
+                      if (result.description.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          result.description,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+
+                      const SizedBox(height: 8),
+
+                      // Metadata chips
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: [
+                          if (result.mediaType != null)
+                            _buildMetadataChip(
+                              context,
+                              _formatMediaType(result.mediaType!),
+                              Icons.category_outlined,
+                            ),
+                          if (result.downloads != null && result.downloads! > 0)
+                            _buildMetadataChip(
+                              context,
+                              _formatDownloads(result.downloads!),
+                              Icons.download_outlined,
+                            ),
+                          if (result.date != null)
+                            _buildMetadataChip(
+                              context,
+                              _formatDate(result.date!),
+                              Icons.calendar_today_outlined,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Favorite button
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: FavoriteIconButton(
+                  identifier: result.identifier,
+                  iconSize: 18,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

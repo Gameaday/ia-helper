@@ -190,8 +190,7 @@ class ThumbnailCacheService {
       if (response.statusCode == 200) {
         return response.bodyBytes;
       } else if (kDebugMode) {
-        debugPrint(
-            '[ThumbnailCache] HTTP ${response.statusCode} for: $url');
+        debugPrint('[ThumbnailCache] HTTP ${response.statusCode} for: $url');
       }
     } catch (e) {
       // On web, CORS errors are expected for some Archive.org thumbnails

@@ -49,10 +49,10 @@ class ArchiveUrlService {
   String getAdvancedSearchUrl(Map<String, String> params) {
     final uri = Uri.parse(IAEndpoints.advancedSearch);
     final queryParams = Map<String, String>.from(params);
-    
+
     // Ensure output is JSON if not specified
     queryParams.putIfAbsent('output', () => 'json');
-    
+
     return uri.replace(queryParameters: queryParams).toString();
   }
 
@@ -114,9 +114,7 @@ class ArchiveUrlService {
   ///
   /// Caller should try these in order and use first successful load.
   List<String> getThumbnailUrlsToTry(String identifier) {
-    return [
-      getThumbnailUrl(identifier),
-    ];
+    return [getThumbnailUrl(identifier)];
   }
 
   // ============================================================================
@@ -166,13 +164,15 @@ class ArchiveUrlService {
     if (_isCdnUrl(url)) {
       final filename = url.split('/').last;
       final fixedUrl = getDownloadUrl(identifier, filename);
-      
+
       if (kDebugMode) {
-        debugPrint('[ArchiveUrlService] CDN URL rewritten to official endpoint:');
+        debugPrint(
+          '[ArchiveUrlService] CDN URL rewritten to official endpoint:',
+        );
         debugPrint('  FROM: $url');
         debugPrint('  TO:   $fixedUrl');
       }
-      
+
       return fixedUrl;
     }
 
@@ -189,10 +189,10 @@ class ArchiveUrlService {
   bool _isCdnUrl(String url) {
     // Match CDN patterns
     final cdnPatterns = [
-      RegExp(r'https?://dn\d+\..*?\.archive\.org'),      // dn720003.ca.archive.org
-      RegExp(r'https?://ia\d+\..*?\.archive\.org'),      // ia801408.us.archive.org
-      RegExp(r'https?://.*?\.us\.archive\.org'),         // *.us.archive.org
-      RegExp(r'https?://.*?\.ca\.archive\.org'),         // *.ca.archive.org
+      RegExp(r'https?://dn\d+\..*?\.archive\.org'), // dn720003.ca.archive.org
+      RegExp(r'https?://ia\d+\..*?\.archive\.org'), // ia801408.us.archive.org
+      RegExp(r'https?://.*?\.us\.archive\.org'), // *.us.archive.org
+      RegExp(r'https?://.*?\.ca\.archive\.org'), // *.ca.archive.org
     ];
 
     return cdnPatterns.any((pattern) => pattern.hasMatch(url));
@@ -224,13 +224,13 @@ class ArchiveUrlService {
   /// - Be ASCII or properly encoded
   bool isValidIdentifier(String identifier) {
     if (identifier.trim().isEmpty) return false;
-    
+
     // Check for path separators
     if (identifier.contains('/') || identifier.contains('\\')) return false;
-    
+
     // Check for URL-unsafe characters
     if (identifier.contains(RegExp(r'[?#&=\s]'))) return false;
-    
+
     return true;
   }
 
@@ -240,11 +240,11 @@ class ArchiveUrlService {
   /// Throws ArgumentError if identifier is invalid.
   String _sanitizeIdentifier(String identifier) {
     final trimmed = identifier.trim();
-    
+
     if (!isValidIdentifier(trimmed)) {
       throw ArgumentError('Invalid identifier: "$identifier"');
     }
-    
+
     return trimmed;
   }
 
@@ -257,7 +257,7 @@ class ArchiveUrlService {
     if (filename.contains('%')) {
       return filename;
     }
-    
+
     // Encode special characters but preserve forward slashes (for paths)
     return Uri.encodeComponent(filename).replaceAll('%2F', '/');
   }
@@ -278,7 +278,7 @@ class ArchiveUrlService {
   String? extractIdentifier(String url) {
     try {
       final uri = Uri.parse(url);
-      
+
       if (!uri.host.endsWith('archive.org')) {
         return null;
       }
@@ -290,12 +290,14 @@ class ArchiveUrlService {
       if (segments.length >= 2) {
         final endpoint = segments[0];
         final identifier = segments[1];
-        
+
         if (['details', 'metadata', 'download'].contains(endpoint)) {
           return identifier;
         }
-        
-        if (endpoint == 'services' && segments.length >= 3 && segments[1] == 'img') {
+
+        if (endpoint == 'services' &&
+            segments.length >= 3 &&
+            segments[1] == 'img') {
           return segments[2];
         }
       }
@@ -303,7 +305,9 @@ class ArchiveUrlService {
       return null;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[ArchiveUrlService] Failed to extract identifier from: $url');
+        debugPrint(
+          '[ArchiveUrlService] Failed to extract identifier from: $url',
+        );
       }
       return null;
     }
