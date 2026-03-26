@@ -45,11 +45,12 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   String? _didYouMean;
-  
+
   // Identifier validation state
   bool _isValidatingIdentifier = false;
   bool? _isValidIdentifier;
-  String? _validatedIdentifier; // Store the actual working identifier (may be lowercase)
+  String?
+  _validatedIdentifier; // Store the actual working identifier (may be lowercase)
   Timer? _validationDebounce;
 
   @override
@@ -152,14 +153,14 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
   void _scheduleIdentifierValidation(String identifier) {
     // Cancel previous validation timer
     _validationDebounce?.cancel();
-    
+
     // Reset validation state
     setState(() {
       _isValidatingIdentifier = true;
       _isValidIdentifier = null;
       _validatedIdentifier = null; // Clear previous validated identifier
     });
-    
+
     // Schedule new validation after 300ms (reduced from 500ms for snappier feedback)
     _validationDebounce = Timer(const Duration(milliseconds: 300), () {
       _validateIdentifier(identifier);
@@ -169,11 +170,11 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
   /// Validate identifier using ArchiveService
   Future<void> _validateIdentifier(String identifier) async {
     if (!mounted) return;
-    
+
     try {
       final archiveService = context.read<ArchiveService>();
       final validatedId = await archiveService.validateIdentifier(identifier);
-      
+
       if (mounted) {
         setState(() {
           _isValidatingIdentifier = false;
@@ -466,34 +467,40 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
                             _isValidatingIdentifier
                                 ? 'Checking if archive exists...'
                                 : _isValidIdentifier == true
-                                    ? _validatedIdentifier != _controller.text.trim()
-                                        ? 'Valid archive: $_validatedIdentifier'
-                                        : 'Valid archive identifier'
-                                    : 'Archive not found on Archive.org',
+                                ? _validatedIdentifier !=
+                                          _controller.text.trim()
+                                      ? 'Valid archive: $_validatedIdentifier'
+                                      : 'Valid archive identifier'
+                                : 'Archive not found on Archive.org',
                             style: textTheme.bodySmall?.copyWith(
                               color: _isValidatingIdentifier
                                   ? colorScheme.onSurfaceVariant
                                   : _isValidIdentifier == true
-                                      ? colorScheme.primary
-                                      : colorScheme.error,
+                                  ? colorScheme.primary
+                                  : colorScheme.error,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                
+
                 // Action buttons
                 Row(
                   children: [
                     // Open Archive button (primary action) - only enabled if validated
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: _isValidIdentifier == true && _validatedIdentifier != null
+                        onPressed:
+                            _isValidIdentifier == true &&
+                                _validatedIdentifier != null
                             ? () {
                                 // Use the validated identifier (which may be lowercase)
                                 // instead of user input
-                                widget.onSearch?.call(_validatedIdentifier!, SearchType.identifier);
+                                widget.onSearch?.call(
+                                  _validatedIdentifier!,
+                                  SearchType.identifier,
+                                );
                                 _focusNode.unfocus();
                               }
                             : null, // Disabled until validation succeeds

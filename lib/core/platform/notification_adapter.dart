@@ -246,7 +246,9 @@ class _WebNotificationAdapter implements NotificationAdapter {
   }) async {
     // No-op on web
     if (kDebugMode) {
-      debugPrint('[NotificationAdapter] Web: Would show progress: $title ($progress%)');
+      debugPrint(
+        '[NotificationAdapter] Web: Would show progress: $title ($progress%)',
+      );
     }
   }
 

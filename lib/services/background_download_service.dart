@@ -466,7 +466,9 @@ class BackgroundDownloadService extends ChangeNotifier {
         _activeDownloads.remove(downloadId);
 
         if (kDebugMode) {
-          debugPrint('[BackgroundDownloadService] Cancelled download: $downloadId');
+          debugPrint(
+            '[BackgroundDownloadService] Cancelled download: $downloadId',
+          );
         }
 
         notifyListeners();
@@ -497,7 +499,9 @@ class BackgroundDownloadService extends ChangeNotifier {
         );
 
         if (kDebugMode) {
-          debugPrint('[BackgroundDownloadService] Paused download: $downloadId');
+          debugPrint(
+            '[BackgroundDownloadService] Paused download: $downloadId',
+          );
         }
 
         notifyListeners();
@@ -528,7 +532,9 @@ class BackgroundDownloadService extends ChangeNotifier {
         );
 
         if (kDebugMode) {
-          debugPrint('[BackgroundDownloadService] Resumed download: $downloadId');
+          debugPrint(
+            '[BackgroundDownloadService] Resumed download: $downloadId',
+          );
         }
 
         notifyListeners();

@@ -67,7 +67,9 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
                         context: context,
                         identifier: identifier,
                         title: service.currentMetadata?.title,
-                        archiveOrgCollections: service.currentMetadata?.archiveOrgCollections ?? [],
+                        archiveOrgCollections:
+                            service.currentMetadata?.archiveOrgCollections ??
+                            [],
                       ),
                     ),
                   ],

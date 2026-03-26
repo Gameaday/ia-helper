@@ -206,10 +206,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     _buildQuery();
 
     if (_currentQuery.query == null && _currentQuery.fieldQueries.isEmpty) {
-      SnackBarHelper.showWarning(
-        context,
-        'Please enter a search query first',
-      );
+      SnackBarHelper.showWarning(context, 'Please enter a search query first');
       return;
     }
 
@@ -378,10 +375,10 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         final isPhone = width < 600;
         final isTablet = width >= 600 && width < 1200;
         final isDesktop = width >= 1200;
-        
+
         // Determine padding based on screen size
         final horizontalPadding = isPhone ? 16.0 : (isTablet ? 24.0 : 32.0);
-        
+
         return SingleChildScrollView(
           controller: _scrollController,
           padding: EdgeInsets.symmetric(
@@ -396,7 +393,11 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
               _buildFieldSearchToggle(),
               if (_showFieldSearch) ...[
                 const SizedBox(height: 16),
-                _buildFieldSearchSection(isPhone: isPhone, isTablet: isTablet, isDesktop: isDesktop),
+                _buildFieldSearchSection(
+                  isPhone: isPhone,
+                  isTablet: isTablet,
+                  isDesktop: isDesktop,
+                ),
               ],
               const SizedBox(height: 24),
               _buildMediatypeFilters(),
@@ -477,7 +478,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     // Tablet: 2 columns
     // Desktop: 3 columns
     final columnCount = isPhone ? 1 : (isTablet ? 2 : 3);
-    
+
     // List of field widgets
     final fields = [
       TextField(
@@ -505,7 +506,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         ),
       ),
     ];
-    
+
     // Build responsive grid layout
     return Card(
       child: Padding(

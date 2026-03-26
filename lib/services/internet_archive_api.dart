@@ -131,7 +131,9 @@ class InternetArchiveApi {
           if (newEtag != null) {
             await _cache.updateETag(extractedId, newEtag);
             if (kDebugMode) {
-              debugPrint('[InternetArchiveApi] Updated ETag in cache: $newEtag');
+              debugPrint(
+                '[InternetArchiveApi] Updated ETag in cache: $newEtag',
+              );
             }
           }
         }

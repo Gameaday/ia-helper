@@ -83,10 +83,15 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           if (_hasActiveFilters())
             TextButton.icon(
               onPressed: _clearAll,
-              icon: Icon(Icons.clear_all, color: Theme.of(context).colorScheme.onInverseSurface),
+              icon: Icon(
+                Icons.clear_all,
+                color: Theme.of(context).colorScheme.onInverseSurface,
+              ),
               label: Text(
                 'Clear All',
-                style: TextStyle(color: Theme.of(context).colorScheme.onInverseSurface),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onInverseSurface,
+                ),
               ),
             ),
         ],
@@ -101,7 +106,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.info_outline,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -124,7 +132,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           const SizedBox(height: 8),
           Text(
             'Filter by folder paths (e.g., "data/", "images/*", "docs/2024")',
-            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -147,7 +158,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () => _addSubfolder(false),
-                style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
                 child: const Text('Exclude'),
               ),
             ],
@@ -169,7 +182,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () =>
                           setState(() => _includeSubfolders.remove(folder)),
-                      backgroundColor: const Color(0xFF2E7D32).withValues(alpha: 0.2),
+                      backgroundColor: const Color(
+                        0xFF2E7D32,
+                      ).withValues(alpha: 0.2),
                     ),
                   )
                   .toList(),
@@ -192,7 +207,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () =>
                           setState(() => _excludeSubfolders.remove(folder)),
-                      backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer,
                     ),
                   )
                   .toList(),
@@ -222,7 +239,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
             _useRegex
                 ? 'Enter regex patterns (e.g., "^data_\\d+\\.txt\$")'
                 : 'Enter wildcard patterns (e.g., "*.pdf", "chapter*", "data_?.txt")',
-            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -245,7 +265,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () => _addPattern(false),
-                style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
                 child: const Text('Exclude'),
               ),
             ],
@@ -267,7 +289,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () =>
                           setState(() => _includePatterns.remove(pattern)),
-                      backgroundColor: const Color(0xFF2E7D32).withValues(alpha: 0.2),
+                      backgroundColor: const Color(
+                        0xFF2E7D32,
+                      ).withValues(alpha: 0.2),
                     ),
                   )
                   .toList(),
@@ -290,7 +314,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () =>
                           setState(() => _excludePatterns.remove(pattern)),
-                      backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer,
                     ),
                   )
                   .toList(),
@@ -307,7 +333,10 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           const SizedBox(height: 8),
           Text(
             'Filter by file size (in MB)',
-            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -393,7 +422,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           color: Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, -2),
             ),

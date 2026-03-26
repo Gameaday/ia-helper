@@ -290,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, historyService, child) {
             // Limit to fit on screen without scrolling
             final recentSearches = historyService.history.take(5).toList();
-            
+
             if (recentSearches.isEmpty) {
               return const SizedBox.shrink();
             }
@@ -303,7 +303,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Dismissible(
-                      key: Key('recent_search_${entry.identifier}_${entry.visitedAt.millisecondsSinceEpoch}'),
+                      key: Key(
+                        'recent_search_${entry.identifier}_${entry.visitedAt.millisecondsSinceEpoch}',
+                      ),
                       direction: DismissDirection.horizontal,
                       onDismissed: (direction) {
                         historyService.removeFromHistory(entry.identifier);
@@ -339,12 +341,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       child: InkWell(
-                        onTap: () => _handleSearch(entry.identifier, SearchType.identifier),
+                        onTap: () => _handleSearch(
+                          entry.identifier,
+                          SearchType.identifier,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -352,7 +362,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 Icons.history,
                                 size: 20,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -366,7 +378,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 Icons.arrow_forward_ios,
                                 size: 16,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ],
                           ),
@@ -450,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Consumer<HistoryService>(
           builder: (context, historyService, child) {
             final hasRecentSearches = historyService.history.isNotEmpty;
-            
+
             // Only show empty state if truly empty (no history)
             if (!service.isLoading &&
                 service.currentMetadata == null &&
@@ -472,9 +486,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 24),
                         Text(
                           'Search Internet Archive',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: SemanticColors.subtitle(context),
-                          ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                color: SemanticColors.subtitle(context),
+                              ),
                         ),
                         const SizedBox(height: 16),
                         Card(
@@ -487,21 +502,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     Icon(
                                       Icons.lightbulb_outline,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       'Search Tips',
-                                      style: Theme.of(context).textTheme.titleMedium,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
-                                _buildTipRow(context, Icons.tag, 'Enter an archive identifier:', 'nasa_images'),
+                                _buildTipRow(
+                                  context,
+                                  Icons.tag,
+                                  'Enter an archive identifier:',
+                                  'nasa_images',
+                                ),
                                 const SizedBox(height: 8),
-                                _buildTipRow(context, Icons.search, 'Search by keywords:', 'classic books'),
+                                _buildTipRow(
+                                  context,
+                                  Icons.search,
+                                  'Search by keywords:',
+                                  'classic books',
+                                ),
                                 const SizedBox(height: 8),
-                                _buildTipRow(context, Icons.filter_alt, 'Use advanced search:', 'title:space AND mediatype:movies'),
+                                _buildTipRow(
+                                  context,
+                                  Icons.filter_alt,
+                                  'Use advanced search:',
+                                  'title:space AND mediatype:movies',
+                                ),
                               ],
                             ),
                           ),
@@ -512,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             }
-            
+
             return const SizedBox.shrink();
           },
         ),
@@ -625,7 +659,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final entry = SearchHistoryEntry.create(query: query);
       await SearchHistoryService.instance.addEntry(entry);
-      
+
       if (kDebugMode) {
         debugPrint('[HomeScreen] Saved search to history: $query');
       }
@@ -638,15 +672,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Build a tip row for the empty state
-  Widget _buildTipRow(BuildContext context, IconData icon, String label, String example) {
+  Widget _buildTipRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String example,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: SemanticColors.subtitle(context),
-        ),
+        Icon(icon, size: 16, color: SemanticColors.subtitle(context)),
         const SizedBox(width: 8),
         Expanded(
           child: RichText(
@@ -677,7 +712,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Navigate to Library tab (index 1) which contains History
     final navigationState = context.read<NavigationState>();
     navigationState.changeTab(1); // Library tab
-    
+
     // Show brief feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

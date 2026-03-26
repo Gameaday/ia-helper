@@ -63,7 +63,9 @@ class AdvancedSearchService extends ChangeNotifier {
       final url = adjustedQuery.buildApiUrl(IAEndpoints.advancedSearch);
 
       if (kDebugMode) {
-        debugPrint('[AdvancedSearchService] API Intensity: ${settings.level.name}');
+        debugPrint(
+          '[AdvancedSearchService] API Intensity: ${settings.level.name}',
+        );
         debugPrint('[AdvancedSearchService] Searching: $url');
         debugPrint(
           '[AdvancedSearchService] Query string: ${adjustedQuery.buildQueryString()}',

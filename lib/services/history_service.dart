@@ -126,7 +126,7 @@ class HistoryService extends ChangeNotifier {
   final List<HistoryEntry> _history = [];
   static const int _maxHistorySize = 100;
   static const String _historyKey = 'archive_history';
-  
+
   /// Metrics for monitoring
   final HistoryMetrics metrics = HistoryMetrics();
 
@@ -170,7 +170,7 @@ class HistoryService extends ChangeNotifier {
   void removeFromHistory(String identifier) {
     final initialSize = _history.length;
     _history.removeWhere((e) => e.identifier == identifier);
-    
+
     if (_history.length < initialSize) {
       metrics.removes++;
       notifyListeners();
@@ -308,8 +308,10 @@ class HistoryService extends ChangeNotifier {
     final lowerCreator = creator.toLowerCase();
 
     return _history
-        .where((entry) =>
-            entry.creator?.toLowerCase().contains(lowerCreator) ?? false)
+        .where(
+          (entry) =>
+              entry.creator?.toLowerCase().contains(lowerCreator) ?? false,
+        )
         .toList();
   }
 
@@ -432,8 +434,10 @@ class HistoryService extends ChangeNotifier {
       _scheduleSave();
 
       if (kDebugMode) {
-        debugPrint('[HistoryService] Removed $removedCount entries older than '
-            '${duration.inDays} days');
+        debugPrint(
+          '[HistoryService] Removed $removedCount entries older than '
+          '${duration.inDays} days',
+        );
       }
     }
 

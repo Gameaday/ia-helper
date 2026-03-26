@@ -28,9 +28,7 @@ class HttpHeadersAdapter {
     }
 
     // Native: Include custom User-Agent
-    return {
-      'User-Agent': _buildUserAgent(),
-    };
+    return {'User-Agent': _buildUserAgent()};
   }
 
   /// Build User-Agent string for native platforms

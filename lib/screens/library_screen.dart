@@ -57,10 +57,10 @@ class _LibraryScreenState extends State<LibraryScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    
+
     // Listen for favorites changes
     _favoritesService.addListener(_onFavoritesChanged);
-    
+
     _loadData();
   }
 
@@ -73,7 +73,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       _loadData();
     }
   }
-  
+
   /// Called when favorites change
   void _onFavoritesChanged() {
     if (mounted) {
@@ -127,7 +127,7 @@ class _LibraryScreenState extends State<LibraryScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required by AutomaticKeepAliveClientMixin
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Library'),
@@ -203,10 +203,7 @@ class _LibraryScreenState extends State<LibraryScreen>
     }
 
     if (_error != null) {
-      return ErrorCard(
-        error: Exception(_error!),
-        onRetry: _loadData,
-      );
+      return ErrorCard(error: Exception(_error!), onRetry: _loadData);
     }
 
     return TabBarView(
@@ -257,12 +254,12 @@ class _LibraryScreenState extends State<LibraryScreen>
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
-          
+
           // Responsive layout decision:
           // - Phone (<600dp): Single column list (better for detailed cards)
           // - Tablet (600-900dp): 2 column grid
           // - Desktop (>900dp): 3-4 column grid
-          
+
           if (width < 600) {
             // Phone: Single column list for detailed view
             return ListView.builder(
@@ -275,7 +272,7 @@ class _LibraryScreenState extends State<LibraryScreen>
           } else {
             // Tablet/Desktop: Responsive grid
             final crossAxisCount = width < 900 ? 2 : (width < 1200 ? 3 : 4);
-            
+
             return GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -534,13 +531,13 @@ class _LibraryScreenState extends State<LibraryScreen>
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        
+
         // Responsive grid columns based on width
         // Phone: 2 columns, Tablet: 3 columns, Desktop: 4 columns
-        final crossAxisCount = width < 600 
-            ? 2 
+        final crossAxisCount = width < 600
+            ? 2
             : (width < 900 ? 3 : (width < 1200 ? 4 : 5));
-        
+
         return GridView.builder(
           padding: const EdgeInsets.all(16),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -562,11 +559,11 @@ class _LibraryScreenState extends State<LibraryScreen>
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        
+
         // Responsive list layout:
         // Phone (<600dp): Single column
         // Tablet/Desktop (≥600dp): Two columns for better space utilization
-        
+
         if (width < 600) {
           // Single column list for phones
           return ListView.builder(
@@ -1102,7 +1099,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                     description: null,
                   );
                   if (!context.mounted) return;
-                  
+
                   Navigator.of(context).pop();
                   _loadData(); // Reload to show new collection
                   SnackBarHelper.showSuccess(
@@ -1161,7 +1158,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                             identifier: archiveId,
                           );
                           if (!context.mounted) return;
-                          
+
                           Navigator.of(context).pop();
                           SnackBarHelper.showSuccess(
                             context,
@@ -1206,7 +1203,7 @@ class _LibraryScreenState extends State<LibraryScreen>
               await _localArchiveStorage.removeArchive(archive.identifier);
               await _loadData();
               if (!context.mounted) return;
-              
+
               SnackBarHelper.showSuccess(
                 context,
                 'Archive deleted from library',

@@ -36,10 +36,10 @@ class SearchResult {
 
     // Extract thumbnail URL
     String? thumbnailUrl;
-    
+
     if (json['__ia_thumb_url'] != null) {
       thumbnailUrl = json['__ia_thumb_url'] as String;
-      
+
       // CORS FIX: Use centralized URL service to rewrite CDN URLs
       thumbnailUrl = _urlService.fixCorsUrl(thumbnailUrl, identifier);
     } else {
@@ -65,7 +65,7 @@ class SearchResult {
 
     // Remove HTML tags
     String text = htmlText.replaceAll(RegExp(r'<[^>]*>'), ' ');
-    
+
     // Decode common HTML entities
     text = text
         .replaceAll('&nbsp;', ' ')
@@ -75,10 +75,10 @@ class SearchResult {
         .replaceAll('&quot;', '"')
         .replaceAll('&#39;', "'")
         .replaceAll('&apos;', "'");
-    
+
     // Clean up multiple spaces and trim
     text = text.replaceAll(RegExp(r'\s+'), ' ').trim();
-    
+
     return text;
   }
 

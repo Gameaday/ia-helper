@@ -188,10 +188,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
 
     if (_error != null) {
-      return ErrorCard(
-        error: _error!,
-        onRetry: _loadFavorites,
-      );
+      return ErrorCard(error: _error!, onRetry: _loadFavorites);
     }
 
     if (_favorites.isEmpty) {

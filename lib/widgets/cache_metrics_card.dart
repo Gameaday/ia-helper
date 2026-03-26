@@ -159,11 +159,39 @@ class CacheMetricsCard extends StatelessWidget {
               const SizedBox(height: 8),
               Center(
                 child: TextButton.icon(
-                  onPressed: () {
-                    service.clearCache();
-                    service.resetMetrics();
-                    // Force rebuild
-                    (context as Element).markNeedsBuild();
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Clear Cache'),
+                        content: const Text(
+                          'Are you sure you want to clear the identifier cache and all metrics? This action cannot be undone.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: theme.colorScheme.error,
+                              foregroundColor: theme.colorScheme.onError,
+                            ),
+                            child: const Text('Clear'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm == true) {
+                      service.clearCache();
+                      service.resetMetrics();
+                      // Force rebuild
+                      if (context.mounted) {
+                        (context as Element).markNeedsBuild();
+                      }
+                    }
                   },
                   icon: const Icon(Icons.delete_outline, size: 18),
                   label: const Text('Clear Cache'),

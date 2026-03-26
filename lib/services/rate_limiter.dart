@@ -136,7 +136,9 @@ class RateLimiter {
       completer.complete();
 
       if (kDebugMode) {
-        debugPrint('[RateLimiter] Processed queued request (remaining: ${_queue.length})');
+        debugPrint(
+          '[RateLimiter] Processed queued request (remaining: ${_queue.length})',
+        );
       }
     }
   }
@@ -212,7 +214,7 @@ class RateLimiter {
     final delayRate = totalOperations > 0
         ? (metrics.delays / totalOperations * 100).toStringAsFixed(1)
         : '0.0';
-    
+
     final queueRate = totalOperations > 0
         ? (metrics.queueWaits / totalOperations * 100).toStringAsFixed(1)
         : '0.0';

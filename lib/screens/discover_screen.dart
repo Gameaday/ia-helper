@@ -42,7 +42,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   bool _hasMoreResults = true;
   bool _showFavorites = false;
   int _currentPage = 0;
-  static const int _pageSize = 20; // Reduced from 40 to halve image API requests
+  static const int _pageSize =
+      20; // Reduced from 40 to halve image API requests
 
   @override
   bool get wantKeepAlive => true;
@@ -287,11 +288,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: columns,
-                            childAspectRatio: 2.5,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8,
-                          ),
+                                crossAxisCount: columns,
+                                childAspectRatio: 2.5,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                              ),
                           itemCount: categories.length,
                           itemBuilder: (context, index) {
                             final (label, icon, category) = categories[index];
@@ -474,13 +475,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                       ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final result = _trendingResults[index];
-                          return _TrendingCard(result: result);
-                        },
-                        childCount: _trendingResults.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final result = _trendingResults[index];
+                        return _TrendingCard(result: result);
+                      }, childCount: _trendingResults.length),
                     );
                   },
                 ),
@@ -513,7 +511,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               ),
 
             // End message when no more results
-            if (!_isLoadingMore && !_hasMoreResults && _trendingResults.isNotEmpty)
+            if (!_isLoadingMore &&
+                !_hasMoreResults &&
+                _trendingResults.isNotEmpty)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 32.0),
@@ -634,13 +634,10 @@ class _TrendingCard extends StatelessWidget {
             );
           } on FormatException catch (e) {
             if (!context.mounted) return;
-            SnackBarHelper.showError(
-              context,
-              'Invalid archive: ${e.message}',
-            );
+            SnackBarHelper.showError(context, 'Invalid archive: ${e.message}');
           } catch (e) {
             if (!context.mounted) return;
-            
+
             // Provide more specific error messages
             String errorMessage = 'Could not open archive';
             if (e.toString().contains('404') ||
@@ -651,7 +648,7 @@ class _TrendingCard extends StatelessWidget {
             } else if (e.toString().contains('network')) {
               errorMessage = 'Network error. Check your connection.';
             }
-            
+
             SnackBarHelper.showError(context, errorMessage);
           }
         },

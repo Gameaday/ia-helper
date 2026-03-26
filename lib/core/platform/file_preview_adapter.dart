@@ -102,8 +102,8 @@ class _NativeFilePreviewAdapter implements FilePreviewAdapter {
           Text(
             format.toUpperCase(),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ),
         ],
       ),
@@ -135,7 +135,15 @@ class _NativeFilePreviewAdapter implements FilePreviewAdapter {
 /// This gives web users a full-featured preview experience!
 class _WebFilePreviewAdapter implements FilePreviewAdapter {
   // Formats that browsers can handle natively
-  static const _imageFormats = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+  static const _imageFormats = [
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+    'svg',
+    'bmp',
+  ];
   static const _videoFormats = ['mp4', 'webm', 'ogg', 'mov'];
   static const _audioFormats = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
   static const _textFormats = ['txt', 'md', 'json', 'xml', 'html', 'css', 'js'];
@@ -229,11 +237,7 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
   }
 
   /// Build image preview using Flutter's Image.network
-  Widget _buildImagePreview(
-    BuildContext context,
-    String url,
-    String filename,
-  ) {
+  Widget _buildImagePreview(BuildContext context, String url, String filename) {
     return Column(
       children: [
         // Filename header
@@ -269,7 +273,7 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                                loadingProgress.expectedTotalBytes!
                           : null,
                     ),
                   );
@@ -292,8 +296,11 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
                         const SizedBox(height: 8),
                         Text(
                           'CORS or network issue',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                         ),
                       ],
@@ -341,16 +348,16 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             Text(
               filename,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -359,8 +366,8 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
             Text(
               format.toUpperCase(),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 32),
             FilledButton.icon(
@@ -414,24 +421,24 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
             Text(
               'Download to view this file type',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             Text(
               filename,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
               format.toUpperCase(),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 32),
             FilledButton.icon(
@@ -460,10 +467,7 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
               color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 24),
-            Text(
-              'Error',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text('Error', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 12),
             Text(
               message,

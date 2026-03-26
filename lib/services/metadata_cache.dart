@@ -72,8 +72,10 @@ class MetadataCache {
     metrics.writes++;
 
     if (kDebugMode) {
-      debugPrint('[MetadataCache] WRITE: ${metadata.identifier} '
-          '(${cached.totalSize ~/ 1024} KB, pinned: $isPinned)');
+      debugPrint(
+        '[MetadataCache] WRITE: ${metadata.identifier} '
+        '(${cached.totalSize ~/ 1024} KB, pinned: $isPinned)',
+      );
     }
   }
 
@@ -288,9 +290,11 @@ class MetadataCache {
     final bytesToFree = stats.totalDataSize - maxSizeBytes;
 
     if (kDebugMode) {
-      debugPrint('[MetadataCache] Size limit exceeded: '
-          '${stats.formattedDataSize} > $maxSizeMB MB, '
-          'evicting ~${(bytesToFree / (1024 * 1024)).toStringAsFixed(1)} MB');
+      debugPrint(
+        '[MetadataCache] Size limit exceeded: '
+        '${stats.formattedDataSize} > $maxSizeMB MB, '
+        'evicting ~${(bytesToFree / (1024 * 1024)).toStringAsFixed(1)} MB',
+      );
     }
 
     // Get unpinned entries sorted by last accessed (LRU)
@@ -326,8 +330,10 @@ class MetadataCache {
     }
 
     if (kDebugMode) {
-      debugPrint('[MetadataCache] Evicted $evictionCount entries, '
-          'freed ${(freedBytes / (1024 * 1024)).toStringAsFixed(1)} MB');
+      debugPrint(
+        '[MetadataCache] Evicted $evictionCount entries, '
+        'freed ${(freedBytes / (1024 * 1024)).toStringAsFixed(1)} MB',
+      );
     }
   }
 
@@ -561,10 +567,7 @@ class MetadataCache {
     final batch = db.batch();
 
     for (final metadata in metadataList) {
-      final cached = CachedMetadata.fromMetadata(
-        metadata,
-        isPinned: isPinned,
-      );
+      final cached = CachedMetadata.fromMetadata(metadata, isPinned: isPinned);
 
       batch.insert(
         'cached_metadata',

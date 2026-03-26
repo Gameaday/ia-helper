@@ -176,7 +176,9 @@ class AppTheme {
         surfaceTintColor: lightColorScheme.surfaceTint,
         elevation: 1,
         showDragHandle: true,
-        dragHandleColor: lightColorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        dragHandleColor: lightColorScheme.onSurfaceVariant.withValues(
+          alpha: 0.4,
+        ),
       ),
 
       // Material Expressive: Chip theme
@@ -186,7 +188,9 @@ class AppTheme {
         backgroundColor: lightColorScheme.surface,
         selectedColor: lightColorScheme.secondaryContainer,
         labelStyle: TextStyle(color: lightColorScheme.onSurface),
-        secondaryLabelStyle: TextStyle(color: lightColorScheme.onSecondaryContainer),
+        secondaryLabelStyle: TextStyle(
+          color: lightColorScheme.onSecondaryContainer,
+        ),
         showCheckmark: true,
         checkmarkColor: lightColorScheme.onSecondaryContainer,
       ),
@@ -232,8 +236,12 @@ class AppTheme {
       // Material Expressive: NavigationRail theme
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: lightColorScheme.surface,
-        selectedIconTheme: IconThemeData(color: lightColorScheme.onSecondaryContainer),
-        unselectedIconTheme: IconThemeData(color: lightColorScheme.onSurfaceVariant),
+        selectedIconTheme: IconThemeData(
+          color: lightColorScheme.onSecondaryContainer,
+        ),
+        unselectedIconTheme: IconThemeData(
+          color: lightColorScheme.onSurfaceVariant,
+        ),
         selectedLabelTextStyle: TextStyle(
           color: lightColorScheme.onSurface,
           fontWeight: FontWeight.w600,
@@ -465,7 +473,9 @@ class AppTheme {
         surfaceTintColor: darkColorScheme.surfaceTint,
         elevation: 1,
         showDragHandle: true,
-        dragHandleColor: darkColorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        dragHandleColor: darkColorScheme.onSurfaceVariant.withValues(
+          alpha: 0.4,
+        ),
       ),
 
       // Material Expressive: Chip theme
@@ -475,7 +485,9 @@ class AppTheme {
         backgroundColor: darkColorScheme.surface,
         selectedColor: darkColorScheme.secondaryContainer,
         labelStyle: TextStyle(color: darkColorScheme.onSurface),
-        secondaryLabelStyle: TextStyle(color: darkColorScheme.onSecondaryContainer),
+        secondaryLabelStyle: TextStyle(
+          color: darkColorScheme.onSecondaryContainer,
+        ),
         showCheckmark: true,
         checkmarkColor: darkColorScheme.onSecondaryContainer,
       ),
@@ -521,8 +533,12 @@ class AppTheme {
       // Material Expressive: NavigationRail theme
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: darkColorScheme.surface,
-        selectedIconTheme: IconThemeData(color: darkColorScheme.onSecondaryContainer),
-        unselectedIconTheme: IconThemeData(color: darkColorScheme.onSurfaceVariant),
+        selectedIconTheme: IconThemeData(
+          color: darkColorScheme.onSecondaryContainer,
+        ),
+        unselectedIconTheme: IconThemeData(
+          color: darkColorScheme.onSurfaceVariant,
+        ),
         selectedLabelTextStyle: TextStyle(
           color: darkColorScheme.onSurface,
           fontWeight: FontWeight.w600,
