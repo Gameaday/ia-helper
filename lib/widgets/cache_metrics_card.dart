@@ -31,10 +31,38 @@ class CacheMetricsCard extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.refresh),
                     tooltip: 'Reset metrics',
-                    onPressed: () {
-                      service.resetMetrics();
-                      // Force rebuild
-                      (context as Element).markNeedsBuild();
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Reset Metrics'),
+                          content: const Text(
+                            'Are you sure you want to reset all cache metrics? This action cannot be undone.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: theme.colorScheme.error,
+                                foregroundColor: theme.colorScheme.onError,
+                              ),
+                              child: const Text('Reset'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        service.resetMetrics();
+                        // Force rebuild
+                        if (context.mounted) {
+                          (context as Element).markNeedsBuild();
+                        }
+                      }
                     },
                   ),
               ],
