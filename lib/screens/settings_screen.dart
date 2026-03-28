@@ -883,6 +883,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _purgeStaleCaches() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Purge Stale Cache'),
+        content: const Text(
+          'This will remove all stale metadata from the cache.\n\n'
+          'Are you sure you want to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: const Text('Purge'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    if (!mounted) return;
     final navigator = Navigator.of(context);
 
     // Show progress dialog
@@ -901,6 +929,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     try {
+      if (!mounted) {
+        navigator.pop();
+        return;
+      }
       final archiveService = Provider.of<ArchiveService>(
         context,
         listen: false,
@@ -926,6 +958,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _vacuumDatabase() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Vacuum Database'),
+        content: const Text(
+          'This will compress the database and free up unused space.\n\n'
+          'Are you sure you want to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            ),
+            child: const Text('Vacuum'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+
     // Show progress
     showDialog(
       context: context,
@@ -949,12 +1011,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _refreshCacheStats();
 
       if (!mounted) return;
-      Navigator.of(context).pop(); // Close progress dialog
+      navigator.pop(); // Close progress dialog
 
       SnackBarHelper.showSuccess(context, 'Database vacuumed successfully');
     } catch (e) {
       if (!mounted) return;
-      Navigator.of(context).pop(); // Close progress dialog
+      navigator.pop(); // Close progress dialog
 
       SnackBarHelper.showError(context, e);
     }
