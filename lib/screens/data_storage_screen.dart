@@ -553,6 +553,7 @@ class _NumberPickerDialogState extends State<_NumberPickerDialog> {
             children: [
               IconButton(
                 icon: const Icon(Icons.remove),
+                tooltip: 'Decrease value',
                 onPressed: () {
                   if (_value > widget.minValue) {
                     setState(() {
@@ -580,6 +581,7 @@ class _NumberPickerDialogState extends State<_NumberPickerDialog> {
               ),
               IconButton(
                 icon: const Icon(Icons.add),
+                tooltip: 'Increase value',
                 onPressed: () {
                   if (_value < widget.maxValue) {
                     setState(() {
