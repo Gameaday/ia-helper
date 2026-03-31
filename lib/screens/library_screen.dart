@@ -372,6 +372,7 @@ class _LibraryScreenState extends State<LibraryScreen>
         trailing: IconButton(
           icon: const Icon(Icons.favorite),
           color: colorScheme.primary,
+          tooltip: 'Remove favorite',
           onPressed: () async {
             await _favoritesService.removeFavorite(favorite.identifier);
             await _loadData();
@@ -990,6 +991,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
+                    tooltip: 'Close sort options',
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
