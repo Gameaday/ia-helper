@@ -408,6 +408,7 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear),
+                  tooltip: 'Clear search',
                   onPressed: () {
                     _searchController.clear();
                   },
@@ -729,7 +730,11 @@ class _TagManagementDialogState extends State<_TagManagementDialog> {
                     onSubmitted: (_) => _addNewTag(),
                   ),
                 ),
-                IconButton(icon: const Icon(Icons.add), onPressed: _addNewTag),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Add tag',
+                  onPressed: _addNewTag,
+                ),
               ],
             ),
             const SizedBox(height: 16),
