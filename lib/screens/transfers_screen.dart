@@ -267,12 +267,12 @@ class _TransfersScreenState extends State<TransfersScreen> {
               _filteredTasks.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_sweep),
-              tooltip: 'Clear completed',
+              tooltip: 'Clear completed transfers',
               onPressed: _clearCompleted,
             ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            tooltip: 'Refresh transfers',
             onPressed: _loadTasks,
           ),
         ],
