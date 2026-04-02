@@ -91,8 +91,6 @@ class EnhancedProgressCard extends StatelessWidget {
               size: 20,
             ),
             tooltip: isExpanded ? 'Collapse details' : 'Expand details',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
             onPressed: onToggleExpanded,
           ),
       ],

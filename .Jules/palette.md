@@ -12,6 +12,6 @@
 **Learning:** Missing `tooltip` properties on `IconButton` widgets that lack a label reduces accessibility for screen readers and deprives users of hover context for functional buttons.
 **Action:** Always include a `tooltip` parameter when using `IconButton`, particularly for common functional actions like clearing a search or adding an item.
 
-## $(date +%Y-%m-%d) - Dynamic Tooltips for State-Toggling IconButtons
+## 2026-04-02 - Dynamic Tooltips for State-Toggling IconButtons
 **Learning:** Icon buttons that toggle state (like expand/collapse arrows) need dynamic tooltips that reflect the *action* they will perform when clicked, rather than a static description of the icon itself.
 **Action:** Always use conditional logic (e.g., `tooltip: isExpanded ? 'Collapse details' : 'Expand details'`) for `IconButton` widgets that change state to provide accurate screen reader announcements and hover context.
