@@ -15,3 +15,6 @@
 ## 2026-04-02 - Dynamic Tooltips for State-Toggling IconButtons
 **Learning:** Icon buttons that toggle state (like expand/collapse arrows) need dynamic tooltips that reflect the *action* they will perform when clicked, rather than a static description of the icon itself.
 **Action:** Always use conditional logic (e.g., `tooltip: isExpanded ? 'Collapse details' : 'Expand details'`) for `IconButton` widgets that change state to provide accurate screen reader announcements and hover context.
+## 2024-05-20 - Missing Tooltips on IconButtons
+**Learning:** Many standard `IconButton` components in Flutter apps can lack the `tooltip` property, limiting accessibility for screen readers and usability for hover states. Tooltips are essential context.
+**Action:** Always verify `IconButton` widgets include a descriptive `tooltip` attribute during routine UI component audits or modifications.

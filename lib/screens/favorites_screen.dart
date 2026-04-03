@@ -152,6 +152,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
+        tooltip: 'Back',
         onPressed: () {
           setState(() {
             _isSearching = false;
@@ -173,6 +174,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         if (_searchController.text.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.clear),
+            tooltip: 'Clear search',
             onPressed: () {
               _searchController.clear();
               _applyFiltersAndSort();
