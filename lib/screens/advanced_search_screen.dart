@@ -425,6 +425,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         suffixIcon: _searchController.text.isNotEmpty
             ? IconButton(
                 icon: const Icon(Icons.clear),
+                tooltip: 'Clear search text',
                 onPressed: () {
                   _searchController.clear();
                   setState(() {});

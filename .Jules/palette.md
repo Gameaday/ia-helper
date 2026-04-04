@@ -18,3 +18,6 @@
 ## 2024-05-20 - Missing Tooltips on IconButtons
 **Learning:** Many standard `IconButton` components in Flutter apps can lack the `tooltip` property, limiting accessibility for screen readers and usability for hover states. Tooltips are essential context.
 **Action:** Always verify `IconButton` widgets include a descriptive `tooltip` attribute during routine UI component audits or modifications.
+## 2026-04-04 - Add tooltips to clear search text IconButtons
+**Learning:** Icon buttons that clear input fields need tooltips to be accessible and provide immediate context for their function.
+**Action:** Always add a tooltip parameter when using IconButton, particularly for clearing searches or forms.
