@@ -21,3 +21,7 @@
 ## 2026-04-04 - Add tooltips to clear search text IconButtons
 **Learning:** Icon buttons that clear input fields need tooltips to be accessible and provide immediate context for their function.
 **Action:** Always add a tooltip parameter when using IconButton, particularly for clearing searches or forms.
+
+## 2026-04-05 - Add Tooltips and Semantics to Interactive GestureDetectors
+**Learning:** When using `GestureDetector` as a custom interactive button (e.g. tapping on text to show a dialog), it inherently lacks accessibility labels and hover tooltips unlike `IconButton` or `TextButton`.
+**Action:** Always wrap interactive `GestureDetector` widgets in `Tooltip` and `Semantics(button: true)` to ensure desktop mouse users get hover feedback and screen readers correctly announce the element.
