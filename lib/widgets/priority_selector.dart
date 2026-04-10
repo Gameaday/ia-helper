@@ -28,22 +28,31 @@ class PrioritySelector extends StatelessWidget {
 
   /// Build compact chip (icon only)
   Widget _buildCompactChip(BuildContext context) {
-    return InkWell(
-      onTap: () => _showPriorityPicker(context),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Color(priority.colorValue).withAlpha(25),
+    return Semantics(
+      label: '${priority.displayName} Priority',
+      button: true,
+      child: Tooltip(
+        message: '${priority.displayName} Priority',
+        child: InkWell(
+          onTap: () => _showPriorityPicker(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Color(priority.colorValue).withAlpha(76),
-            width: 1,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Color(priority.colorValue).withAlpha(25),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Color(priority.colorValue).withAlpha(76),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(priority.icon, style: const TextStyle(fontSize: 14)),
+              ],
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [Text(priority.icon, style: const TextStyle(fontSize: 14))],
         ),
       ),
     );

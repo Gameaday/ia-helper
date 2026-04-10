@@ -25,3 +25,6 @@
 ## 2026-04-05 - Add Tooltips and Semantics to Interactive GestureDetectors
 **Learning:** When using `GestureDetector` as a custom interactive button (e.g. tapping on text to show a dialog), it inherently lacks accessibility labels and hover tooltips unlike `IconButton` or `TextButton`.
 **Action:** Always wrap interactive `GestureDetector` widgets in `Tooltip` and `Semantics(button: true)` to ensure desktop mouse users get hover feedback and screen readers correctly announce the element.
+## 2024-05-14 - Semantics and Tooltip on Compact Custom Chips
+**Learning:** Icon-only custom widgets (like compact priority chips made with InkWell) are often missed during accessibility audits compared to standard IconButtons. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
+**Action:** Always verify if custom interactive elements built with `InkWell` or `GestureDetector` that display only icons have appropriate Semantics and Tooltip wrappers.
