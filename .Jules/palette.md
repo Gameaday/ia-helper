@@ -28,3 +28,6 @@
 ## 2024-05-14 - Semantics and Tooltip on Compact Custom Chips
 **Learning:** Icon-only custom widgets (like compact priority chips made with InkWell) are often missed during accessibility audits compared to standard IconButtons. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
 **Action:** Always verify if custom interactive elements built with `InkWell` or `GestureDetector` that display only icons have appropriate Semantics and Tooltip wrappers.
+## 2026-04-14 - Semantics and Tooltip on custom interactive PrioritySelector chips
+**Learning:** Custom interactive elements representing priorities in `PrioritySelector` built with `InkWell` were missing accessibility labels and hover tooltips for the full chip, despite the compact chip having them. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
+**Action:** Always verify if custom interactive elements built with `InkWell` have appropriate Semantics and Tooltip wrappers, and enforce consistency across different visual representations of the same logical component.
