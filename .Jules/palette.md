@@ -28,3 +28,7 @@
 ## 2024-05-14 - Semantics and Tooltip on Compact Custom Chips
 **Learning:** Icon-only custom widgets (like compact priority chips made with InkWell) are often missed during accessibility audits compared to standard IconButtons. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
 **Action:** Always verify if custom interactive elements built with `InkWell` or `GestureDetector` that display only icons have appropriate Semantics and Tooltip wrappers.
+
+## 2024-04-16 - Dynamic state in accessibility wrappers
+**Learning:** For toggleable elements (like expanding folders or technical details) implemented using basic Flutter gesture recognizers (`InkWell`, `GestureDetector`), adding static tooltips and semantics labels is insufficient. Screen readers and tooltips need to reflect the *current* state of the toggle (e.g., "Expand details" vs "Collapse details").
+**Action:** Always verify if a custom button modifies local or global state, and use ternary operators or similar logic in the `Semantics.label` and `Tooltip.message` properties to dynamically describe the action the button will perform in its current state.
