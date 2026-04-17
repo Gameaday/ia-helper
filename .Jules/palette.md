@@ -28,3 +28,6 @@
 ## 2024-05-14 - Semantics and Tooltip on Compact Custom Chips
 **Learning:** Icon-only custom widgets (like compact priority chips made with InkWell) are often missed during accessibility audits compared to standard IconButtons. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
 **Action:** Always verify if custom interactive elements built with `InkWell` or `GestureDetector` that display only icons have appropriate Semantics and Tooltip wrappers.
+## 2025-02-12 - Dynamic Accessibility Labels on Interactive Folder Structures
+**Learning:** Screen reader users need dynamic context on tree-view interactions. When an interactive node behaves as a toggle (e.g., expanding or collapsing folders), the semantic label and tooltip message must explicitly reflect the *action* that will occur (e.g., "Collapse" vs "Expand").
+**Action:** When wrapping stateful toggleable interaction points like `InkWell`s in `Semantics` and `Tooltip`, I must always interpolate the state to dynamically switch the labels/messages (e.g. `isExpanded ? 'Collapse' : 'Expand'`).
