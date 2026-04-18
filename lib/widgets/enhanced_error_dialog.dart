@@ -171,30 +171,41 @@ class _EnhancedErrorDialogState extends State<EnhancedErrorDialog> {
           // Technical details (expandable)
           if (widget.error.technicalDetails != null) ...[
             const SizedBox(height: 12),
-            InkWell(
-              onTap: () {
-                setState(() {
-                  _showTechnicalDetails = !_showTechnicalDetails;
-                });
-              },
-              child: Row(
-                children: [
-                  Icon(
-                    _showTechnicalDetails
-                        ? Icons.expand_less
-                        : Icons.expand_more,
-                    size: 20,
+            Semantics(
+              button: true,
+              label: _showTechnicalDetails
+                  ? 'Collapse technical details'
+                  : 'Expand technical details',
+              child: Tooltip(
+                message: _showTechnicalDetails
+                    ? 'Collapse technical details'
+                    : 'Expand technical details',
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _showTechnicalDetails = !_showTechnicalDetails;
+                    });
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        _showTechnicalDetails
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _showTechnicalDetails ? 'Hide Details' : 'Show Details',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _showTechnicalDetails ? 'Hide Details' : 'Show Details',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             if (_showTechnicalDetails) ...[
