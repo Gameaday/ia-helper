@@ -334,52 +334,70 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
     return Card(
       elevation: 0,
       color: colorScheme.surfaceContainerHighest,
-      child: InkWell(
-        onTap: _selectDateRange,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(Icons.date_range, color: colorScheme.primary, size: 24),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _selectedDateRange != null
-                          ? 'Selected Range'
-                          : 'Select Date Range',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    if (_selectedDateRange != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        _selectedDateRange!.toDisplayString(),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+      child: Semantics(
+        button: true,
+        label: _selectedDateRange != null
+            ? 'Change date range'
+            : 'Select date range',
+        child: Tooltip(
+          message: _selectedDateRange != null
+              ? 'Change date range'
+              : 'Select date range',
+          child: InkWell(
+            onTap: _selectDateRange,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.date_range, color: colorScheme.primary, size: 24),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedDateRange != null
+                              ? 'Selected Range'
+                              : 'Select Date Range',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
                         ),
+                        if (_selectedDateRange != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _selectedDateRange!.toDisplayString(),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (_selectedDateRange != null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.clear,
+                        color: colorScheme.error,
+                        size: 20,
                       ),
-                    ],
-                  ],
-                ),
+                      onPressed: () {
+                        setState(() {
+                          _selectedDateRange = null;
+                        });
+                      },
+                      tooltip: 'Clear date range',
+                    )
+                  else
+                    Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                ],
               ),
-              if (_selectedDateRange != null)
-                IconButton(
-                  icon: Icon(Icons.clear, color: colorScheme.error, size: 20),
-                  onPressed: () {
-                    setState(() {
-                      _selectedDateRange = null;
-                    });
-                  },
-                  tooltip: 'Clear date range',
-                )
-              else
-                Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
-            ],
+            ),
           ),
         ),
       ),
