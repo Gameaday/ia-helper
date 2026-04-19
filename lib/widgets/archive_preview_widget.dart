@@ -326,33 +326,44 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
       children: [
         // Directory header
         if (dirPath != '.')
-          InkWell(
-            onTap: () => _toggleFolder(dirPath),
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: level * 16.0 + 8,
-                top: 4,
-                bottom: 4,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    isExpanded ? Icons.folder_open : Icons.folder,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.tertiary,
+          Semantics(
+            button: true,
+            label: isExpanded
+                ? 'Collapse folder ${path.basename(dirPath)}'
+                : 'Expand folder ${path.basename(dirPath)}',
+            child: Tooltip(
+              message: isExpanded
+                  ? 'Collapse folder ${path.basename(dirPath)}'
+                  : 'Expand folder ${path.basename(dirPath)}',
+              child: InkWell(
+                onTap: () => _toggleFolder(dirPath),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: level * 16.0 + 8,
+                    top: 4,
+                    bottom: 4,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      path.basename(dirPath),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isExpanded ? Icons.folder_open : Icons.folder,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          path.basename(dirPath),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Icon(
+                        isExpanded ? Icons.expand_more : Icons.chevron_right,
+                        size: 20,
+                      ),
+                    ],
                   ),
-                  Icon(
-                    isExpanded ? Icons.expand_more : Icons.chevron_right,
-                    size: 20,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -378,51 +389,61 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
     final isSelected = _selectedFile == file;
     final filename = path.basename(file.name);
 
-    return InkWell(
-      onTap: () => _selectFile(file),
-      child: Container(
-        color: isSelected
-            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-            : null,
-        padding: EdgeInsets.only(
-          left: level * 16.0 + 8,
-          top: 8,
-          bottom: 8,
-          right: 8,
-        ),
-        child: Row(
-          children: [
-            Text(_getFileIcon(filename), style: const TextStyle(fontSize: 16)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    filename,
-                    style: TextStyle(
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                  Text(
-                    _formatFileSize(file.size),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+    return Semantics(
+      button: true,
+      label: 'Select file $filename',
+      child: Tooltip(
+        message: 'Select file $filename',
+        child: InkWell(
+          onTap: () => _selectFile(file),
+          child: Container(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                : null,
+            padding: EdgeInsets.only(
+              left: level * 16.0 + 8,
+              top: 8,
+              bottom: 8,
+              right: 8,
             ),
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: Theme.of(context).colorScheme.primary,
-                size: 20,
-              ),
-          ],
+            child: Row(
+              children: [
+                Text(
+                  _getFileIcon(filename),
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        filename,
+                        style: TextStyle(
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      Text(
+                        _formatFileSize(file.size),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
