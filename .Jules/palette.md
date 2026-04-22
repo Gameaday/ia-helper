@@ -28,3 +28,6 @@
 ## 2024-05-14 - Semantics and Tooltip on Compact Custom Chips
 **Learning:** Icon-only custom widgets (like compact priority chips made with InkWell) are often missed during accessibility audits compared to standard IconButtons. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
 **Action:** Always verify if custom interactive elements built with `InkWell` or `GestureDetector` that display only icons have appropriate Semantics and Tooltip wrappers.
+## 2025-04-06 - Improve tooltip descriptiveness for minimize buttons
+**Learning:** While standard tooltips like "Minimize to notifications" describe where an element goes, they can be unclear about *what* is actually being minimized when there are multiple potential subjects on screen.
+**Action:** When adding tooltips to functional buttons like "Minimize", always explicitly state what is being minimized (e.g. "Minimize download manager") to provide unambiguous context for screen readers and hover states.

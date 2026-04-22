@@ -114,6 +114,7 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
         // Minimize/Expand button
         IconButton(
           icon: const Icon(Icons.minimize_rounded, size: 20),
+          tooltip: 'Minimize download manager',
           onPressed: () {
             // Minimize to just show notification summary
             NotificationService.showDownloadSummary(
@@ -124,7 +125,6 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
               ),
             );
           },
-          tooltip: 'Minimize to notifications',
         ),
 
         // Pause/Resume all button
