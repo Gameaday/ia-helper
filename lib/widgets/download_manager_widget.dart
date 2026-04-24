@@ -136,7 +136,9 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
             size: 20,
           ),
           onPressed: () => _toggleAllDownloads(service),
-          tooltip: _hasActiveDownloads(service) ? 'Pause all' : 'Resume all',
+          tooltip: _hasActiveDownloads(service)
+              ? 'Pause all downloads'
+              : 'Resume all downloads',
         ),
       ],
     );
