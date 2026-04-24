@@ -28,3 +28,7 @@
 ## 2024-05-14 - Semantics and Tooltip on Compact Custom Chips
 **Learning:** Icon-only custom widgets (like compact priority chips made with InkWell) are often missed during accessibility audits compared to standard IconButtons. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
 **Action:** Always verify if custom interactive elements built with `InkWell` or `GestureDetector` that display only icons have appropriate Semantics and Tooltip wrappers.
+
+## 2026-04-06 - Dynamic tooltips for bulk action icons
+**Learning:** IconButtons that execute bulk actions toggling state (like pausing/resuming multiple downloads) require a dynamic tooltip that accurately communicates the action based on the current state. Otherwise, users and screen readers miss the functional context.
+**Action:** Use conditional logic (e.g., `tooltip: _hasActiveDownloads(service) ? 'Pause all downloads' : 'Resume all downloads'`) for bulk action `IconButton` widgets to ensure accurate accessibility announcements.
