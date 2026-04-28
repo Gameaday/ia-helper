@@ -326,33 +326,43 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
       children: [
         // Directory header
         if (dirPath != '.')
-          InkWell(
-            onTap: () => _toggleFolder(dirPath),
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: level * 16.0 + 8,
-                top: 4,
-                bottom: 4,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    isExpanded ? Icons.folder_open : Icons.folder,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.tertiary,
+          Semantics(
+            button: true,
+            expanded: isExpanded,
+            label: isExpanded
+                ? 'Collapse folder ${path.basename(dirPath)}'
+                : 'Expand folder ${path.basename(dirPath)}',
+            child: Tooltip(
+              message: isExpanded ? 'Collapse folder' : 'Expand folder',
+              child: InkWell(
+                onTap: () => _toggleFolder(dirPath),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: level * 16.0 + 8,
+                    top: 4,
+                    bottom: 4,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      path.basename(dirPath),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isExpanded ? Icons.folder_open : Icons.folder,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          path.basename(dirPath),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Icon(
+                        isExpanded ? Icons.expand_more : Icons.chevron_right,
+                        size: 20,
+                      ),
+                    ],
                   ),
-                  Icon(
-                    isExpanded ? Icons.expand_more : Icons.chevron_right,
-                    size: 20,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
