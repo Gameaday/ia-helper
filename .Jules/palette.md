@@ -28,3 +28,6 @@
 ## 2024-05-14 - Semantics and Tooltip on Compact Custom Chips
 **Learning:** Icon-only custom widgets (like compact priority chips made with InkWell) are often missed during accessibility audits compared to standard IconButtons. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
 **Action:** Always verify if custom interactive elements built with `InkWell` or `GestureDetector` that display only icons have appropriate Semantics and Tooltip wrappers.
+## 2024-05-24 - Semantics Wrappers for List Cards
+**Learning:** In Flutter, using interactive `Card` components that house `InkWell` elements will visually react to touches, but without a `Semantics` wrapper with `button: true` and an appropriate `label`, screen readers may struggle to clearly interpret the action.
+**Action:** When creating grid or list cards that function as buttons using `InkWell`, always wrap the `Card` in a `Semantics` widget to explicitly define its accessible role and announce key contextual details (e.g., the title).
