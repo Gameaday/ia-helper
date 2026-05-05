@@ -28,3 +28,6 @@
 ## 2024-05-14 - Semantics and Tooltip on Compact Custom Chips
 **Learning:** Icon-only custom widgets (like compact priority chips made with InkWell) are often missed during accessibility audits compared to standard IconButtons. Adding Semantics and Tooltips to these custom elements is crucial for screen readers and desktop users.
 **Action:** Always verify if custom interactive elements built with `InkWell` or `GestureDetector` that display only icons have appropriate Semantics and Tooltip wrappers.
+## 2026-05-05 - Semantics for expanding/collapsing UI
+**Learning:** Expanding/collapsing sections built with InkWell require dynamic labels to accurately reflect their state to screen readers (e.g. 'Show details' vs 'Hide details').
+**Action:** Always wrap these widgets with Semantics and Tooltip, and update their string values based on the current toggle state.
