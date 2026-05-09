@@ -330,84 +330,88 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => _navigateToDetail(favorite),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Thumbnail placeholder
-            AspectRatio(
-              aspectRatio: 1,
-              child: Container(
-                color: colorScheme.surfaceContainerHighest,
-                child: Icon(
-                  _getIconForMediaType(favorite.mediatype),
-                  size: 48,
-                  color: colorScheme.onSurfaceVariant,
+    return Semantics(
+      button: true,
+      label: 'Favorite: ${favorite.displayTitle}',
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _navigateToDetail(favorite),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail placeholder
+              AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  color: colorScheme.surfaceContainerHighest,
+                  child: Icon(
+                    _getIconForMediaType(favorite.mediatype),
+                    size: 48,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      favorite.displayTitle,
-                      style: theme.textTheme.titleSmall,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (favorite.mediatype != null) ...[
-                      const SizedBox(height: 4),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        favorite.mediatype!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
+                        favorite.displayTitle,
+                        style: theme.textTheme.titleSmall,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: 12,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            favorite.formattedAddedDate,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                      if (favorite.mediatype != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          favorite.mediatype!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
-                    ),
-                  ],
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              favorite.formattedAddedDate,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // Favorite button overlay
-            Positioned(
-              top: 8,
-              right: 8,
-              child: FavoriteIconButton(
-                identifier: favorite.identifier,
-                onFavoriteChanged: (_) =>
-                    _onFavoriteRemoved(favorite.identifier),
+              // Favorite button overlay
+              Positioned(
+                top: 8,
+                right: 8,
+                child: FavoriteIconButton(
+                  identifier: favorite.identifier,
+                  onFavoriteChanged: (_) =>
+                      _onFavoriteRemoved(favorite.identifier),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -32,3 +32,6 @@
 ## 2024-05-18 - InkWell Interactive Elements Accessibility
 **Learning:** Adding Semantics(button: true) and a Tooltip to custom text/icon interactive elements (like an InkWell acting as an expand/collapse toggle) improves the screen reader experience by properly identifying it as a button, and provides hover feedback for desktop users.
 **Action:** When creating custom buttons using InkWell, ensure they are wrapped in Tooltip and Semantics(button: true).
+## 2024-05-24 - Semantics Wrappers for List Cards
+**Learning:** In Flutter, using interactive `Card` components that house `InkWell` elements will visually react to touches, but without a `Semantics` wrapper with `button: true` and an appropriate `label`, screen readers may struggle to clearly interpret the action.
+**Action:** When creating grid or list cards that function as buttons using `InkWell`, always wrap the `Card` in a `Semantics` widget to explicitly define its accessible role and announce key contextual details (e.g., the title).
