@@ -39,3 +39,6 @@
 ## 2026-05-10 - Semantics wrappers for Card buttons
 **Learning:** When making a Flutter `Card` widget actionable via an internal `InkWell`, placing the `Semantics` wrapper *inside* the card can lead to confusing screen reader announcements. Placing it outside the `Card` ensures the entire element is treated as a single cohesive button.
 **Action:** When wrapping a `Card` containing an `InkWell` for accessibility, apply the `Semantics(button: true)` wrapper to the parent `Card` widget, not the child.
+## 2026-05-12 - Adding Semantics to Interactive Cards and Chips
+**Learning:** When using custom `InkWell` widgets for tap targets (like badges or chips) that are not natively recognized as buttons by Flutter, they lack proper screen reader support. Wrapping the `InkWell` in a `Semantics(button: true, label: '...')` makes them discoverable and usable for visually impaired users. It is also important to use `.displayName` instead of raw `.name` enum values for the semantic label so the screen reader announces a human-readable text.
+**Action:** Always wrap interactive `InkWell` or `GestureDetector` widgets in a `Semantics` widget with appropriate button roles and labels, using user-friendly text, especially for custom UI elements.

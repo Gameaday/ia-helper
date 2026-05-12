@@ -305,40 +305,44 @@ class ErrorBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = _getCategoryColor(context, error.category);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(error.category.icon, style: const TextStyle(fontSize: 12)),
-            const SizedBox(width: 4),
-            Text(
-              error.category.displayName,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-            if (error.retryCount > 0) ...[
+    return Semantics(
+      button: true,
+      label: 'Error category: ${error.category.displayName}. Tap for details.',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(error.category.icon, style: const TextStyle(fontSize: 12)),
               const SizedBox(width: 4),
               Text(
-                '(${error.retryCount})',
+                error.category.displayName,
                 style: TextStyle(
-                  fontSize: 9,
-                  color: color.withValues(alpha: 0.7),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: color,
                 ),
               ),
+              if (error.retryCount > 0) ...[
+                const SizedBox(width: 4),
+                Text(
+                  '(${error.retryCount})',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: color.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
