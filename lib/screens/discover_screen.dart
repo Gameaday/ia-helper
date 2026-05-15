@@ -319,45 +319,58 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      InkWell(
-                        onTap: () {
-                          setState(() {
-                            _showFavorites = !_showFavorites;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.favorite,
-                                size: 18,
-                                color: colorScheme.primary,
+                      Semantics(
+                        button: true,
+                        label: _showFavorites
+                            ? 'Collapse Quick Favorites'
+                            : 'Expand Quick Favorites',
+                        child: Tooltip(
+                          message: _showFavorites
+                              ? 'Collapse Quick Favorites'
+                              : 'Expand Quick Favorites',
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _showFavorites = !_showFavorites;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4.0,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Quick Favorites',
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: colorScheme.primary,
-                                ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.favorite,
+                                    size: 18,
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Quick Favorites',
+                                    style: theme.textTheme.labelLarge?.copyWith(
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '(${_recentFavorites.length})',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Icon(
+                                    _showFavorites
+                                        ? Icons.expand_less
+                                        : Icons.expand_more,
+                                    size: 20,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '(${_recentFavorites.length})',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const Spacer(),
-                              Icon(
-                                _showFavorites
-                                    ? Icons.expand_less
-                                    : Icons.expand_more,
-                                size: 20,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -603,76 +616,92 @@ class _TrendingCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () async {
-          final archiveService = context.read<ArchiveService>();
+    final semantics = Semantics(
+      button: true,
+      label: 'Trending: ${result.title}',
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () async {
+            final archiveService = context.read<ArchiveService>();
 
-          try {
-            // Show loading indicator
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Loading ${result.title}...'),
-                  duration: const Duration(seconds: 1),
+            try {
+              // Show loading indicator
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Loading ${result.title}...'),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              }
+
+              // Fetch metadata for the archive
+              await archiveService.fetchMetadata(result.identifier);
+
+              if (!context.mounted) return;
+
+              // Navigate to detail screen with MD3 fadeThrough transition
+              await Navigator.push(
+                context,
+                MD3PageTransitions.fadeThrough(
+                  page: const ArchiveDetailScreen(),
+                  settings: const RouteSettings(name: '/archive-detail'),
                 ),
               );
+            } on FormatException catch (e) {
+              if (!context.mounted) return;
+              SnackBarHelper.showError(
+                context,
+                'Invalid archive: ${e.message}',
+              );
+            } catch (e) {
+              if (!context.mounted) return;
+
+              // Provide more specific error messages
+              String errorMessage = 'Could not open archive';
+              if (e.toString().contains('404') ||
+                  e.toString().contains('not found')) {
+                errorMessage = 'Archive "${result.identifier}" not found';
+              } else if (e.toString().contains('timeout')) {
+                errorMessage = 'Request timed out. Please try again.';
+              } else if (e.toString().contains('network')) {
+                errorMessage = 'Network error. Check your connection.';
+              }
+
+              SnackBarHelper.showError(context, errorMessage);
             }
-
-            // Fetch metadata for the archive
-            await archiveService.fetchMetadata(result.identifier);
-
-            if (!context.mounted) return;
-
-            // Navigate to detail screen with MD3 fadeThrough transition
-            await Navigator.push(
-              context,
-              MD3PageTransitions.fadeThrough(
-                page: const ArchiveDetailScreen(),
-                settings: const RouteSettings(name: '/archive-detail'),
-              ),
-            );
-          } on FormatException catch (e) {
-            if (!context.mounted) return;
-            SnackBarHelper.showError(context, 'Invalid archive: ${e.message}');
-          } catch (e) {
-            if (!context.mounted) return;
-
-            // Provide more specific error messages
-            String errorMessage = 'Could not open archive';
-            if (e.toString().contains('404') ||
-                e.toString().contains('not found')) {
-              errorMessage = 'Archive "${result.identifier}" not found';
-            } else if (e.toString().contains('timeout')) {
-              errorMessage = 'Request timed out. Please try again.';
-            } else if (e.toString().contains('network')) {
-              errorMessage = 'Network error. Check your connection.';
-            }
-
-            SnackBarHelper.showError(context, errorMessage);
-          }
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Thumbnail image with fallback
-            Expanded(
-              child: result.thumbnailUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: result.thumbnailUrl!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (context, url) => Container(
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail image with fallback
+              Expanded(
+                child: result.thumbnailUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: result.thumbnailUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        placeholder: (context, url) => Container(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Icon(
+                            Icons.inventory_2,
+                            size: 48,
                             color: colorScheme.primary,
                           ),
                         ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
+                      )
+                    : Container(
+                        width: double.infinity,
                         color: colorScheme.surfaceContainerHighest,
                         child: Icon(
                           Icons.inventory_2,
@@ -680,48 +709,40 @@ class _TrendingCard extends StatelessWidget {
                           color: colorScheme.primary,
                         ),
                       ),
-                    )
-                  : Container(
-                      width: double.infinity,
-                      color: colorScheme.surfaceContainerHighest,
-                      child: Icon(
-                        Icons.inventory_2,
-                        size: 48,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-            ),
-            // Title and description
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    result.title,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (result.description.isNotEmpty) ...[
-                    const SizedBox(height: 2),
+              ),
+              // Title and description
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      result.description,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      result.title,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (result.description.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        result.description,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+    return semantics;
   }
 }
