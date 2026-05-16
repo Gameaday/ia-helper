@@ -45,3 +45,7 @@
 ## 2026-05-15 - Semantics Wrapper Placement
 **Learning:** When making a Flutter Card widget actionable via an internal InkWell, the Semantics wrapper must be placed *outside* the Card. If placed inside, screen readers may not correctly identify the entire card bounds as the interactive element.
 **Action:** Always wrap the outermost Container/Card with Semantics instead of the internal InkWell.
+
+## 2025-01-23 - Added tooltips to Card InkWells
+**Learning:** When a Flutter Card uses an internal InkWell, adding Tooltip outside the Card works but inside the Card on the InkWell is also possible. The memory instruction says to put the Semantics outside the Card, and Tooltip inside Semantics.
+**Action:** Wrapped Card with Tooltip to provide hover labels for interactive Cards.
