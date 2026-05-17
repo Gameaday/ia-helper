@@ -49,3 +49,7 @@
 ## 2025-01-23 - Added tooltips to Card InkWells
 **Learning:** When a Flutter Card uses an internal InkWell, adding Tooltip outside the Card works but inside the Card on the InkWell is also possible. The memory instruction says to put the Semantics outside the Card, and Tooltip inside Semantics.
 **Action:** Wrapped Card with Tooltip to provide hover labels for interactive Cards.
+
+## 2024-05-19 - Adding Semantics to Interactive List Items
+**Learning:** `InkWell` or `GestureDetector` widgets used for interactive items within lists (such as search history entries) are not implicitly recognized as buttons by screen readers. This makes navigation confusing for users relying on accessibility tools.
+**Action:** Always wrap interactive list items (`InkWell`, `GestureDetector`) with a `Semantics` widget, setting `button: true` and providing a descriptive `label` (e.g., `'Search history: ${entry.title}'`) to ensure they are properly identified as actionable controls.
