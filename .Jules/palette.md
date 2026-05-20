@@ -57,3 +57,6 @@
 ## 2024-05-24 - Add Semantics to Saved Search Card
 **Learning:** In Flutter, using `InkWell` directly inside a `Card` for list items leaves the entire card interactive, but without an explicit semantic boundary, screen readers might not announce the overall purpose of the tap target effectively. Wrapping the entire actionable `Card` with a `Semantics` node (`button: true`) ensures the screen reader provides unified, descriptive context rather than reading inner layout elements sequentially.
 **Action:** Always wrap `Card` widgets that function as list buttons (e.g., using an internal `InkWell`) in a top-level `Semantics` node to provide a cohesive label and interaction hint.
+## 2026-05-20 - Added Tooltip to Card Widgets
+**Learning:** When using internal InkWell or GestureDetector inside a Card widget, wrapping the inner widget with Tooltip doesn't properly provide hover context or accessibility support to the boundaries of the Card. Applying the Tooltip wrapper outside the Card (but inside Semantics) ensures that the hover bounding box and screen reader behavior properly applies to the entire visual Card surface area.
+**Action:** Always wrap Card widgets in Tooltip when they contain interactive elements like InkWell to provide a smooth desktop hover and screen reader experience.
