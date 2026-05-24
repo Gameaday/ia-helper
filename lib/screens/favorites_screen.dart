@@ -404,10 +404,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               Positioned(
                 top: 8,
                 right: 8,
-                child: FavoriteIconButton(
-                  identifier: favorite.identifier,
-                  onFavoriteChanged: (_) =>
-                      _onFavoriteRemoved(favorite.identifier),
+                child: Tooltip(
+                  message: 'Remove ${favorite.displayTitle} from favorites',
+                  child: FavoriteIconButton(
+                    identifier: favorite.identifier,
+                    onFavoriteChanged: (_) =>
+                        _onFavoriteRemoved(favorite.identifier),
+                  ),
                 ),
               ),
             ],
@@ -458,9 +461,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
           ],
         ),
-        trailing: FavoriteIconButton(
-          identifier: favorite.identifier,
-          onFavoriteChanged: (_) => _onFavoriteRemoved(favorite.identifier),
+        trailing: Tooltip(
+          message: 'Remove ${favorite.displayTitle} from favorites',
+          child: FavoriteIconButton(
+            identifier: favorite.identifier,
+            onFavoriteChanged: (_) => _onFavoriteRemoved(favorite.identifier),
+          ),
         ),
         onTap: () => _navigateToDetail(favorite),
       ),
