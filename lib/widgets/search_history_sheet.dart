@@ -308,35 +308,45 @@ class _SearchHistorySheetState extends State<SearchHistorySheet> {
         ),
       ),
       onDismissed: (direction) => _removeEntry(entry),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-        leading: CircleAvatar(
-          backgroundColor: colorScheme.primaryContainer,
-          foregroundColor: colorScheme.onPrimaryContainer,
-          radius: 20,
-          child: const Icon(Icons.history, size: 20),
-        ),
-        title: Text(
-          entry.query,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w500,
+      child: Semantics(
+        button: true,
+        label: 'Search history: ${entry.query}',
+        child: Tooltip(
+          message: 'Repeat search for ${entry.query}',
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 4,
+            ),
+            leading: CircleAvatar(
+              backgroundColor: colorScheme.primaryContainer,
+              foregroundColor: colorScheme.onPrimaryContainer,
+              radius: 20,
+              child: const Icon(Icons.history, size: 20),
+            ),
+            title: Text(
+              entry.query,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              entry.subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            onTap: () => _selectSearch(entry.query),
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(
-          entry.subtitle,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: colorScheme.onSurfaceVariant,
-        ),
-        onTap: () => _selectSearch(entry.query),
       ),
     );
   }

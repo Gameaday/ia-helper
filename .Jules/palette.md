@@ -60,3 +60,7 @@
 ## 2026-05-20 - Added Tooltip to Card Widgets
 **Learning:** When using internal InkWell or GestureDetector inside a Card widget, wrapping the inner widget with Tooltip doesn't properly provide hover context or accessibility support to the boundaries of the Card. Applying the Tooltip wrapper outside the Card (but inside Semantics) ensures that the hover bounding box and screen reader behavior properly applies to the entire visual Card surface area.
 **Action:** Always wrap Card widgets in Tooltip when they contain interactive elements like InkWell to provide a smooth desktop hover and screen reader experience.
+
+## 2026-05-25 - Search History Accessibility
+**Learning:** `ListTile` items in a list might need explicit Semantics wrappers if they aren't fully descriptive, but it's important to be aware that `Tooltip` also provides semantics. Combining explicit `Semantics` and `Tooltip` on the same item can sometimes cause redundant readouts for screen readers, so ensuring they complement rather than duplicate is key.
+**Action:** When adding accessibility to complex list items, prefer using `Tooltip` for both hover context and basic semantics, or explicitly provide a `Semantics` wrapper without a `Tooltip` if hover text isn't necessary, to avoid double-reading by screen readers.
