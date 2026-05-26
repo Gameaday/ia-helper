@@ -60,3 +60,7 @@
 ## 2026-05-20 - Added Tooltip to Card Widgets
 **Learning:** When using internal InkWell or GestureDetector inside a Card widget, wrapping the inner widget with Tooltip doesn't properly provide hover context or accessibility support to the boundaries of the Card. Applying the Tooltip wrapper outside the Card (but inside Semantics) ensures that the hover bounding box and screen reader behavior properly applies to the entire visual Card surface area.
 **Action:** Always wrap Card widgets in Tooltip when they contain interactive elements like InkWell to provide a smooth desktop hover and screen reader experience.
+
+## 2026-05-26 - Semantics Wrapper in Grid Card
+**Learning:** In Flutter, when wrapping a `Card` containing an `InkWell` for accessibility, apply the `Semantics` wrapper to the parent `Card` widget, not the child, to prevent confusing screen reader announcements.
+**Action:** When wrapping a `Card` containing an `InkWell` for accessibility, apply the `Semantics(button: true)` wrapper to the parent `Card` widget.
