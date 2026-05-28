@@ -63,33 +63,37 @@ class PrioritySelector extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Change priority. Current priority: ${priority.displayName}',
-      child: InkWell(
-        onTap: () => _showPriorityPicker(context),
-        borderRadius: AppShapes.large,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Color(priority.colorValue).withAlpha(25),
-            borderRadius: AppShapes.large,
-            border: Border.all(
-              color: Color(priority.colorValue).withAlpha(76),
-              width: 1.5,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(priority.icon, style: const TextStyle(fontSize: 16)),
-              const SizedBox(width: 8),
-              Text(
-                priority.displayName,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(priority.colorValue),
-                ),
+      child: Tooltip(
+        message: 'Change priority',
+        excludeFromSemantics: true,
+        child: InkWell(
+          onTap: () => _showPriorityPicker(context),
+          borderRadius: AppShapes.large,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Color(priority.colorValue).withAlpha(25),
+              borderRadius: AppShapes.large,
+              border: Border.all(
+                color: Color(priority.colorValue).withAlpha(76),
+                width: 1.5,
               ),
-            ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(priority.icon, style: const TextStyle(fontSize: 16)),
+                const SizedBox(width: 8),
+                Text(
+                  priority.displayName,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(priority.colorValue),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

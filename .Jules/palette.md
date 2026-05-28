@@ -64,3 +64,6 @@
 ## 2026-05-26 - Semantics Wrapper in Grid Card
 **Learning:** In Flutter, when wrapping a `Card` containing an `InkWell` for accessibility, apply the `Semantics` wrapper to the parent `Card` widget, not the child, to prevent confusing screen reader announcements.
 **Action:** When wrapping a `Card` containing an `InkWell` for accessibility, apply the `Semantics(button: true)` wrapper to the parent `Card` widget.
+## 2025-05-19 - Added missing Tooltip to Priority Selector Full Chip
+**Learning:** Even when custom widgets (like the priority chip using `InkWell`) have proper `Semantics` wrappers, they often lack `Tooltip` wrappers. This creates an inconsistent experience where screen reader users get proper context, but desktop/web users using a mouse get no hover tooltip indicating the element is interactive and what it does.
+**Action:** When adding accessibility to custom interactive components, always ensure that both `Semantics` (for screen readers) and `Tooltip` (for visual hover context) are implemented, and remember to use `excludeFromSemantics: true` on the `Tooltip` to prevent duplicate announcements.
