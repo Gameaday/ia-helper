@@ -527,94 +527,103 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Theme mode options
                 ...ThemeMode.values.map((mode) {
                   final isSelected = selectedMode == mode;
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        selectedMode = mode;
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.all(12.0),
-                      margin: const EdgeInsets.only(bottom: 8.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isSelected
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.outline,
-                          width: isSelected ? 2 : 1,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primaryContainer
-                                  .withValues(alpha: 0.3)
-                            : null,
-                      ),
-                      child: Row(
-                        children: [
-                          // Custom radio indicator
-                          Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).colorScheme.outline,
-                                width: 2,
-                              ),
-                            ),
-                            child: isSelected
-                                ? Center(
-                                    child: Container(
-                                      width: 10,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(
-                            ThemeProvider.getThemeModeIcon(mode),
+                  final modeName = ThemeProvider.getThemeModeName(mode);
+                  return Semantics(
+                    button: true,
+                    inMutuallyExclusiveGroup: true,
+                    selected: isSelected,
+                    label: 'Theme: $modeName',
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          selectedMode = mode;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(12.0),
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        decoration: BoxDecoration(
+                          border: Border.all(
                             color: isSelected
                                 ? Theme.of(context).colorScheme.primary
-                                : null,
+                                : Theme.of(context).colorScheme.outline,
+                            width: isSelected ? 2 : 1,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  ThemeProvider.getThemeModeName(mode),
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                      ),
+                          borderRadius: BorderRadius.circular(8),
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primaryContainer
+                                    .withValues(alpha: 0.3)
+                              : null,
+                        ),
+                        child: Row(
+                          children: [
+                            // Custom radio indicator
+                            Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context).colorScheme.outline,
+                                  width: 2,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  ThemeProvider.getThemeModeDescription(mode),
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
+                              ),
+                              child: isSelected
+                                  ? Center(
+                                      child: Container(
+                                        width: 10,
+                                        height: 10,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                        ),
                                       ),
-                                ),
-                              ],
+                                    )
+                                  : null,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 12),
+                            Icon(
+                              ThemeProvider.getThemeModeIcon(mode),
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    ThemeProvider.getThemeModeName(mode),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    ThemeProvider.getThemeModeDescription(mode),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -721,95 +730,101 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Custom radio selection to avoid deprecated API
                 ...BandwidthPreset.values.map((preset) {
                   final isSelected = selectedPreset == preset;
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        selectedPreset = preset;
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.all(12.0),
-                      margin: const EdgeInsets.only(bottom: 8.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
+                  return Semantics(
+                    button: true,
+                    inMutuallyExclusiveGroup: true,
+                    selected: isSelected,
+                    label: 'Bandwidth: ${preset.displayName}',
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          selectedPreset = preset;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(12.0),
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.outline,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                           color: isSelected
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.outline,
-                          width: isSelected ? 2 : 1,
+                              ? Theme.of(context).colorScheme.primaryContainer
+                                    .withValues(alpha: 0.3)
+                              : null,
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primaryContainer
-                                  .withValues(alpha: 0.3)
-                            : null,
-                      ),
-                      child: Row(
-                        children: [
-                          // Custom radio indicator
-                          Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).colorScheme.outline,
-                                width: 2,
+                        child: Row(
+                          children: [
+                            // Custom radio indicator
+                            Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context).colorScheme.outline,
+                                  width: 2,
+                                ),
+                              ),
+                              child: isSelected
+                                  ? Center(
+                                      child: Container(
+                                        width: 10,
+                                        height: 10,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(preset.icon),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        preset.displayName,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    preset.description,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: isSelected
-                                ? Center(
-                                    child: Container(
-                                      width: 10,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(preset.icon),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      preset.displayName,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  preset.description,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );
