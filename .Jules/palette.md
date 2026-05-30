@@ -67,3 +67,7 @@
 ## 2025-05-19 - Added missing Tooltip to Priority Selector Full Chip
 **Learning:** Even when custom widgets (like the priority chip using `InkWell`) have proper `Semantics` wrappers, they often lack `Tooltip` wrappers. This creates an inconsistent experience where screen reader users get proper context, but desktop/web users using a mouse get no hover tooltip indicating the element is interactive and what it does.
 **Action:** When adding accessibility to custom interactive components, always ensure that both `Semantics` (for screen readers) and `Tooltip` (for visual hover context) are implemented, and remember to use `excludeFromSemantics: true` on the `Tooltip` to prevent duplicate announcements.
+
+## 2024-05-18 - Semantics wrappers for custom InkWell radio buttons
+**Learning:** When using `InkWell` to build custom form controls like radio button groups (e.g., ThemeMode, BandwidthPreset selection), using visual cues alone is insufficient for screen readers. They won't announce the options as selectable buttons or read their selected state.
+**Action:** Always wrap `InkWell` custom radio options in a `Semantics` widget with `button: true`, `inMutuallyExclusiveGroup: true`, `selected: isSelected`, and a descriptive `label` that clearly indicates what the option represents (e.g., 'Theme: System Default').
