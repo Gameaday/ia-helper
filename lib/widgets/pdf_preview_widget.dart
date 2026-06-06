@@ -233,6 +233,7 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
                       label: 'Current page $_currentPage, tap to jump to page',
                       button: true,
                       child: Tooltip(
+                        excludeFromSemantics: true,
                         message: 'Jump to page',
                         child: GestureDetector(
                           onTap: _showPageJumpDialog,

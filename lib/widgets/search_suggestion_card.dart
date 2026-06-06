@@ -19,6 +19,7 @@ class SearchSuggestionCard extends StatelessWidget {
       button: true,
       label: 'Suggestion: ${suggestion.title}',
       child: Tooltip(
+        excludeFromSemantics: true,
         message: 'View ${suggestion.title}',
         child: Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

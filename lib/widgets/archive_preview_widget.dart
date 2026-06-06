@@ -330,6 +330,7 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
             button: true,
             label: isExpanded ? 'Collapse directory' : 'Expand directory',
             child: Tooltip(
+              excludeFromSemantics: true,
               message: isExpanded ? 'Collapse directory' : 'Expand directory',
               child: InkWell(
                 onTap: () => _toggleFolder(dirPath),
@@ -389,6 +390,7 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
       button: true,
       label: 'Select file $filename',
       child: Tooltip(
+        excludeFromSemantics: true,
         message: 'Select file $filename',
         child: InkWell(
           onTap: () => _selectFile(file),
