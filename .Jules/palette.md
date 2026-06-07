@@ -71,3 +71,6 @@
 ## 2024-05-18 - Semantics wrappers for custom InkWell radio buttons
 **Learning:** When using `InkWell` to build custom form controls like radio button groups (e.g., ThemeMode, BandwidthPreset selection), using visual cues alone is insufficient for screen readers. They won't announce the options as selectable buttons or read their selected state.
 **Action:** Always wrap `InkWell` custom radio options in a `Semantics` widget with `button: true`, `inMutuallyExclusiveGroup: true`, `selected: isSelected`, and a descriptive `label` that clearly indicates what the option represents (e.g., 'Theme: System Default').
+## 2024-05-19 - Avoid redundant Semantics and Tooltip in Flutter
+**Learning:** In Flutter, combining explicit `Semantics` and `Tooltip` on the same interactive element can cause redundant screen reader readouts since both provide accessibility text to the OS.
+**Action:** Use `excludeFromSemantics: true` on the `Tooltip` to prevent duplication, ensuring the tooltip provides hover context without confusing screen reader users.

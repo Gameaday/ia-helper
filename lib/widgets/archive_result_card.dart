@@ -47,6 +47,7 @@ class ArchiveResultCard extends StatelessWidget {
       button: true,
       enabled: true,
       child: Tooltip(
+        excludeFromSemantics: true,
         message: 'View ${result.title}',
         child: Card(
           clipBehavior: Clip.antiAlias,
@@ -156,6 +157,7 @@ class ArchiveResultCard extends StatelessWidget {
       button: true,
       enabled: true,
       child: Tooltip(
+        excludeFromSemantics: true,
         message: 'View ${result.title}',
         child: Card(
           clipBehavior: Clip.antiAlias,
