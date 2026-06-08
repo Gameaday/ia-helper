@@ -439,30 +439,42 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   }
 
   Widget _buildFieldSearchToggle() {
-    return Card(
-      child: InkWell(
-        onTap: () => setState(() => _showFieldSearch = !_showFieldSearch),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(
-                _showFieldSearch ? Icons.expand_less : Icons.expand_more,
-                color: Theme.of(context).colorScheme.primary,
+    return Semantics(
+      button: true,
+      label: _showFieldSearch
+          ? 'Collapse Field-Specific Search'
+          : 'Expand Field-Specific Search',
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: _showFieldSearch
+            ? 'Collapse Field-Specific Search'
+            : 'Expand Field-Specific Search',
+        child: Card(
+          child: InkWell(
+            onTap: () => setState(() => _showFieldSearch = !_showFieldSearch),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(
+                    _showFieldSearch ? Icons.expand_less : Icons.expand_more,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Field-Specific Search',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_titleController.text.isNotEmpty ||
+                      _creatorController.text.isNotEmpty ||
+                      _subjectController.text.isNotEmpty)
+                    const Icon(Icons.check_circle, color: Color(0xFF2E7D32)),
+                ],
               ),
-              const SizedBox(width: 12),
-              Text(
-                'Field-Specific Search',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const Spacer(),
-              if (_titleController.text.isNotEmpty ||
-                  _creatorController.text.isNotEmpty ||
-                  _subjectController.text.isNotEmpty)
-                const Icon(Icons.check_circle, color: Color(0xFF2E7D32)),
-            ],
+            ),
           ),
         ),
       ),

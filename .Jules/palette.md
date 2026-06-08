@@ -74,3 +74,7 @@
 ## 2024-05-19 - Avoid redundant Semantics and Tooltip in Flutter
 **Learning:** In Flutter, combining explicit `Semantics` and `Tooltip` on the same interactive element can cause redundant screen reader readouts since both provide accessibility text to the OS.
 **Action:** Use `excludeFromSemantics: true` on the `Tooltip` to prevent duplication, ensuring the tooltip provides hover context without confusing screen reader users.
+
+## 2024-05-18 - Nested Interactive Element Accessibility
+**Learning:** In Flutter, when wrapping interactive elements like `Card` and its internal `InkWell` for accessibility, applying both `Semantics` and `Tooltip` wrappers directly over the `Card` effectively communicates the interaction to screen readers and mouse users. However, `Tooltip` widgets read their `message` out loud to screen readers by default. When wrapping `Semantics` and `Tooltip` together on the same element, you must add `excludeFromSemantics: true` to the `Tooltip` to prevent redundant audio announcements.
+**Action:** When creating toggleable sections or actionable cards containing `InkWell`, always place the `Semantics(button: true)` and `Tooltip(excludeFromSemantics: true)` outside the bounding parent (e.g. `Card`) and update their labels dynamically based on the toggle state (e.g., 'Expand' vs 'Collapse').
