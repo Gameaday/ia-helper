@@ -333,87 +333,95 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Semantics(
       button: true,
       label: 'Favorite: ${favorite.displayTitle}',
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => _navigateToDetail(favorite),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Thumbnail placeholder
-              AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  color: colorScheme.surfaceContainerHighest,
-                  child: Icon(
-                    _getIconForMediaType(favorite.mediatype),
-                    size: 48,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        favorite.displayTitle,
-                        style: theme.textTheme.titleSmall,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (favorite.mediatype != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          favorite.mediatype!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'View ${favorite.displayTitle}',
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => _navigateToDetail(favorite),
+            child: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Thumbnail placeholder
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        child: Icon(
+                          _getIconForMediaType(favorite.mediatype),
+                          size: 48,
+                          color: colorScheme.onSurfaceVariant,
                         ),
-                      ],
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 12,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              favorite.formattedAddedDate,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                              maxLines: 1,
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              favorite.displayTitle,
+                              style: theme.textTheme.titleSmall,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                            if (favorite.mediatype != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                favorite.mediatype!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                            const Spacer(),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time,
+                                  size: 12,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    favorite.formattedAddedDate,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                // Favorite button overlay
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Tooltip(
+                    message: 'Remove ${favorite.displayTitle} from favorites',
+                    child: FavoriteIconButton(
+                      identifier: favorite.identifier,
+                      onFavoriteChanged: (_) =>
+                          _onFavoriteRemoved(favorite.identifier),
+                    ),
                   ),
                 ),
-              ),
-              // Favorite button overlay
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Tooltip(
-                  message: 'Remove ${favorite.displayTitle} from favorites',
-                  child: FavoriteIconButton(
-                    identifier: favorite.identifier,
-                    onFavoriteChanged: (_) =>
-                        _onFavoriteRemoved(favorite.identifier),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -424,51 +432,63 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            _getIconForMediaType(favorite.mediatype),
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        title: Text(
-          favorite.displayTitle,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (favorite.mediatype != null) ...[
-              const SizedBox(height: 4),
-              Text(favorite.mediatype!, style: theme.textTheme.bodySmall),
-            ],
-            const SizedBox(height: 4),
-            Text(
-              favorite.formattedAddedDate,
-              style: theme.textTheme.labelSmall?.copyWith(
+    return Semantics(
+      button: true,
+      label: 'Favorite: ${favorite.displayTitle}',
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'View ${favorite.displayTitle}',
+        child: Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            leading: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                _getIconForMediaType(favorite.mediatype),
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-          ],
-        ),
-        trailing: Tooltip(
-          message: 'Remove ${favorite.displayTitle} from favorites',
-          child: FavoriteIconButton(
-            identifier: favorite.identifier,
-            onFavoriteChanged: (_) => _onFavoriteRemoved(favorite.identifier),
+            title: Text(
+              favorite.displayTitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (favorite.mediatype != null) ...[
+                  const SizedBox(height: 4),
+                  Text(favorite.mediatype!, style: theme.textTheme.bodySmall),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  favorite.formattedAddedDate,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            trailing: Tooltip(
+              message: 'Remove ${favorite.displayTitle} from favorites',
+              child: FavoriteIconButton(
+                identifier: favorite.identifier,
+                onFavoriteChanged: (_) =>
+                    _onFavoriteRemoved(favorite.identifier),
+              ),
+            ),
+            onTap: () => _navigateToDetail(favorite),
           ),
         ),
-        onTap: () => _navigateToDetail(favorite),
       ),
     );
   }

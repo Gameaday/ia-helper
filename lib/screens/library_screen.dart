@@ -601,66 +601,70 @@ class _LibraryScreenState extends State<LibraryScreen>
     return Semantics(
       button: true,
       label: 'Archive: ${archive.metadata.title ?? archive.identifier}',
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => _openArchive(archive),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Thumbnail placeholder
-              Container(
-                height: 120,
-                color: colorScheme.surfaceContainerHighest,
-                child: Center(
-                  child: Icon(
-                    Icons.archive,
-                    size: 48,
-                    color: colorScheme.onSurfaceVariant,
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'Open ${archive.metadata.title ?? archive.identifier}',
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => _openArchive(archive),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Thumbnail placeholder
+                Container(
+                  height: 120,
+                  color: colorScheme.surfaceContainerHighest,
+                  child: Center(
+                    child: Icon(
+                      Icons.archive,
+                      size: 48,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        archive.metadata.title ?? archive.identifier,
-                        style: theme.textTheme.titleSmall,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.description,
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${archive.downloadedFiles} files',
-                            style: theme.textTheme.labelSmall?.copyWith(
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          archive.metadata.title ?? archive.identifier,
+                          style: theme.textTheme.titleSmall,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.description,
+                              size: 14,
                               color: colorScheme.onSurfaceVariant,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        FormattingUtils.formatBytes(archive.downloadedBytes),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                            const SizedBox(width: 4),
+                            Text(
+                              '${archive.downloadedFiles} files',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Text(
+                          FormattingUtils.formatBytes(archive.downloadedBytes),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -671,64 +675,72 @@ class _LibraryScreenState extends State<LibraryScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
+    return Semantics(
+      button: true,
+      label: 'Archive: ${archive.metadata.title ?? archive.identifier}',
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'Open ${archive.metadata.title ?? archive.identifier}',
+        child: Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            leading: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.archive, color: colorScheme.onSurfaceVariant),
+            ),
+            title: Text(
+              archive.metadata.title ?? archive.identifier,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              '${archive.downloadedFiles} files • ${FormattingUtils.formatBytes(archive.downloadedBytes)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) => _handleArchiveAction(value, archive),
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'open',
+                  child: Row(
+                    children: [
+                      Icon(Icons.folder_open),
+                      SizedBox(width: 12),
+                      Text('Open'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'add_to_collection',
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_to_photos),
+                      SizedBox(width: 12),
+                      Text('Add to Collection'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete),
+                      SizedBox(width: 12),
+                      Text('Delete'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            onTap: () => _openArchive(archive),
           ),
-          child: Icon(Icons.archive, color: colorScheme.onSurfaceVariant),
         ),
-        title: Text(
-          archive.metadata.title ?? archive.identifier,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          '${archive.downloadedFiles} files • ${FormattingUtils.formatBytes(archive.downloadedBytes)}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) => _handleArchiveAction(value, archive),
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'open',
-              child: Row(
-                children: [
-                  Icon(Icons.folder_open),
-                  SizedBox(width: 12),
-                  Text('Open'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'add_to_collection',
-              child: Row(
-                children: [
-                  Icon(Icons.add_to_photos),
-                  SizedBox(width: 12),
-                  Text('Add to Collection'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete),
-                  SizedBox(width: 12),
-                  Text('Delete'),
-                ],
-              ),
-            ),
-          ],
-        ),
-        onTap: () => _openArchive(archive),
       ),
     );
   }
