@@ -82,3 +82,7 @@
 ## 2026-05-30 - Tooltip and Semantics placement for actionable lists
 **Learning:** When making `Card` elements actionable in grid or list views via internal `InkWell` components (e.g., in `FavoritesScreen` or `LibraryScreen`), they must be wrapped in `Semantics(button: true)` and `Tooltip(excludeFromSemantics: true)` to ensure screen readers announce them properly as interactive elements without duplicate announcements, and desktop users see a helpful hover state context.
 **Action:** Always verify that grid items and list tiles that wrap `Card` + `InkWell` use both `Semantics` and `Tooltip`.
+
+## 2024-06-16 - Redundant explicit tooltips on self-describing buttons
+**Learning:** Found that `FavoriteIconButton` handles its own tooltip internally (because it delegates to `FavoriteButton`, which uses an `IconButton` with a dynamically calculated `tooltip` property). Explicitly wrapping `FavoriteIconButton` in another `Tooltip` (e.g. in `FavoritesScreen`) without `excludeFromSemantics: true` causes screen readers to redundantly read both the explicitly provided tooltip message and the internally derived tooltip message.
+**Action:** Always add `excludeFromSemantics: true` to explicit `Tooltip` wrappers when wrapping a widget that already provides its own built-in `tooltip` or semantics, to prevent duplicate accessibility announcements.
