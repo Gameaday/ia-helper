@@ -82,3 +82,9 @@
 ## 2026-05-30 - Tooltip and Semantics placement for actionable lists
 **Learning:** When making `Card` elements actionable in grid or list views via internal `InkWell` components (e.g., in `FavoritesScreen` or `LibraryScreen`), they must be wrapped in `Semantics(button: true)` and `Tooltip(excludeFromSemantics: true)` to ensure screen readers announce them properly as interactive elements without duplicate announcements, and desktop users see a helpful hover state context.
 **Action:** Always verify that grid items and list tiles that wrap `Card` + `InkWell` use both `Semantics` and `Tooltip`.
+## 2024-05-24 - Interactive Card Tooltips and Semantics
+**Learning:** In Flutter, when wrapping an actionable  (using ) with both  and a hover , the  must wrap the  but be *inside* the  widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
+**Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.
+## 2024-05-24 - Interactive Card Tooltips and Semantics
+**Learning:** In Flutter, when wrapping an actionable `Card` (using `InkWell`) with both `Semantics` and a hover `Tooltip`, the `Tooltip` must wrap the `Card` but be *inside* the `Semantics` widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
+**Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.

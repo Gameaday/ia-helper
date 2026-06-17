@@ -619,79 +619,92 @@ class _TrendingCard extends StatelessWidget {
     final semantics = Semantics(
       button: true,
       label: 'Trending: ${result.title}',
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () async {
-            final archiveService = context.read<ArchiveService>();
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'View ${result.title}',
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () async {
+              final archiveService = context.read<ArchiveService>();
 
-            try {
-              // Show loading indicator
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Loading ${result.title}...'),
-                    duration: const Duration(seconds: 1),
+              try {
+                // Show loading indicator
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Loading ${result.title}...'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                }
+
+                // Fetch metadata for the archive
+                await archiveService.fetchMetadata(result.identifier);
+
+                if (!context.mounted) return;
+
+                // Navigate to detail screen with MD3 fadeThrough transition
+                await Navigator.push(
+                  context,
+                  MD3PageTransitions.fadeThrough(
+                    page: const ArchiveDetailScreen(),
+                    settings: const RouteSettings(name: '/archive-detail'),
                   ),
                 );
+              } on FormatException catch (e) {
+                if (!context.mounted) return;
+                SnackBarHelper.showError(
+                  context,
+                  'Invalid archive: ${e.message}',
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+
+                // Provide more specific error messages
+                String errorMessage = 'Could not open archive';
+                if (e.toString().contains('404') ||
+                    e.toString().contains('not found')) {
+                  errorMessage = 'Archive "${result.identifier}" not found';
+                } else if (e.toString().contains('timeout')) {
+                  errorMessage = 'Request timed out. Please try again.';
+                } else if (e.toString().contains('network')) {
+                  errorMessage = 'Network error. Check your connection.';
+                }
+
+                SnackBarHelper.showError(context, errorMessage);
               }
-
-              // Fetch metadata for the archive
-              await archiveService.fetchMetadata(result.identifier);
-
-              if (!context.mounted) return;
-
-              // Navigate to detail screen with MD3 fadeThrough transition
-              await Navigator.push(
-                context,
-                MD3PageTransitions.fadeThrough(
-                  page: const ArchiveDetailScreen(),
-                  settings: const RouteSettings(name: '/archive-detail'),
-                ),
-              );
-            } on FormatException catch (e) {
-              if (!context.mounted) return;
-              SnackBarHelper.showError(
-                context,
-                'Invalid archive: ${e.message}',
-              );
-            } catch (e) {
-              if (!context.mounted) return;
-
-              // Provide more specific error messages
-              String errorMessage = 'Could not open archive';
-              if (e.toString().contains('404') ||
-                  e.toString().contains('not found')) {
-                errorMessage = 'Archive "${result.identifier}" not found';
-              } else if (e.toString().contains('timeout')) {
-                errorMessage = 'Request timed out. Please try again.';
-              } else if (e.toString().contains('network')) {
-                errorMessage = 'Network error. Check your connection.';
-              }
-
-              SnackBarHelper.showError(context, errorMessage);
-            }
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Thumbnail image with fallback
-              Expanded(
-                child: result.thumbnailUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: result.thumbnailUrl!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        placeholder: (context, url) => Container(
-                          color: colorScheme.surfaceContainerHighest,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Thumbnail image with fallback
+                Expanded(
+                  child: result.thumbnailUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: result.thumbnailUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          placeholder: (context, url) => Container(
+                            color: colorScheme.surfaceContainerHighest,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: colorScheme.surfaceContainerHighest,
+                            child: Icon(
+                              Icons.inventory_2,
+                              size: 48,
                               color: colorScheme.primary,
                             ),
                           ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
+                        )
+                      : Container(
+                          width: double.infinity,
                           color: colorScheme.surfaceContainerHighest,
                           child: Icon(
                             Icons.inventory_2,
@@ -699,46 +712,37 @@ class _TrendingCard extends StatelessWidget {
                             color: colorScheme.primary,
                           ),
                         ),
-                      )
-                    : Container(
-                        width: double.infinity,
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Icon(
-                          Icons.inventory_2,
-                          size: 48,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-              ),
-              // Title and description
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      result.title,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (result.description.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                ),
+                // Title and description
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        result.description,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                        result.title,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (result.description.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          result.description,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
