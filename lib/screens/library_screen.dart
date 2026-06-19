@@ -754,77 +754,84 @@ class _LibraryScreenState extends State<LibraryScreen>
     return Semantics(
       button: true,
       label: 'Collection: ${collection.name}, $itemCount items',
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: InkWell(
-          onTap: () => _openCollection(collection),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Collection icon
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: collection.color ?? colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'Open collection ${collection.name}',
+        child: Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: () => _openCollection(collection),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  // Collection icon
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: collection.color ?? colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      collection.iconData,
+                      color: collection.color != null
+                          ? _getContrastColor(collection.color!)
+                          : colorScheme.onPrimaryContainer,
+                      size: 28,
+                    ),
                   ),
-                  child: Icon(
-                    collection.iconData,
-                    color: collection.color != null
-                        ? _getContrastColor(collection.color!)
-                        : colorScheme.onPrimaryContainer,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                // Collection info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        collection.name,
-                        style: theme.textTheme.titleMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (collection.description != null &&
-                          collection.description!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                  const SizedBox(width: 16),
+                  // Collection info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          collection.description!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          collection.name,
+                          style: theme.textTheme.titleMedium,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
+                        if (collection.description != null &&
+                            collection.description!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
                           Text(
-                            '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
-                            style: theme.textTheme.labelSmall?.copyWith(
+                            collection.description!,
+                            style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.inventory_2_outlined,
+                              size: 14,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
-              ],
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -841,61 +848,65 @@ class _LibraryScreenState extends State<LibraryScreen>
     return Semantics(
       button: true,
       label: 'Collection: ${collection.name}, $itemCount items',
-      child: Card(
-        child: InkWell(
-          onTap: () => _openCollection(collection),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Collection icon (larger for grid)
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: collection.color ?? colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    collection.iconData,
-                    color: collection.color != null
-                        ? _getContrastColor(collection.color!)
-                        : colorScheme.onPrimaryContainer,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Collection name
-                Text(
-                  collection.name,
-                  style: theme.textTheme.titleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                // Item count
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.inventory_2_outlined,
-                      size: 14,
-                      color: colorScheme.onSurfaceVariant,
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'Open collection ${collection.name}',
+        child: Card(
+          child: InkWell(
+            onTap: () => _openCollection(collection),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Collection icon (larger for grid)
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: collection.color ?? colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
-                      style: theme.textTheme.labelSmall?.copyWith(
+                    child: Icon(
+                      collection.iconData,
+                      color: collection.color != null
+                          ? _getContrastColor(collection.color!)
+                          : colorScheme.onPrimaryContainer,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Collection name
+                  Text(
+                    collection.name,
+                    style: theme.textTheme.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  // Item count
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 14,
                         color: colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 4),
+                      Text(
+                        '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

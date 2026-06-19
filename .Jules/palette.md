@@ -82,3 +82,7 @@
 ## 2026-05-30 - Tooltip and Semantics placement for actionable lists
 **Learning:** When making `Card` elements actionable in grid or list views via internal `InkWell` components (e.g., in `FavoritesScreen` or `LibraryScreen`), they must be wrapped in `Semantics(button: true)` and `Tooltip(excludeFromSemantics: true)` to ensure screen readers announce them properly as interactive elements without duplicate announcements, and desktop users see a helpful hover state context.
 **Action:** Always verify that grid items and list tiles that wrap `Card` + `InkWell` use both `Semantics` and `Tooltip`.
+## 2026-06-05 - Avoid polluting repository with scratchpad scripts\n**Learning:** Including ad-hoc Python scripts created during codebase exploration and problem solving in the final commit pollutes the repository and degrades maintainability. They should be deleted before submitting.\n**Action:** Remember to delete local scratchpad scripts used for  alternative operations before finishing tasks and completing pre-commit steps.
+## 2026-06-05 - Avoid polluting repository with scratchpad scripts
+**Learning:** Including ad-hoc scripts (like python parsers) created during codebase exploration and problem solving in the final commit pollutes the repository and degrades maintainability. They should be deleted before submitting.
+**Action:** Remember to delete local scratchpad scripts used for text operations before finishing tasks and completing pre-commit steps.
