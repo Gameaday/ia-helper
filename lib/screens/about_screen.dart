@@ -305,7 +305,7 @@ class _AboutScreenState extends State<AboutScreen> {
     String value, {
     VoidCallback? onTap,
   }) {
-    return InkWell(
+    final Widget inkWell = InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
@@ -335,6 +335,20 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
           ],
         ),
+      ),
+    );
+
+    if (onTap == null) {
+      return inkWell;
+    }
+
+    return Semantics(
+      button: true,
+      label: 'Credit for $label: $value',
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'Open $label link',
+        child: inkWell,
       ),
     );
   }
