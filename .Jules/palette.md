@@ -86,3 +86,7 @@
 ## 2026-06-05 - Avoid polluting repository with scratchpad scripts
 **Learning:** Including ad-hoc scripts (like python parsers) created during codebase exploration and problem solving in the final commit pollutes the repository and degrades maintainability. They should be deleted before submitting.
 **Action:** Remember to delete local scratchpad scripts used for text operations before finishing tasks and completing pre-commit steps.
+
+## 2024-06-20 - [Avoid Full-Screen Buttons]
+**Learning:** Wrapping a full-screen `GestureDetector` (like one that toggles PDF controls) with `Semantics(button: true)` causes the screen reader to intercept the entire document, preventing normal interaction with the PDF content.
+**Action:** When adding `Semantics` to an overlay or gesture detector, ensure it doesn't wrap the actual scrollable content if it impairs navigation.
