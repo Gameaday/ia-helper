@@ -82,11 +82,9 @@
 ## 2026-05-30 - Tooltip and Semantics placement for actionable lists
 **Learning:** When making `Card` elements actionable in grid or list views via internal `InkWell` components (e.g., in `FavoritesScreen` or `LibraryScreen`), they must be wrapped in `Semantics(button: true)` and `Tooltip(excludeFromSemantics: true)` to ensure screen readers announce them properly as interactive elements without duplicate announcements, and desktop users see a helpful hover state context.
 **Action:** Always verify that grid items and list tiles that wrap `Card` + `InkWell` use both `Semantics` and `Tooltip`.
-
-## 2024-06-16 - Redundant explicit tooltips on self-describing buttons
-**Learning:** Found that `FavoriteIconButton` handles its own tooltip internally (because it delegates to `FavoriteButton`, which uses an `IconButton` with a dynamically calculated `tooltip` property). Explicitly wrapping `FavoriteIconButton` in another `Tooltip` (e.g. in `FavoritesScreen`) without `excludeFromSemantics: true` causes screen readers to redundantly read both the explicitly provided tooltip message and the internally derived tooltip message.
-**Action:** Always add `excludeFromSemantics: true` to explicit `Tooltip` wrappers when wrapping a widget that already provides its own built-in `tooltip` or semantics, to prevent duplicate accessibility announcements.
-## 2026-06-05 - Avoid polluting repository with scratchpad scripts\n**Learning:** Including ad-hoc Python scripts created during codebase exploration and problem solving in the final commit pollutes the repository and degrades maintainability. They should be deleted before submitting.\n**Action:** Remember to delete local scratchpad scripts used for  alternative operations before finishing tasks and completing pre-commit steps.
-## 2026-06-05 - Avoid polluting repository with scratchpad scripts
-**Learning:** Including ad-hoc scripts (like python parsers) created during codebase exploration and problem solving in the final commit pollutes the repository and degrades maintainability. They should be deleted before submitting.
-**Action:** Remember to delete local scratchpad scripts used for text operations before finishing tasks and completing pre-commit steps.
+## 2024-05-24 - Interactive Card Tooltips and Semantics
+**Learning:** In Flutter, when wrapping an actionable  (using ) with both  and a hover , the  must wrap the  but be *inside* the  widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
+**Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.
+## 2024-05-24 - Interactive Card Tooltips and Semantics
+**Learning:** In Flutter, when wrapping an actionable `Card` (using `InkWell`) with both `Semantics` and a hover `Tooltip`, the `Tooltip` must wrap the `Card` but be *inside* the `Semantics` widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
+**Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.
