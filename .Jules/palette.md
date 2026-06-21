@@ -90,3 +90,9 @@
 ## 2024-05-18 - Missing Accessibility on Helper Rows
 **Learning:** List items like credit rows or external links built using a base `InkWell` often miss out on standard button semantics, making them opaque to screen readers despite being interactive.
 **Action:** Always wrap custom interactive text rows (`InkWell`/`GestureDetector`) in `Semantics(button: true)` and `Tooltip(excludeFromSemantics: true)` if they behave as buttons or links.
+## 2024-05-24 - Interactive Card Tooltips and Semantics
+**Learning:** In Flutter, when wrapping an actionable  (using ) with both  and a hover , the  must wrap the  but be *inside* the  widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
+**Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.
+## 2024-05-24 - Interactive Card Tooltips and Semantics
+**Learning:** In Flutter, when wrapping an actionable `Card` (using `InkWell`) with both `Semantics` and a hover `Tooltip`, the `Tooltip` must wrap the `Card` but be *inside* the `Semantics` widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
+**Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.
