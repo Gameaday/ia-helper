@@ -756,7 +756,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       label: 'Collection: ${collection.name}, $itemCount items',
       child: Tooltip(
         excludeFromSemantics: true,
-        message: 'Open ${collection.name}',
+        message: 'Open collection ${collection.name}',
         child: Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: InkWell(
@@ -850,7 +850,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       label: 'Collection: ${collection.name}, $itemCount items',
       child: Tooltip(
         excludeFromSemantics: true,
-        message: 'Open ${collection.name}',
+        message: 'Open collection ${collection.name}',
         child: Card(
           child: InkWell(
             onTap: () => _openCollection(collection),
