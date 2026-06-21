@@ -305,7 +305,10 @@ class _AboutScreenState extends State<AboutScreen> {
     String value, {
     VoidCallback? onTap,
   }) {
-    return InkWell(
+    final semanticLabel = onTap != null ? 'Open $label details' : label;
+    final tooltipMessage = onTap != null ? 'Open $label details' : '';
+
+    Widget content = InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
@@ -337,6 +340,20 @@ class _AboutScreenState extends State<AboutScreen> {
         ),
       ),
     );
+
+    if (onTap != null) {
+      return Semantics(
+        button: true,
+        label: semanticLabel,
+        child: Tooltip(
+          excludeFromSemantics: true,
+          message: tooltipMessage,
+          child: content,
+        ),
+      );
+    }
+
+    return content;
   }
 
   Widget _buildFooter(BuildContext context) {

@@ -86,3 +86,7 @@
 ## 2026-06-05 - Avoid polluting repository with scratchpad scripts
 **Learning:** Including ad-hoc scripts (like python parsers) created during codebase exploration and problem solving in the final commit pollutes the repository and degrades maintainability. They should be deleted before submitting.
 **Action:** Remember to delete local scratchpad scripts used for text operations before finishing tasks and completing pre-commit steps.
+
+## 2024-05-18 - Missing Accessibility on Helper Rows
+**Learning:** List items like credit rows or external links built using a base `InkWell` often miss out on standard button semantics, making them opaque to screen readers despite being interactive.
+**Action:** Always wrap custom interactive text rows (`InkWell`/`GestureDetector`) in `Semantics(button: true)` and `Tooltip(excludeFromSemantics: true)` if they behave as buttons or links.
