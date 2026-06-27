@@ -96,3 +96,6 @@
 ## 2024-05-24 - Interactive Card Tooltips and Semantics
 **Learning:** In Flutter, when wrapping an actionable `Card` (using `InkWell`) with both `Semantics` and a hover `Tooltip`, the `Tooltip` must wrap the `Card` but be *inside* the `Semantics` widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
 **Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.
+## 2026-06-27 - Semantics and Tooltip structure on Cards
+**Learning:** In Flutter, when making a `Card` actionable via an internal `InkWell`, placing the `Semantics` and `Tooltip` wrappers inside the `Card` restricts their bounding box and functionality to the inner children. Additionally, wrapping `Tooltip` around `InkWell` without `excludeFromSemantics: true` while inside `Semantics` leads to redundant and messy screen reader announcements.
+**Action:** When a `Card` contains an interactive `InkWell`, the structure must be `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell` to ensure the entire card area is accessible and announced cleanly.
