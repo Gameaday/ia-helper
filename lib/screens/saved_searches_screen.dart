@@ -379,7 +379,9 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(child: CircularProgressIndicator());
+    return const Center(
+      child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+    );
   }
 
   Widget _buildBody() {

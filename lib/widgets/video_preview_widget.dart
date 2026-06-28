@@ -96,7 +96,9 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
         ),
         placeholder: Container(
           color: colorScheme.surface,
-          child: const Center(child: CircularProgressIndicator()),
+          child: const Center(
+            child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+          ),
         ),
         errorBuilder: (context, errorMessage) {
           return Center(
@@ -185,7 +187,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const CircularProgressIndicator(),
+        const CircularProgressIndicator(semanticsLabel: 'Loading'),
         const SizedBox(height: 16),
         Text(
           'Loading video...',

@@ -103,7 +103,7 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(semanticsLabel: 'Loading'),
             SizedBox(height: 16),
             Text('Loading PDF...'),
           ],

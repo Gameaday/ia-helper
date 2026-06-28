@@ -299,6 +299,7 @@ class ArchiveResultCard extends StatelessWidget {
           color: colorScheme.surfaceContainerHighest,
           child: Center(
             child: CircularProgressIndicator(
+              semanticsLabel: 'Loading',
               value: loadingProgress.expectedTotalBytes != null
                   ? loadingProgress.cumulativeBytesLoaded /
                         loadingProgress.expectedTotalBytes!

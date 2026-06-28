@@ -99,3 +99,7 @@
 ## 2026-06-27 - Semantics and Tooltip structure on Cards
 **Learning:** In Flutter, when making a `Card` actionable via an internal `InkWell`, placing the `Semantics` and `Tooltip` wrappers inside the `Card` restricts their bounding box and functionality to the inner children. Additionally, wrapping `Tooltip` around `InkWell` without `excludeFromSemantics: true` while inside `Semantics` leads to redundant and messy screen reader announcements.
 **Action:** When a `Card` contains an interactive `InkWell`, the structure must be `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell` to ensure the entire card area is accessible and announced cleanly.
+
+## 2024-05-19 - Missing semanticsLabel on CircularProgressIndicator
+**Learning:** Found that `CircularProgressIndicator` without a `semanticsLabel` causes missing screen reader announcements in many instances across the app.
+**Action:** Always provide `semanticsLabel: 'Loading'` (or another appropriate string) when using `CircularProgressIndicator` to ensure screen reader visibility.

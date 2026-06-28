@@ -153,7 +153,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     // For tablets, constrain content width for better readability
     final content = _isLoading
-        ? const Center(child: CircularProgressIndicator())
+        ? const Center(
+            child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+          )
         : ListView(
             children: [
               // Appearance Settings Section
@@ -935,7 +937,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => const AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(semanticsLabel: 'Loading'),
             SizedBox(width: 16),
             Text('Purging stale caches...'),
           ],
@@ -1010,7 +1012,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => const AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(semanticsLabel: 'Loading'),
             SizedBox(width: 16),
             Text('Vacuuming database...'),
           ],
@@ -1065,7 +1067,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 builder: (context) => const AlertDialog(
                   content: Row(
                     children: [
-                      CircularProgressIndicator(),
+                      CircularProgressIndicator(semanticsLabel: 'Loading'),
                       SizedBox(width: 16),
                       Text('Clearing all cache...'),
                     ],

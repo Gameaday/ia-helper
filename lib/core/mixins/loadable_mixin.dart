@@ -64,7 +64,9 @@ mixin LoadableMixin<T> on State {
 
   /// Override to customize loading widget
   Widget buildLoading(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
+    return const Center(
+      child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+    );
   }
 
   /// Override to customize error widget

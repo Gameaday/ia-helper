@@ -199,7 +199,9 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+      );
     }
 
     if (_error != null) {

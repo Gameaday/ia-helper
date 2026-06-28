@@ -231,6 +231,7 @@ class _EnhancedSearchBarState extends State<EnhancedSearchBar> {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
+                          semanticsLabel: 'Loading',
                           strokeWidth: 2,
                           color: colorScheme.primary,
                         ),

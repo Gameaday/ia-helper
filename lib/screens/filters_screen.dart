@@ -203,7 +203,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(semanticsLabel: 'Loading'),
               ),
             )
           else
@@ -247,7 +247,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(semanticsLabel: 'Loading'),
               ),
             )
           else
