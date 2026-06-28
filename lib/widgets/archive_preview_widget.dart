@@ -464,7 +464,7 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(semanticsLabel: 'Loading'),
             SizedBox(height: 16),
             Text('Extracting file...'),
           ],
@@ -624,7 +624,7 @@ class _ArchivePreviewWidgetState extends State<ArchivePreviewWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(semanticsLabel: 'Loading'),
             SizedBox(height: 16),
             Text('Loading archive...'),
           ],

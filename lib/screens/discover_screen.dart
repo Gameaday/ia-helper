@@ -429,7 +429,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          semanticsLabel: 'Loading',
+                          strokeWidth: 2,
+                        ),
                       ),
                   ],
                 ),
@@ -509,7 +512,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                         const SizedBox(
                           width: 32,
                           height: 32,
-                          child: CircularProgressIndicator(strokeWidth: 3),
+                          child: CircularProgressIndicator(
+                            semanticsLabel: 'Loading',
+                            strokeWidth: 3,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -689,6 +695,7 @@ class _TrendingCard extends StatelessWidget {
                             color: colorScheme.surfaceContainerHighest,
                             child: Center(
                               child: CircularProgressIndicator(
+                                semanticsLabel: 'Loading',
                                 strokeWidth: 2,
                                 color: colorScheme.primary,
                               ),

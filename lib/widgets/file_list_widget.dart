@@ -787,7 +787,10 @@ class _FileListWidgetState extends State<FileListWidget> {
         return const SizedBox(
           width: 14,
           height: 14,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(
+            semanticsLabel: 'Loading',
+            strokeWidth: 2,
+          ),
         );
       case _FileState.notDownloaded:
         return const SizedBox.shrink();
@@ -815,7 +818,10 @@ class _FileListWidgetState extends State<FileListWidget> {
         return const SizedBox(
           width: 24,
           height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(
+            semanticsLabel: 'Loading',
+            strokeWidth: 2,
+          ),
         );
       case _FileState.notDownloaded:
         // Check file state when button is about to be built

@@ -290,7 +290,9 @@ class _TransfersScreenState extends State<TransfersScreen> {
           // Transfer list
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+                  )
                 : _buildTransferList(theme),
           ),
         ],

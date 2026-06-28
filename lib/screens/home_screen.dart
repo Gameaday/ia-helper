@@ -187,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator(semanticsLabel: 'Loading'),
                   SizedBox(height: 16),
                   Text('Initializing Internet Archive Helper...'),
                 ],

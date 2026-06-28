@@ -71,7 +71,9 @@ class _ApiIntensitySettingsScreenState
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: const Text('API Intensity')),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(
+          child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+        ),
       );
     }
 

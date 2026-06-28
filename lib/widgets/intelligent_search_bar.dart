@@ -446,7 +446,10 @@ class _IntelligentSearchBarState extends State<IntelligentSearchBar>
                           const SizedBox(
                             width: 16,
                             height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              semanticsLabel: 'Loading',
+                              strokeWidth: 2,
+                            ),
                           )
                         else if (_isValidIdentifier == true)
                           Icon(

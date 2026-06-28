@@ -185,7 +185,7 @@ class UIHelpers {
         child: AlertDialog(
           content: Row(
             children: [
-              const CircularProgressIndicator(),
+              const CircularProgressIndicator(semanticsLabel: 'Loading'),
               const SizedBox(width: 20),
               Expanded(child: Text(message)),
             ],
@@ -400,7 +400,7 @@ class UIHelpers {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(),
+          const CircularProgressIndicator(semanticsLabel: 'Loading'),
           if (message != null) ...[const SizedBox(height: 16), Text(message)],
         ],
       ),
