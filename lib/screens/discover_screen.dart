@@ -325,6 +325,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                             ? 'Collapse Quick Favorites'
                             : 'Expand Quick Favorites',
                         child: Tooltip(
+                          excludeFromSemantics: true,
                           message: _showFavorites
                               ? 'Collapse Quick Favorites'
                               : 'Expand Quick Favorites',

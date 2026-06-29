@@ -103,3 +103,6 @@
 ## 2024-05-19 - Missing semanticsLabel on CircularProgressIndicator
 **Learning:** Found that `CircularProgressIndicator` without a `semanticsLabel` causes missing screen reader announcements in many instances across the app.
 **Action:** Always provide `semanticsLabel: 'Loading'` (or another appropriate string) when using `CircularProgressIndicator` to ensure screen reader visibility.
+## 2023-10-27 - [Flutter Tooltip and Semantics Double-Voicing]
+**Learning:** In Flutter, wrapping a `Tooltip` widget inside a `Semantics` widget causes screen readers (like VoiceOver or TalkBack) to redundantly read both the `Semantics` label and the `Tooltip` message (e.g., "Collapse Quick Favorites, Collapse Quick Favorites").
+**Action:** When an explicit `Tooltip` wraps a composite widget that already provides its own built-in tooltip or semantics, or when a `Tooltip` is nested inside a `Semantics` widget, always add `excludeFromSemantics: true` to the `Tooltip` to prevent redundant screen reader announcements.
