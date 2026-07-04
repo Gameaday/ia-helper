@@ -339,6 +339,7 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
     return Column(
       children: [
         LinearProgressIndicator(
+          semanticsLabel: 'Download progress',
           value: isIndeterminate ? null : progress,
           backgroundColor: Theme.of(
             context,

@@ -321,7 +321,10 @@ class UIHelpers {
                 Text(message),
                 const SizedBox(height: 16),
               ],
-              LinearProgressIndicator(value: progress),
+              LinearProgressIndicator(
+                value: progress,
+                semanticsLabel: 'Loading progress',
+              ),
               const SizedBox(height: 8),
               Text('${(progress * 100).toStringAsFixed(1)}%'),
             ],

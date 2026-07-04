@@ -174,6 +174,7 @@ class DownloadStatisticsWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       LinearProgressIndicator(
+                        semanticsLabel: 'Success rate',
                         value:
                             provider.totalDownloadsCompleted /
                             provider.totalDownloadsStarted,
