@@ -464,7 +464,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
         // Loading indicator
-        if (service.isLoading) const LinearProgressIndicator(),
+        if (service.isLoading)
+          const LinearProgressIndicator(semanticsLabel: 'Loading'),
 
         // Empty state when not loading, no metadata, AND no recent searches
         Consumer<HistoryService>(

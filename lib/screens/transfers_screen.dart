@@ -827,6 +827,7 @@ class _TransferCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         LinearProgressIndicator(
+          semanticsLabel: 'Transfer progress',
           value: progressValue,
           minHeight: 6,
           borderRadius: BorderRadius.circular(3),
