@@ -109,3 +109,7 @@
 ## 2026-07-04 - [Add semanticsLabel to Progress Indicators]
 **Learning:** In Flutter, `CircularProgressIndicator` and `LinearProgressIndicator` do not have an inherent accessibility label. Screen readers will ignore them, leaving visually impaired users unaware of loading states.
 **Action:** Always provide a `semanticsLabel` (e.g., `semanticsLabel: 'Loading'`) when using progress indicators to ensure they are announced by screen readers.
+
+## 2024-05-18 - Search Field Keyboard Action
+**Learning:** By default, Flutter `TextField` widgets show a "Return" or "Done" button on the virtual keyboard. For search fields, this can be unintuitive. Adding `textInputAction: TextInputAction.search` transforms the button into a "Search" icon or text, aligning the keyboard UI with the user's expected action.
+**Action:** When implementing search functionality using `TextField` or `TextFormField`, always include `textInputAction: TextInputAction.search`.
