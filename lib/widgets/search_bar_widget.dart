@@ -28,6 +28,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
         children: [
           Expanded(
             child: TextField(
+              textInputAction: TextInputAction.search,
               controller: _controller,
               focusNode: _focusNode,
               decoration: InputDecoration(

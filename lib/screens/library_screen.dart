@@ -982,6 +982,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       builder: (context) => AlertDialog(
         title: const Text('Search Library'),
         content: TextField(
+          textInputAction: TextInputAction.search,
           autofocus: true,
           decoration: const InputDecoration(
             hintText: 'Enter search query',

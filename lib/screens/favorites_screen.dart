@@ -162,6 +162,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         },
       ),
       title: TextField(
+        textInputAction: TextInputAction.search,
         controller: _searchController,
         autofocus: true,
         decoration: const InputDecoration(
