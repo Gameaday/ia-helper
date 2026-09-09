@@ -93,7 +93,9 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
                   Navigator.of(context).pop();
                 }
               });
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+              );
             }
 
             // If we have metadata again, reset the popping flag
@@ -103,7 +105,9 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
 
             // Show loading if we're in the popping state but still have metadata
             if (_isPopping) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+              );
             }
 
             // Adaptive layout: side-by-side on large screens, stacked on phones

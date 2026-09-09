@@ -596,6 +596,7 @@ class _MenuItemCard extends StatelessWidget {
       button: true,
       label: '$title: $subtitle',
       child: Tooltip(
+        excludeFromSemantics: true,
         message: 'Open $title',
         child: Card(
           clipBehavior: Clip.antiAlias,

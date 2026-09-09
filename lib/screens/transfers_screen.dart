@@ -290,7 +290,9 @@ class _TransfersScreenState extends State<TransfersScreen> {
           // Transfer list
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+                  )
                 : _buildTransferList(theme),
           ),
         ],
@@ -825,6 +827,7 @@ class _TransferCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         LinearProgressIndicator(
+          semanticsLabel: 'Transfer progress',
           value: progressValue,
           minHeight: 6,
           borderRadius: BorderRadius.circular(3),

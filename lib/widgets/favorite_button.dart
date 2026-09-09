@@ -217,6 +217,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
                         width: widget.iconSize,
                         height: widget.iconSize,
                         child: CircularProgressIndicator(
+                          semanticsLabel: 'Loading',
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(iconColor),
                         ),

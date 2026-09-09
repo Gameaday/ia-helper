@@ -87,6 +87,29 @@
 **Learning:** Including ad-hoc scripts (like python parsers) created during codebase exploration and problem solving in the final commit pollutes the repository and degrades maintainability. They should be deleted before submitting.
 **Action:** Remember to delete local scratchpad scripts used for text operations before finishing tasks and completing pre-commit steps.
 
-## 2024-06-20 - [Avoid Full-Screen Buttons]
-**Learning:** Wrapping a full-screen `GestureDetector` (like one that toggles PDF controls) with `Semantics(button: true)` causes the screen reader to intercept the entire document, preventing normal interaction with the PDF content.
-**Action:** When adding `Semantics` to an overlay or gesture detector, ensure it doesn't wrap the actual scrollable content if it impairs navigation.
+## 2024-05-18 - Missing Accessibility on Helper Rows
+**Learning:** List items like credit rows or external links built using a base `InkWell` often miss out on standard button semantics, making them opaque to screen readers despite being interactive.
+**Action:** Always wrap custom interactive text rows (`InkWell`/`GestureDetector`) in `Semantics(button: true)` and `Tooltip(excludeFromSemantics: true)` if they behave as buttons or links.
+## 2024-05-24 - Interactive Card Tooltips and Semantics
+**Learning:** In Flutter, when wrapping an actionable  (using ) with both  and a hover , the  must wrap the  but be *inside* the  widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
+**Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.
+## 2024-05-24 - Interactive Card Tooltips and Semantics
+**Learning:** In Flutter, when wrapping an actionable `Card` (using `InkWell`) with both `Semantics` and a hover `Tooltip`, the `Tooltip` must wrap the `Card` but be *inside* the `Semantics` widget. Adding `excludeFromSemantics: true` on the `Tooltip` prevents double-reading by the screen reader, ensuring clean a11y announcements while preserving desktop hover cues.
+**Action:** Always structure actionable cards as: `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell`.
+## 2026-06-27 - Semantics and Tooltip structure on Cards
+**Learning:** In Flutter, when making a `Card` actionable via an internal `InkWell`, placing the `Semantics` and `Tooltip` wrappers inside the `Card` restricts their bounding box and functionality to the inner children. Additionally, wrapping `Tooltip` around `InkWell` without `excludeFromSemantics: true` while inside `Semantics` leads to redundant and messy screen reader announcements.
+**Action:** When a `Card` contains an interactive `InkWell`, the structure must be `Semantics(button: true) > Tooltip(excludeFromSemantics: true) > Card > InkWell` to ensure the entire card area is accessible and announced cleanly.
+
+## 2024-05-19 - Missing semanticsLabel on CircularProgressIndicator
+**Learning:** Found that `CircularProgressIndicator` without a `semanticsLabel` causes missing screen reader announcements in many instances across the app.
+**Action:** Always provide `semanticsLabel: 'Loading'` (or another appropriate string) when using `CircularProgressIndicator` to ensure screen reader visibility.
+## 2023-10-27 - [Flutter Tooltip and Semantics Double-Voicing]
+**Learning:** In Flutter, wrapping a `Tooltip` widget inside a `Semantics` widget causes screen readers (like VoiceOver or TalkBack) to redundantly read both the `Semantics` label and the `Tooltip` message (e.g., "Collapse Quick Favorites, Collapse Quick Favorites").
+**Action:** When an explicit `Tooltip` wraps a composite widget that already provides its own built-in tooltip or semantics, or when a `Tooltip` is nested inside a `Semantics` widget, always add `excludeFromSemantics: true` to the `Tooltip` to prevent redundant screen reader announcements.
+## 2026-07-04 - [Add semanticsLabel to Progress Indicators]
+**Learning:** In Flutter, `CircularProgressIndicator` and `LinearProgressIndicator` do not have an inherent accessibility label. Screen readers will ignore them, leaving visually impaired users unaware of loading states.
+**Action:** Always provide a `semanticsLabel` (e.g., `semanticsLabel: 'Loading'`) when using progress indicators to ensure they are announced by screen readers.
+
+## 2024-05-18 - Search Field Keyboard Action
+**Learning:** By default, Flutter `TextField` widgets show a "Return" or "Done" button on the virtual keyboard. For search fields, this can be unintuitive. Adding `textInputAction: TextInputAction.search` transforms the button into a "Search" icon or text, aligning the keyboard UI with the user's expected action.
+**Action:** When implementing search functionality using `TextField` or `TextFormField`, always include `textInputAction: TextInputAction.search`.

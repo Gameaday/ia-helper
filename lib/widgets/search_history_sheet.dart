@@ -225,6 +225,7 @@ class _SearchHistorySheetState extends State<SearchHistorySheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CircularProgressIndicator(
+              semanticsLabel: 'Loading',
               strokeWidth: 3,
               color: Theme.of(context).colorScheme.primary,
             ),

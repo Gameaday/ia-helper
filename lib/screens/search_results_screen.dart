@@ -322,7 +322,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Column(
                       children: [
-                        CircularProgressIndicator(),
+                        CircularProgressIndicator(semanticsLabel: 'Loading'),
                         SizedBox(height: 16),
                         Text('Searching Internet Archive...'),
                       ],
@@ -396,7 +396,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   Widget _buildLoadingMoreIndicator() {
     return const Padding(
       padding: EdgeInsets.all(16),
-      child: Center(child: CircularProgressIndicator()),
+      child: Center(
+        child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+      ),
     );
   }
 

@@ -71,7 +71,9 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final content = _isLoading
-        ? const Center(child: CircularProgressIndicator())
+        ? const Center(
+            child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+          )
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [

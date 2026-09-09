@@ -186,6 +186,7 @@ class SnackBarHelper {
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
+                semanticsLabel: 'Loading',
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   Theme.of(context).colorScheme.onInverseSurface,

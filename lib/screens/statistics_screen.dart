@@ -133,7 +133,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Statistics')),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+            )
           : RefreshIndicator(
               onRefresh: _loadStatistics,
               child: ListView(

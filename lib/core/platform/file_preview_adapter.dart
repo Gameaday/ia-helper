@@ -271,6 +271,7 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
                   if (loadingProgress == null) return child;
                   return Center(
                     child: CircularProgressIndicator(
+                      semanticsLabel: 'Loading',
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
                                 loadingProgress.expectedTotalBytes!

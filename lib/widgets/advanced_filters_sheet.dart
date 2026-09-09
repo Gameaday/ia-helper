@@ -331,16 +331,17 @@ class _AdvancedFiltersSheetState extends State<AdvancedFiltersSheet> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      elevation: 0,
-      color: colorScheme.surfaceContainerHighest,
-      child: Semantics(
-        label: _selectedDateRange != null
-            ? 'Selected date range: ${_selectedDateRange!.toDisplayString()}'
-            : 'Select Date Range',
-        button: true,
-        child: Tooltip(
-          message: 'Select Date Range',
+    return Semantics(
+      label: _selectedDateRange != null
+          ? 'Selected date range: ${_selectedDateRange!.toDisplayString()}'
+          : 'Select Date Range',
+      button: true,
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'Select Date Range',
+        child: Card(
+          elevation: 0,
+          color: colorScheme.surfaceContainerHighest,
           child: InkWell(
             onTap: _selectDateRange,
             borderRadius: BorderRadius.circular(12),

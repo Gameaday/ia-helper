@@ -164,7 +164,7 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(semanticsLabel: 'Loading'),
             SizedBox(height: 16),
             Text('Loading audio...'),
           ],

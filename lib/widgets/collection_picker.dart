@@ -270,6 +270,7 @@ class _CollectionPickerState extends State<CollectionPicker> {
                                 width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(
+                                  semanticsLabel: 'Loading',
                                   strokeWidth: 2,
                                 ),
                               )
@@ -288,7 +289,9 @@ class _CollectionPickerState extends State<CollectionPicker> {
 
   Widget _buildContent(ScrollController scrollController) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+      );
     }
 
     if (_error != null) {

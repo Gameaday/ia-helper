@@ -32,6 +32,7 @@ class PrioritySelector extends StatelessWidget {
       label: '${priority.displayName} Priority',
       button: true,
       child: Tooltip(
+        excludeFromSemantics: true,
         message: '${priority.displayName} Priority',
         child: InkWell(
           onTap: () => _showPriorityPicker(context),

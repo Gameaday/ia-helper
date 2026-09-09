@@ -72,7 +72,9 @@ class _IAHealthScreenState extends State<IAHealthScreen> {
           _buildInfoBanner(context),
           const SizedBox(height: 24),
           if (_isLoading)
-            const Center(child: CircularProgressIndicator())
+            const Center(
+              child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+            )
           else ...[
             _buildOverallStatus(context),
             const SizedBox(height: 24),

@@ -162,6 +162,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         },
       ),
       title: TextField(
+        textInputAction: TextInputAction.search,
         controller: _searchController,
         autofocus: true,
         decoration: const InputDecoration(
@@ -186,7 +187,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+      );
     }
 
     if (_error != null) {
@@ -412,6 +415,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   top: 8,
                   right: 8,
                   child: Tooltip(
+                    excludeFromSemantics: true,
                     message: 'Remove ${favorite.displayTitle} from favorites',
                     child: FavoriteIconButton(
                       identifier: favorite.identifier,
@@ -479,6 +483,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               ],
             ),
             trailing: Tooltip(
+              excludeFromSemantics: true,
               message: 'Remove ${favorite.displayTitle} from favorites',
               child: FavoriteIconButton(
                 identifier: favorite.identifier,

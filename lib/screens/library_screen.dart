@@ -199,7 +199,9 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+      );
     }
 
     if (_error != null) {
@@ -980,6 +982,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       builder: (context) => AlertDialog(
         title: const Text('Search Library'),
         content: TextField(
+          textInputAction: TextInputAction.search,
           autofocus: true,
           decoration: const InputDecoration(
             hintText: 'Enter search query',

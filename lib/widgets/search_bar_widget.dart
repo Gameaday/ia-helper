@@ -28,6 +28,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
         children: [
           Expanded(
             child: TextField(
+              textInputAction: TextInputAction.search,
               controller: _controller,
               focusNode: _focusNode,
               decoration: InputDecoration(
@@ -82,6 +83,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(
+                                semanticsLabel: 'Loading',
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   Theme.of(context).colorScheme.onPrimary,

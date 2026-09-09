@@ -145,6 +145,7 @@ class BandwidthControlsWidget extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
+            semanticsLabel: 'Bandwidth usage limit',
             value: usage.usagePercentage,
             minHeight: 8,
             backgroundColor: Theme.of(

@@ -305,7 +305,10 @@ class _AboutScreenState extends State<AboutScreen> {
     String value, {
     VoidCallback? onTap,
   }) {
-    final Widget inkWell = InkWell(
+    final semanticLabel = onTap != null ? 'Open $label details' : label;
+    final tooltipMessage = onTap != null ? 'Open $label details' : '';
+
+    Widget content = InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(

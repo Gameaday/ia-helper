@@ -177,6 +177,7 @@ class _EnhancedErrorDialogState extends State<EnhancedErrorDialog> {
                   ? 'Hide technical details'
                   : 'Show technical details',
               child: Tooltip(
+                excludeFromSemantics: true,
                 message: _showTechnicalDetails
                     ? 'Hide technical details'
                     : 'Show technical details',

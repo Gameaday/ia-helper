@@ -32,6 +32,7 @@ class ImagePreviewWidget extends StatelessWidget {
           heroAttributes: PhotoViewHeroAttributes(tag: preview.fileName),
           loadingBuilder: (context, event) => Center(
             child: CircularProgressIndicator(
+              semanticsLabel: 'Loading',
               value: event == null
                   ? null
                   : event.cumulativeBytesLoaded / event.expectedTotalBytes!,

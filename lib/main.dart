@@ -496,7 +496,7 @@ class _AppInitializerState extends State<AppInitializer> {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 32),
-              const CircularProgressIndicator(),
+              const CircularProgressIndicator(semanticsLabel: 'Loading'),
             ],
           ),
         ),

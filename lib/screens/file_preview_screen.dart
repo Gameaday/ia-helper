@@ -160,7 +160,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(),
+            const CircularProgressIndicator(semanticsLabel: 'Loading'),
             const SizedBox(height: 16),
             Text(
               'Loading preview...',

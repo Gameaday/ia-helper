@@ -417,6 +417,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
 
   Widget _buildSearchField() {
     return TextField(
+      textInputAction: TextInputAction.search,
       controller: _searchController,
       decoration: InputDecoration(
         labelText: 'Search Internet Archive',

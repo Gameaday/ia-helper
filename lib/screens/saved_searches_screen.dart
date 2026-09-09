@@ -379,7 +379,9 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(child: CircularProgressIndicator());
+    return const Center(
+      child: CircularProgressIndicator(semanticsLabel: 'Loading'),
+    );
   }
 
   Widget _buildBody() {
@@ -400,6 +402,7 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: TextField(
+        textInputAction: TextInputAction.search,
         controller: _searchController,
         decoration: InputDecoration(
           labelText: 'Search saved searches',
