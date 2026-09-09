@@ -150,140 +150,29 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
       return const Center(child: Text('Failed to initialize PDF viewer'));
     }
 
-    return GestureDetector(
-      onTap: _toggleControls,
-      child: Stack(
-        children: [
-          // PDF Viewer
-          PdfView(
-            controller: _pdfController!,
-            onPageChanged: (page) {
-              setState(() {
-                _currentPage = page;
-              });
-            },
-            scrollDirection: Axis.vertical,
-            pageSnapping: true,
-            physics: const BouncingScrollPhysics(),
-          ),
-
-          // Page Indicator (always visible)
-          Positioned(
-            top: 16,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: AppShapes.large,
-                ),
-                child: Text(
-                  'Page $_currentPage of $_totalPages',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
+    return Semantics(
+      button: true,
+      label: _showControls ? 'Hide PDF controls' : 'Show PDF controls',
+      child: GestureDetector(
+        onTap: _toggleControls,
+        child: Stack(
+          children: [
+            // PDF Viewer
+            PdfView(
+              controller: _pdfController!,
+              onPageChanged: (page) {
+                setState(() {
+                  _currentPage = page;
+                });
+              },
+              scrollDirection: Axis.vertical,
+              pageSnapping: true,
+              physics: const BouncingScrollPhysics(),
             ),
-          ),
 
-          // Navigation Controls (toggleable)
-          if (_showControls) ...[
-            // Bottom Control Bar
+            // Page Indicator (always visible)
             Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: <Color>[
-                      Theme.of(context).colorScheme.surfaceContainer,
-                      Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainer.withValues(alpha: 0.7),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Previous Page Button
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      onPressed: _currentPage > 1 ? _previousPage : null,
-                      iconSize: 32,
-                      tooltip: 'Previous Page',
-                    ),
-
-                    // Page Input (tap to jump to page)
-                    Semantics(
-                      label: 'Current page $_currentPage, tap to jump to page',
-                      button: true,
-                      child: Tooltip(
-                        excludeFromSemantics: true,
-                        message: 'Jump to page',
-                        child: GestureDetector(
-                          onTap: _showPageJumpDialog,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest
-                                  .withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '$_currentPage',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Next Page Button
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_forward,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      onPressed: _currentPage < _totalPages ? _nextPage : null,
-                      iconSize: 32,
-                      tooltip: 'Next Page',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-
-          // Help Text (tap to toggle controls)
-          if (!_showControls)
-            Positioned(
-              bottom: 16,
+              top: 16,
               left: 0,
               right: 0,
               child: Center(
@@ -297,15 +186,133 @@ class _PdfPreviewWidgetState extends State<PdfPreviewWidget> {
                     borderRadius: AppShapes.large,
                   ),
                   child: Text(
-                    'Tap to show controls',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    'Page $_currentPage of $_totalPages',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ),
             ),
-        ],
+
+            // Navigation Controls (toggleable)
+            if (_showControls) ...[
+              // Bottom Control Bar
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: <Color>[
+                        Theme.of(context).colorScheme.surfaceContainer,
+                        Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainer.withValues(alpha: 0.7),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Previous Page Button
+                      IconButton(
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        onPressed: _currentPage > 1 ? _previousPage : null,
+                        iconSize: 32,
+                        tooltip: 'Previous Page',
+                      ),
+
+                      // Page Input (tap to jump to page)
+                      Semantics(
+                        label:
+                            'Current page $_currentPage, tap to jump to page',
+                        button: true,
+                        child: Tooltip(
+                          excludeFromSemantics: true,
+                          message: 'Jump to page',
+                          child: GestureDetector(
+                            onTap: _showPageJumpDialog,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '$_currentPage',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Next Page Button
+                      IconButton(
+                        icon: Icon(
+                          Icons.arrow_forward,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        onPressed: _currentPage < _totalPages
+                            ? _nextPage
+                            : null,
+                        iconSize: 32,
+                        tooltip: 'Next Page',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            // Help Text (tap to toggle controls)
+            if (!_showControls)
+              Positioned(
+                bottom: 16,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: AppShapes.large,
+                    ),
+                    child: Text(
+                      'Tap to show controls',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

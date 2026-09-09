@@ -341,19 +341,19 @@ class _AboutScreenState extends State<AboutScreen> {
       ),
     );
 
-    if (onTap != null) {
-      return Semantics(
-        button: true,
-        label: semanticLabel,
-        child: Tooltip(
-          excludeFromSemantics: true,
-          message: tooltipMessage,
-          child: content,
-        ),
-      );
+    if (onTap == null) {
+      return inkWell;
     }
 
-    return content;
+    return Semantics(
+      button: true,
+      label: 'Credit for $label: $value',
+      child: Tooltip(
+        excludeFromSemantics: true,
+        message: 'Open $label link',
+        child: inkWell,
+      ),
+    );
   }
 
   Widget _buildFooter(BuildContext context) {
