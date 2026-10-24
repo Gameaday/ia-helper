@@ -1,7 +1,7 @@
 # Internet Archive Helper - Privacy Policy
 
-**Last updated: October 8, 2025**  
-**Effective Date: October 8, 2025**
+**Last updated: October 24, 2026**  
+**Effective Date: October 24, 2026**
 
 ## Overview
 
@@ -140,7 +140,7 @@ For questions about this privacy policy or the app:
 
 - **GitHub Issues**: [https://github.com/Gameaday/ia-helper/issues](https://github.com/Gameaday/ia-helper/issues)
 - **GitHub Discussions**: [https://github.com/Gameaday/ia-helper/discussions](https://github.com/Gameaday/ia-helper/discussions)
-- **Email**: gameaday@users.noreply.github.com
+- **Email**: gameaday.project@gmail.com
 
 For questions about Internet Archive content or services:
 - **Internet Archive Contact**: https://archive.org/about/contact.php
