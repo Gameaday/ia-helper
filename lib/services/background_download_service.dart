@@ -178,6 +178,7 @@ class BackgroundDownloadService extends ChangeNotifier {
   @override
   void dispose() {
     _retryTimer?.cancel();
+    super.dispose();
   }
 
   /// Validate archive metadata before downloading
