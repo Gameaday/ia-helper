@@ -22,7 +22,7 @@
 - [ ] **Tag `v1.7.0`** — the build version comes from git tags; without a tag the AAB reports 1.0.0.
 - [ ] Upload keystore + the 4 `ANDROID_*` repository secrets (one-time, see `docs/store/play-console-steps.md`).
 - [ ] Play Console → Account details: verify contact email + phone (required by the keep-alive policy).
-- [ ] Create the app entry in Play Console (package: `com.gameaday.internet_archive_helper`).
+- [ ] Create the app entry in Play Console (package: `com.gameaday.iahelper`).
 
 ## Then the upload sequence
 
