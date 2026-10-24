@@ -83,6 +83,7 @@ class ResumableDownloadService {
 
       // Track download progress
       int receivedBytes = startByte;
+      int lastPersistedBytes = startByte;
       final startTime = DateTime.now();
 
       // Download with progress tracking
@@ -96,8 +97,17 @@ class ResumableDownloadService {
         onReceiveProgress: (received, total) {
           receivedBytes = startByte + received;
 
-          // Calculate progress
-          final totalBytes = total > 0 ? total : task.totalBytes;
+          // Calculate progress. When resuming (HTTP 206), dio's [total] is
+          // the REMAINING bytes, so the real size is startByte + total. Fall
+          // back to the known task size when the server reports no length.
+          final int totalBytes;
+          if (total > 0) {
+            totalBytes = startByte + total;
+          } else if (task.totalBytes > 0) {
+            totalBytes = task.totalBytes;
+          } else {
+            totalBytes = 0;
+          }
           final progress = DownloadProgress(
             downloadId: task.id,
             identifier: task.identifier,
@@ -112,15 +122,27 @@ class ResumableDownloadService {
           _progressMap[task.id] = progress;
           onProgress?.call(task.id, progress);
 
-          // Periodically save progress to database
-          if (receivedBytes % (1024 * 1024) == 0) {
-            // Save every 1MB
+          // Periodically save progress to the database. Persist every 5 MB:
+          // the old byte-exact modulo check almost never fired with chunked
+          // progress callbacks, so partialBytes was rarely saved.
+          if (receivedBytes - lastPersistedBytes >= 5 * 1024 * 1024) {
+            lastPersistedBytes = receivedBytes;
             _db.updateDownloadTask(task.copyWith(partialBytes: receivedBytes));
           }
         },
         deleteOnError: false, // Keep partial file on error
         cancelToken: cancelToken,
       );
+
+      // If we sent a Range request but the server ignored it (status 200),
+      // dio appended the full response body to our partial file, which
+      // corrupts it. Delete the partial file and restart from byte 0.
+      if (startByte > 0 && response.statusCode == 200) {
+        await file.delete();
+        _cancelTokens.remove(task.id);
+        _progressMap.remove(task.id);
+        return downloadTask(task.copyWith(partialBytes: 0));
+      }
 
       // Download complete
       if (response.statusCode == 200 || response.statusCode == 206) {

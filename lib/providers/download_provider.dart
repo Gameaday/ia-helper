@@ -208,9 +208,9 @@ class DownloadProvider extends ChangeNotifier {
 
   // Enhanced: Download statistics
   int _totalDownloadsStarted = 0;
-  final int _totalDownloadsCompleted = 0;
+  int _totalDownloadsCompleted = 0;
   int _totalDownloadsFailed = 0;
-  final int _totalBytesDownloaded = 0;
+  int _totalBytesDownloaded = 0;
 
   /// Constructor with optional bandwidth manager injection
   DownloadProvider({BandwidthManagerProvider? bandwidthManager})
@@ -362,6 +362,12 @@ class DownloadProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Count this download as active BEFORE any await: concurrent
+      // startDownload() calls must not all pass the capacity check before
+      // the counter is incremented, and a metadata-fetch failure must not
+      // skip the paired decrement in finally.
+      _activeDownloads++;
+
       // Create bandwidth throttle for this download
       _bandwidthManager?.createThrottle(identifier);
 
@@ -412,9 +418,6 @@ class DownloadProvider extends ChangeNotifier {
 
       // Download each file
       final downloadDir = outputDir ?? '/sdcard/Download/ia-get/$identifier';
-
-      // Track active downloads for concurrency control
-      _activeDownloads++;
 
       for (final file in filesToDownload) {
         final url = IAUtils.buildDownloadUrl(identifier, file.name);
@@ -521,6 +524,8 @@ class DownloadProvider extends ChangeNotifier {
         downloadStatus: DownloadStatus.complete,
         endTime: DateTime.now(),
       );
+      _totalDownloadsCompleted++;
+      _totalBytesDownloaded += _downloads[identifier]!.totalDownloaded;
 
       // Add to history
       if (!_downloadHistory.contains(identifier)) {
@@ -585,18 +590,22 @@ class DownloadProvider extends ChangeNotifier {
       throw Exception('Can only retry failed downloads');
     }
 
-    // Reset download state
-    _downloads[identifier] = downloadState.copyWith(
-      downloadStatus: DownloadStatus.idle,
-      error: null,
+    // Reset download state. copyWith cannot clear nullable fields (passing
+    // null keeps the old value), so build a fresh state — otherwise the old
+    // error message would survive the retry.
+    _downloads[identifier] = DownloadState(
+      identifier: downloadState.identifier,
+      metadata: downloadState.metadata,
+      fileProgress: downloadState.fileProgress,
+      priority: downloadState.priority,
+      startTime: DateTime.now(),
     );
     notifyListeners();
 
-    // Restart the download
-    await startDownload(
-      identifier,
-      outputDir: downloadState.metadata?.identifier,
-    );
+    // Restart the download in the default output directory. (The previous
+    // code passed the archive identifier as outputDir, which would write
+    // files into a bogus relative path.)
+    await startDownload(identifier);
   }
 
   /// Process the download queue
@@ -668,6 +677,10 @@ class DownloadProvider extends ChangeNotifier {
     if (!_downloads.containsKey(identifier)) {
       return;
     }
+
+    // Remove any queued instance as well: otherwise a cancelled download
+    // sitting in _downloadQueue would still be started by _processQueue().
+    _downloadQueue.removeWhere((q) => q.identifier == identifier);
 
     // Note: In a full implementation, you'd need to signal the Rust side
     // to cancel the download. For now, we just update the state.

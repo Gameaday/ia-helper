@@ -31,6 +31,7 @@ class DownloadScheduler {
 
   // State
   final Map<String, DownloadTask> _activeDownloads = {};
+  final Map<String, DownloadProgress> _taskProgress = {};
   final Queue<DownloadTask> _queue = Queue();
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   Timer? _schedulerTimer;
@@ -75,12 +76,14 @@ class DownloadScheduler {
   }
 
   /// Stop the scheduler
+  ///
+  /// The broadcast StreamControllers are intentionally NOT closed: this is a
+  /// process-lifetime singleton, and closing them would make a later
+  /// initialize() throw ("add after closing") for every listener.
   Future<void> dispose() async {
     _isRunning = false;
     await _connectivitySubscription?.cancel();
     _schedulerTimer?.cancel();
-    await _stateController.close();
-    await _progressController.close();
 
     // Pause all active downloads
     for (final taskId in _activeDownloads.keys.toList()) {
@@ -246,13 +249,19 @@ class DownloadScheduler {
     if (!_isRunning) return;
 
     // Start new downloads if we have capacity
+    int rotations = 0;
+    final int queueLength = _queue.length;
     while (_activeDownloads.length < maxConcurrentDownloads &&
         _queue.isNotEmpty) {
       final task = _queue.first;
 
       // Check if task is ready to start
       if (!_isTaskReady(task)) {
-        // Move to end of queue if not ready
+        // Move to end of queue if not ready. Stop after one full rotation
+        // pass: if every queued task is waiting on a schedule or retry
+        // backoff, rotating forever would freeze the event loop.
+        if (rotations >= queueLength) break;
+        rotations++;
         _queue.removeFirst();
         _queue.addLast(task);
         continue;
@@ -336,15 +345,15 @@ class DownloadScheduler {
   }
 
   void _handleProgressUpdate(String taskId, DownloadProgress progress) {
-    // Update progress map and emit
-    final allProgress = Map<String, DownloadProgress>.from(
-      _activeDownloads.map((id, task) => MapEntry(id, progress)),
-    );
-    _progressController.add(allProgress);
+    // Track per-task progress and emit the full map. (The previous version
+    // assigned the SAME task's progress to every active download.)
+    _taskProgress[taskId] = progress;
+    _progressController.add(Map<String, DownloadProgress>.from(_taskProgress));
   }
 
   void _handleDownloadComplete(String taskId, DownloadTask task) {
     _activeDownloads.remove(taskId);
+    _taskProgress.remove(taskId);
     _emitState();
 
     // Start next download
@@ -352,6 +361,7 @@ class DownloadScheduler {
   }
 
   void _handleDownloadError(String taskId, String error) async {
+    _taskProgress.remove(taskId);
     final task = _activeDownloads.remove(taskId);
     if (task == null) return;
 
