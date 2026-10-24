@@ -20,6 +20,12 @@ class ResumableDownloadService {
   final Map<String, CancelToken> _cancelTokens = {};
   final Map<String, DownloadProgress> _progressMap = {};
 
+  // User intent for cancel exceptions: a user pause/cancel surfaces as a
+  // DioExceptionType.cancel and must NOT be recorded as an error (it used
+  // to burn a retry each time; five pauses permanently killed a task)
+  final Set<String> _userPaused = {};
+  final Set<String> _userCancelled = {};
+
   // Callbacks
   final void Function(String taskId, DownloadProgress progress)? onProgress;
   final void Function(String taskId, DownloadTask task)? onComplete;
@@ -31,7 +37,17 @@ class ResumableDownloadService {
     this.onProgress,
     this.onComplete,
     this.onError,
-  }) : _dio = dio ?? Dio(),
+  }) : _dio = dio ??
+            Dio(
+              BaseOptions(
+                // Archive.org asks clients to identify themselves; this
+                // client previously sent no User-Agent at all
+                headers: {
+                  'User-Agent':
+                      'InternetArchiveHelper/1.7.1 (+https://github.com/Gameaday/IA-Helper)',
+                },
+              ),
+            ),
        _db = db ?? DatabaseHelper.instance;
 
   /// Start or resume a download task
@@ -46,9 +62,12 @@ class ResumableDownloadService {
       );
       await _db.updateDownloadTask(task);
 
-      // Create cancel token for this task
+      // Create cancel token for this task; clear stale user-intent flags
+      // from any previous run
       final cancelToken = CancelToken();
       _cancelTokens[task.id] = cancelToken;
+      _userPaused.remove(task.id);
+      _userCancelled.remove(task.id);
 
       // Check for existing partial file
       final file = File(task.savePath);
@@ -195,6 +214,33 @@ class ResumableDownloadService {
         }
       }
 
+      // A user-initiated pause/cancel is not an error: persist the intent
+      // status without burning a retry and without invoking onError
+      if (e is DioException &&
+          e.type == DioExceptionType.cancel &&
+          (_userPaused.contains(task.id) ||
+              _userCancelled.contains(task.id))) {
+        final pausedIntent = _userPaused.remove(task.id);
+        _userCancelled.remove(task.id);
+
+        final file = File(task.savePath);
+        final partialBytes = await file.exists() ? await file.length() : 0;
+
+        task = task.copyWith(
+          status: pausedIntent
+              ? DownloadStatus.paused
+              : DownloadStatus.cancelled,
+          partialBytes: partialBytes,
+        );
+        await _db.updateDownloadTask(task);
+
+        // Cleanup
+        _cancelTokens.remove(task.id);
+        _progressMap.remove(task.id);
+
+        return task;
+      }
+
       // Update task status
       final file = File(task.savePath);
       final partialBytes = await file.exists() ? await file.length() : 0;
@@ -215,13 +261,16 @@ class ResumableDownloadService {
       _progressMap.remove(task.id);
 
       rethrow;
+      rethrow;
     }
   }
 
   /// Pause a download
   Future<void> pauseDownload(String taskId) async {
     final cancelToken = _cancelTokens[taskId];
+    final cancelToken = _cancelTokens[taskId];
     if (cancelToken != null && !cancelToken.isCancelled) {
+      _userPaused.add(taskId);
       cancelToken.cancel('Paused by user');
     }
 
@@ -248,9 +297,11 @@ class ResumableDownloadService {
     }
 
     if (task.status != DownloadStatus.paused) {
+    if (task.status != DownloadStatus.paused) {
       throw Exception('Task is not paused: ${task.status}');
     }
 
+    _userPaused.remove(taskId);
     return downloadTask(task);
   }
 
@@ -260,7 +311,9 @@ class ResumableDownloadService {
     bool deletePartialFile = false,
   }) async {
     final cancelToken = _cancelTokens[taskId];
+    final cancelToken = _cancelTokens[taskId];
     if (cancelToken != null && !cancelToken.isCancelled) {
+      _userCancelled.add(taskId);
       cancelToken.cancel('Cancelled by user');
     }
 

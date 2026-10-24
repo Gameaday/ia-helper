@@ -10,6 +10,7 @@ import 'internet_archive_api.dart';
 import 'notification_service.dart';
 import 'local_archive_storage.dart';
 import 'archive_url_service.dart';
+import '../utils/file_utils.dart';
 
 /// Metrics for tracking download operations
 class DownloadMetrics {
@@ -49,7 +50,15 @@ class BackgroundDownloadService extends ChangeNotifier {
   final Map<String, List<String>> _downloadFiles =
       {}; // Track selected files per download
   final List<String> _downloadQueue = [];
-  Timer? _statusUpdateTimer;
+
+  // Pure-Dart pause/cancel/resume state (the previous implementation called
+  // native methods that were never implemented on the Kotlin side, so the
+  // buttons did nothing)
+  final Map<String, CancellationToken> _cancelTokens = {};
+  final Map<String, String> _downloadPaths = {};
+  final Map<String, Set<String>> _completedFileNames = {};
+  final Map<String, int> _lastProgressNotificationMs = {};
+  final Set<String> _pausedDownloads = {};
   Timer? _retryTimer;
   bool _isInitialized = false;
   int _maxConcurrentDownloads = 3;
@@ -87,9 +96,8 @@ class BackgroundDownloadService extends ChangeNotifier {
   /// Get download path for a specific download (for retry functionality)
   /// Returns null if not stored - caller should use default path
   String? getDownloadPath(String downloadId) {
-    // Download path is not currently stored per-download
-    // Return null to use default path
-    return null;
+    // Captured when the download was started
+    return _downloadPaths[downloadId];
   }
 
   /// Set maximum retry attempts for failed downloads
@@ -144,19 +152,6 @@ class BackgroundDownloadService extends ChangeNotifier {
         // as core functionality may still work
       }
 
-      // Start periodic status updates (faster for better feedback)
-      _statusUpdateTimer = Timer.periodic(const Duration(milliseconds: 500), (
-        _,
-      ) {
-        try {
-          _updateDownloadStatuses();
-        } catch (e) {
-          debugPrint('Error updating download statuses: $e');
-        }
-      });
-
-      // Start retry timer for failed downloads
-      _retryTimer = Timer.periodic(const Duration(seconds: 10), (_) {
         try {
           _retryFailedDownloads();
         } catch (e) {
@@ -178,11 +173,10 @@ class BackgroundDownloadService extends ChangeNotifier {
   }
 
   /// Dispose of resources
+  /// Dispose of resources
   @override
   void dispose() {
-    _statusUpdateTimer?.cancel();
     _retryTimer?.cancel();
-    super.dispose();
   }
 
   /// Validate archive metadata before downloading
@@ -338,23 +332,55 @@ class BackgroundDownloadService extends ChangeNotifier {
 
       // Use the InternetArchiveApi to download files
       final api = InternetArchiveApi();
+
+      // Pure-Dart pause/cancel: the api's download loop checks this token
+      // between chunks (no native WorkManager involved)
+      final cancellationToken = CancellationToken();
+      _cancelTokens[downloadId] = cancellationToken;
+      _downloadPaths[downloadId] = downloadPath;
+
+      // Per-archive subfolder: <downloadPath>/<identifier>/<file>. Prevents
+      // cross-archive name collisions and matches the layout the file list
+      // widget expects.
+      final archiveDir = '$downloadPath/$identifier';
+      final completedFileNames = _completedFileNames.putIfAbsent(
+        downloadId,
+        () => <String>{},
+      );
+
       int completedFiles = 0;
       int totalDownloadedBytes = 0;
       DateTime? lastUpdateTime;
       int lastDownloadedBytes = 0;
+      _lastProgressNotificationMs[downloadId] ??= 0;
 
       for (final fileName in selectedFiles) {
+        // Files that already finished during a previous (paused) run are
+        // skipped on resume
+        if (completedFileNames.contains(fileName)) {
+          completedFiles++;
+          continue;
+        }
+
         try {
           final fileUrl = _urlService.getDownloadUrl(identifier, fileName);
-          final filePath = '$downloadPath/$fileName';
+          // Archive-served file names are untrusted: route through safeJoin
+          final filePath = FileUtils.safeJoin(archiveDir, fileName);
+          final fileStartBytes = totalDownloadedBytes;
+          int currentFileBytes = 0;
           final fileStartBytes = totalDownloadedBytes;
 
           // Download file using the API
           await api.downloadFile(
             fileUrl,
             filePath,
+            cancellationToken: cancellationToken,
             onProgress: (received, total) {
               // Update progress with proper statistics
+              if (_activeDownloads.containsKey(downloadId)) {
+                currentFileBytes = received;
+                final now = DateTime.now();
+                final currentTotalBytes = fileStartBytes + received;
               if (_activeDownloads.containsKey(downloadId)) {
                 final now = DateTime.now();
                 final currentTotalBytes = fileStartBytes + received;
@@ -396,30 +422,80 @@ class BackgroundDownloadService extends ChangeNotifier {
                   transferSpeed: speed,
                   etaSeconds: eta,
                   status: DownloadStatus.downloading,
+                  status: DownloadStatus.downloading,
                 );
                 notifyListeners();
+
+                // Throttled progress notification (at most one per second)
+                final nowMs = now.millisecondsSinceEpoch;
+                if (nowMs - _lastProgressNotificationMs[downloadId]! >=
+                    1000) {
+                  _lastProgressNotificationMs[downloadId] = nowMs;
+                  NotificationService.showDownloadProgress(
+                    downloadId: downloadId,
+                    title: identifier,
+                    description: fileName,
+                    progress: overallProgress,
+                    currentFile: completedFiles,
+                    totalFiles: selectedFiles.length,
+                  );
+                }
               }
             },
           );
-
           completedFiles++;
-          // Update total bytes after file completes
-          // Note: We should get the actual file size, but for now use received bytes
+          completedFileNames.add(fileName);
+          completedFiles++;
+          // Track bytes for honest statistics
+          totalDownloadedBytes += currentFileBytes;
 
           // Update completed count
           if (_activeDownloads.containsKey(downloadId)) {
-            _activeDownloads[downloadId] = _activeDownloads[downloadId]!
-                .copyWith(
                   completedFiles: completedFiles,
                   currentFileProgress: 0,
                   currentFile: null,
                 );
             notifyListeners();
-          }
         } catch (e) {
+          if (cancellationToken.isCancelled) {
+            // Pause/cancel: stop the file loop; the finalize block below
+            // keeps the status set by pause/cancel
+            break;
+          }
           debugPrint('Failed to download file $fileName: $e');
           // Continue with next file even if one fails
         }
+      }
+      }
+
+      // User pause/cancel: the pause/cancel methods already set the final
+      // status; never overwrite it with "completed"
+      if (cancellationToken.isCancelled) {
+        _cancelTokens.remove(downloadId);
+        _lastProgressNotificationMs.remove(downloadId);
+        return;
+      }
+
+      // Every file failed: report an error instead of "completed"
+      if (completedFiles == 0) {
+        if (_activeDownloads.containsKey(downloadId)) {
+          metrics.failures++;
+          final failed = _activeDownloads[downloadId]!;
+          _activeDownloads[downloadId] = failed.copyWith(
+            status: DownloadStatus.error,
+            errorMessage: 'All file downloads failed',
+          );
+          _cancelTokens.remove(downloadId);
+          _completedFileNames.remove(downloadId);
+          _lastProgressNotificationMs.remove(downloadId);
+          NotificationService.showDownloadError(
+            downloadId: downloadId,
+            title: failed.identifier,
+            errorMessage: 'All file downloads failed',
+          );
+          notifyListeners();
+        }
+        return;
       }
 
       // Mark as complete
@@ -432,9 +508,22 @@ class BackgroundDownloadService extends ChangeNotifier {
 
         // Update statistics
         _totalFilesDownloaded += completedFiles;
+        _totalBytesDownloaded += totalDownloadedBytes;
+
+        // Show completion notification
+        NotificationService.showDownloadComplete(
+          downloadId: downloadId,
+          title: download.identifier,
+          archiveName: download.identifier,
+          fileCount: selectedFiles.length,
+        );
 
         // Save to local archive storage
-        await _saveToLocalArchive(downloadId, selectedFiles, downloadPath);
+        await _saveToLocalArchive(downloadId, selectedFiles, archiveDir);
+
+        _cancelTokens.remove(downloadId);
+        _completedFileNames.remove(downloadId);
+        _lastProgressNotificationMs.remove(downloadId);
 
         notifyListeners();
       }
@@ -444,155 +533,125 @@ class BackgroundDownloadService extends ChangeNotifier {
       // Mark as failed
       if (_activeDownloads.containsKey(downloadId)) {
         _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
+        _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
           status: DownloadStatus.error,
           errorMessage: e.toString(),
         );
-        notifyListeners();
+        _cancelTokens.remove(downloadId);
+        _completedFileNames.remove(downloadId);
+        _lastProgressNotificationMs.remove(downloadId);
       }
     }
   }
 
   /// Cancel a background download
   Future<bool> cancelDownload(String downloadId) async {
-    try {
-      final success = await _platform.invokeMethod('cancelDownload', {
-        'downloadId': downloadId,
-      });
-
-      if (success == true) {
-        // Track metrics
-        metrics.cancellations++;
-
-        _activeDownloads.remove(downloadId);
-
-        if (kDebugMode) {
-          debugPrint(
-            '[BackgroundDownloadService] Cancelled download: $downloadId',
-          );
-        }
-
-        notifyListeners();
-      }
-
-      return success == true;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[BackgroundDownloadService] Failed to cancel download: $e');
-      }
+    // Pure Dart implementation: cancel via the download's cancellation
+    // token. (The previous version called a native method that was never
+    // implemented, so cancel silently did nothing.)
+    final token = _cancelTokens[downloadId];
+    // A paused download no longer holds a token (its run finished); it can
+    // still be cancelled from the UI.
+    if (token != null) {
+      token.cancel();
+    } else if (!_activeDownloads.containsKey(downloadId)) {
       return false;
     }
-  }
 
+    _cancelTokens.remove(downloadId);
+    _pausedDownloads.remove(downloadId);
+    _completedFileNames.remove(downloadId);
+    _lastProgressNotificationMs.remove(downloadId);
+    _downloadPaths.remove(downloadId);
+    _downloadMetadata.remove(downloadId);
+    _downloadFiles.remove(downloadId);
+
+    // Track metrics
+    metrics.cancellations++;
+
+    _activeDownloads.remove(downloadId);
+
+    if (kDebugMode) {
+      debugPrint(
+        '[BackgroundDownloadService] Cancelled download: $downloadId',
+      );
+    }
+
+    notifyListeners();
+    return true;
+  }
   /// Pause a background download
   Future<bool> pauseDownload(String downloadId) async {
-    try {
-      final success = await _platform.invokeMethod('pauseDownload', {
-        'downloadId': downloadId,
-      });
+    // Pure Dart implementation: cancelling the token stops the in-flight
+    // file; already-completed files are tracked so resume can skip them.
+    final token = _cancelTokens[downloadId];
+    if (token == null) return false;
 
-      if (success == true && _activeDownloads.containsKey(downloadId)) {
-        // Track metrics
-        metrics.pauses++;
+    // Track metrics
+    metrics.pauses++;
 
-        _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
-          status: DownloadStatus.paused,
-        );
+    _pausedDownloads.add(downloadId);
+    token.cancel();
 
-        if (kDebugMode) {
-          debugPrint(
-            '[BackgroundDownloadService] Paused download: $downloadId',
-          );
-        }
+    if (_activeDownloads.containsKey(downloadId)) {
+      _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
+        status: DownloadStatus.paused,
+      );
 
-        notifyListeners();
-      }
-
-      return success == true;
-    } catch (e) {
       if (kDebugMode) {
-        debugPrint('[BackgroundDownloadService] Failed to pause download: $e');
+        debugPrint(
+          '[BackgroundDownloadService] Paused download: $downloadId',
+        );
       }
-      return false;
-    }
-  }
 
+      notifyListeners();
+    }
+
+    return true;
+  }
   /// Resume a paused download
   Future<bool> resumeDownload(String downloadId) async {
-    try {
-      final success = await _platform.invokeMethod('resumeDownload', {
-        'downloadId': downloadId,
-      });
-
-      if (success == true && _activeDownloads.containsKey(downloadId)) {
-        // Track metrics
-        metrics.resumes++;
-
-        _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
-          status: DownloadStatus.downloading,
-        );
-
-        if (kDebugMode) {
-          debugPrint(
-            '[BackgroundDownloadService] Resumed download: $downloadId',
-          );
-        }
-
-        notifyListeners();
-      }
-
-      return success == true;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[BackgroundDownloadService] Failed to resume download: $e');
-      }
+    // Pure Dart implementation: restart the download loop; files that
+    // already completed are skipped via _completedFileNames.
+    final download = _activeDownloads[downloadId];
+    if (download == null) return false;
+    if (download.status != DownloadStatus.paused &&
+        download.status != DownloadStatus.error &&
+        download.status != DownloadStatus.queued) {
       return false;
     }
-  }
 
-  /// Update download statuses from native side
-  Future<void> _updateDownloadStatuses() async {
-    if (_activeDownloads.isEmpty) return;
+    final files = _downloadFiles[downloadId];
+    final path = _downloadPaths[downloadId];
+    if (files == null || path == null) return false;
 
-    try {
-      final statuses = await _platform.invokeMethod('getDownloadStatuses');
-      if (statuses is Map) {
-        for (final entry in statuses.entries) {
-          final downloadId = entry.key as String;
-          final statusData = entry.value as Map;
+    // Track metrics
+    metrics.resumes++;
 
-          if (_activeDownloads.containsKey(downloadId)) {
-            final updated = _parseProgressUpdate(downloadId, statusData);
-            _activeDownloads[downloadId] = updated;
+    _pausedDownloads.remove(downloadId);
 
-            // Update notification with latest progress
-            if (updated.status == DownloadStatus.downloading &&
-                updated.progress != null) {
-              NotificationService.showDownloadProgress(
-                downloadId: downloadId,
-                title: updated.identifier,
-                description: updated.currentFile ?? 'Downloading files...',
-                progress: updated.progress!,
-                currentFile: updated.completedFiles,
-                totalFiles: updated.totalFiles,
-              );
-            } else if (updated.status == DownloadStatus.paused &&
-                updated.progress != null) {
-              NotificationService.showDownloadPaused(
-                downloadId: downloadId,
-                title: updated.identifier,
-                description: updated.currentFile ?? 'Download paused',
-                progress: updated.progress!,
-              );
-            }
-          }
-        }
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint('Failed to update download statuses: $e');
+    _activeDownloads[downloadId] = download.copyWith(
+      status: DownloadStatus.downloading,
+    );
+
+    if (kDebugMode) {
+      debugPrint(
+        '[BackgroundDownloadService] Resumed download: $downloadId',
+      );
     }
-  }
 
+    notifyListeners();
+
+    // Restart the download
+    _startDartDownload(
+      downloadId: downloadId,
+      identifier: download.identifier,
+      selectedFiles: files,
+      downloadPath: path,
+    );
+
+    return true;
+  }
   /// Handle download progress update from native
   void _handleDownloadProgress(Map<dynamic, dynamic> data) {
     final downloadId = data['downloadId'] as String?;
@@ -637,11 +696,12 @@ class BackgroundDownloadService extends ChangeNotifier {
 
       // Save to local archive storage (async, non-blocking)
       final files = _downloadFiles[downloadId];
-      if (files != null && files.isNotEmpty) {
+      final path = _downloadPaths[downloadId];
+      if (files != null && files.isNotEmpty && path != null) {
         _saveToLocalArchive(
           downloadId,
           files,
-          '/storage/emulated/0/Download/ia-get/$downloadId',
+          '$path/$downloadId',
         );
       }
 

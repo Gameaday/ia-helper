@@ -1,5 +1,6 @@
 package com.gameaday.internet_archive_helper
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -176,6 +177,11 @@ class MainActivity: FlutterActivity() {
                 }
                 
                 startActivity(Intent.createChooser(shareIntent, "Share file"))
+            } else {
+                methodChannel.invokeMethod("error", mapOf(
+                    "type" to "share_error",
+                    "message" to "File not found: $filePath"
+                ))
             }
         } catch (e: Exception) {
             // Handle sharing error
@@ -205,17 +211,26 @@ class MainActivity: FlutterActivity() {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 
-                if (openIntent.resolveActivity(packageManager) != null) {
+                // Do not use resolveActivity(): under Android 11+
+                // package visibility it returns null for file content
+                // types even when a handler is installed. Just start the
+                // activity and treat ActivityNotFoundException as "no app
+                // found".
+                try {
                     startActivity(openIntent)
-                } else {
+                } catch (e: ActivityNotFoundException) {
                     methodChannel.invokeMethod("error", mapOf(
                         "type" to "open_error",
                         "message" to "No app found to open this file type"
                     ))
                 }
+            } else {
+                methodChannel.invokeMethod("error", mapOf(
+                    "type" to "open_error",
+                    "message" to "File not found: $filePath"
+                ))
             }
         } catch (e: Exception) {
-            // Handle opening error
             methodChannel.invokeMethod("error", mapOf(
                 "type" to "open_error",
                 "message" to "Failed to open file: ${e.message}"

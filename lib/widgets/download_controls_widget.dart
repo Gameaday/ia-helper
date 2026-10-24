@@ -303,48 +303,20 @@ class _DownloadControlsWidgetState extends State<DownloadControlsWidget> {
       return;
     }
 
-    // Check and request storage permissions first
-    final hasPermission = await PermissionUtils.hasStoragePermissions();
-
-    if (!hasPermission) {
-      if (!mounted) return;
-
-      // Show rationale before requesting permission
-      final shouldRequest = await PermissionUtils.showPermissionRationaleDialog(
-        context: context,
-        title: 'Storage Permission Required',
-        message:
-            'This app needs storage permission to download and save files from the Internet Archive. '
-            'Your files will be saved to the Download folder.',
-      );
-
-      if (!shouldRequest) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Storage permission is required to download files'),
-            duration: Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
-
-      // Request storage permissions
-      final granted = await PermissionUtils.requestStoragePermissions();
-
+    // Storage permission is NOT required to download: files are written to
+    // the app-scoped external directory, which is writable without any
+    // permission on every supported Android version. Request the legacy
+    // runtime grants best-effort and non-blocking so the prompt can never
+    // block or gate a download.
+    PermissionUtils.hasStoragePermissions().then((granted) {
       if (!granted) {
-        if (!mounted) return;
-
-        // Show settings dialog if permission was denied
-        await PermissionUtils.showSettingsDialog(
-          context: context,
-          message:
-              'Storage permission is required to download files. '
-              'Please enable it in app settings to continue.',
-        );
-        return;
+        PermissionUtils.requestStoragePermissions().catchError((Object e) {
+          return false;
+        });
       }
-    }
+    });
+
+    // Calculate total download size
 
     // Calculate total download size
     final totalSize = selectedFiles.fold<int>(
@@ -567,23 +539,10 @@ class _DownloadControlsWidgetState extends State<DownloadControlsWidget> {
                 final navigator = Navigator.of(context);
 
                 navigator.pop();
-                // Retry after checking permissions again
-                final hasPermission =
-                    await PermissionUtils.hasStoragePermissions();
+                // Downloads no longer require storage permission
+                // (app-scoped directory); just retry.
                 if (!mounted) return;
-
-                if (!hasPermission) {
-                  if (!mounted) return;
-                  // Use current context since we verified mounted
-                  PermissionUtils.showSettingsDialog(
-                    // ignore: use_build_context_synchronously
-                    context: context,
-                    message:
-                        'Storage permission is required. Please enable it in Settings.',
-                  );
-                } else {
-                  _performDownload();
-                }
+                _performDownload();
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),

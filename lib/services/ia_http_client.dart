@@ -109,7 +109,7 @@ class IAHttpClient {
        _rateLimiter = rateLimiter ?? archiveRateLimiter,
        userAgent =
            userAgent ??
-           'InternetArchiveHelper/1.6.0 ($contact) Flutter/${_getFlutterVersion()}',
+           'InternetArchiveHelper/1.7.1 ($contact) Flutter/${_getFlutterVersion()}',
        retryDelays =
            customRetryDelays ??
            [

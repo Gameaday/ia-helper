@@ -77,3 +77,61 @@ No unit tests exist for `DownloadScheduler` or `ResumableDownloadService` — th
 most in this pass. Recommend adding tests with a mocked Dio/DatabaseHelper before the
 12-tester production track. CI (`flutter-ci.yml`) runs analyze + test on every push to main,
 so this commit is validated by CI.
+
+---
+
+# Round 2 — full pre-launch audit (October 2026)
+
+Scope: the download backends (`BackgroundDownloadService`, `ResumableDownloadService`,
+`DownloadScheduler`), the storage/permission layer as wired through the widgets (download
+controls, file list, settings, provider), `main.dart` startup, `MainActivity.kt`, and the
+Android manifest. Every file above was read end to end.
+
+## Verdict
+
+The architecture holds up. One launch-blocking flaw: the default download directory was
+hardcoded to `/storage/emulated/0/Download/ia-get`, which production builds cannot write on
+Android 11+ (scoped storage; MANAGE_EXTERNAL_STORAGE is removed from the Play flavor per
+#75 Option B) — every download on a production build failed with EACCES before writing a
+byte. The default is now the app-scoped external directory, which needs no permission on any
+supported Android version. Second big finding: the home-screen bulk pipeline's
+pause/cancel/resume called Kotlin methods that were never implemented — the buttons did
+nothing, a 500 ms status poller threw on every tick, and no download notification ever fired
+from Dart. Both fixed with a pure-Dart implementation.
+
+## Fixed in this commit
+
+| # | Severity | Where | Bug | Fix |
+|---|----------|-------|-----|-----|
+| 12 | Critical | default download dir | `/storage/emulated/0/Download/ia-get` hardcoded in 5 places; EACCES on Android 11+ production builds | `FileUtils.getDefaultDownloadDirectory()` (app-scoped); settings, provider, controls, file list all resolve through it |
+| 13 | Critical | bgdl pause/cancel/resume | Called native `cancelDownload`/`pauseDownload`/`resumeDownload` — never implemented in MainActivity.kt | Pure Dart: CancellationToken threaded into `InternetArchiveApi.downloadFile` |
+| 14 | High | bgdl status poller | 500 ms `getDownloadStatuses` poller threw every tick; notifications never fired | Poller removed; throttled 1 s progress + completion/error notifications from the download loop |
+| 15 | High | bgdl file layout | Files written flat into the download dir → cross-archive name collisions; the file list (`<dir>/<archiveId>/<file>`) never detected them | Per-archive subfolder `<downloadPath>/<identifier>/<file>` |
+| 16 | High | rate limiter | release() decremented, woke a waiter that re-incremented; concurrent acquire() over-admitted (4 of 3) | Permit transfer in release(); queued waiters don't increment |
+| 17 | High | resumable service | User pause/cancel recorded as error with retryCount+1 → 5 pauses killed a task; status race with the pause handler | `_userPaused`/`_userCancelled` intents; catch persists paused/cancelled, no retry burn |
+| 18 | High | main.dart | Deep-link handler assigned AFTER `initialize()`; cold-start link dispatched inside initialize() was dropped | Handler registered before initialize() |
+| 19 | High | MainActivity openFile | `resolveActivity()` null under Android 11+ package visibility → "No app found" always | `startActivity` + `ActivityNotFoundException`; `<queries>` VIEW `*/*` manifest entry |
+| 20 | Medium | bgdl completion | Download marked "completed" even when every file failed | completedFiles==0 → error status + error notification |
+| 21 | Medium | path handling | Archive-served file names interpolated into paths | `FileUtils.safeJoin` (sanitizes, rejects traversal/absolute) |
+| 22 | Medium | MD5 checks | `readAsBytes()` on multi-GB files → OOM | Streamed via `md5.bind(file.openRead())` |
+| 23 | Medium | download controls | Blocking permission gate before every download (app-scoped dir needs none) | Best-effort non-blocking request; retry button no longer permission-gated |
+| 24 | Medium | file list open | `_openLocalFile` demanded MANAGE_EXTERNAL_STORAGE — ungrantable in production | Gate removed; file list reads the configured download dir |
+| 25 | Low | scheduler `_tick` | Network-unsuitable head task starved any-network tasks behind it (break) | Rotate to back of queue (one-full-rotation guard) |
+| 26 | Low | scheduler `_startDownload` | Fire-and-forget rethrow → unhandled async exception after onError already reported | `.then((_) {}, onError: ...)` |
+| 27 | Low | User-Agent | Three inconsistent identifiers (stale 1.6.0, 'ia-helper', none on Dio) | Unified `InternetArchiveHelper/1.7.1 (+repo)` |
+
+## Flagged — post-1.0
+
+- **Download-location picker (new)** — with the app-scoped default, users cannot target a public
+  folder (e.g. `/Download`) on Android 11+ production builds. Post-1.0: SAF/MediaStore picker so
+  users can export to public locations without MANAGE_EXTERNAL_STORAGE.
+- **Bulk-pipeline pause loses in-flight file progress** — `InternetArchiveApi.downloadFile` has no
+  HTTP Range resume, so pausing restarts the in-flight file from byte 0 (completed files are
+  kept). Porting Range support into the http streaming path would make pause byte-exact.
+- **Two download pipelines** (from Round 1) — consolidate DownloadProvider onto the scheduler.
+- **Checksum failures are silent** (from Round 1) — surface a per-file warning state.
+- **Cancel does not propagate in DownloadProvider** (from Round 1) — thread the cancellation
+  token into `ArchiveService.downloadFile`.
+
+CI (`flutter-ci.yml`) runs analyze + test on every push to main, validating this commit; the
+12-tester production track (#76) is the final gate.

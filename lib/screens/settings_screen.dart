@@ -10,6 +10,7 @@ import '../services/archive_service.dart';
 import '../utils/semantic_colors.dart';
 import '../utils/responsive_utils.dart';
 import '../utils/snackbar_helper.dart';
+import '../utils/file_utils.dart';
 import '../widgets/cache_statistics_widget.dart';
 import '../widgets/cache_metrics_card.dart';
 
@@ -23,7 +24,7 @@ class SettingsScreen extends StatefulWidget {
   static Future<String> getDownloadPath() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('download_path') ??
-        '/storage/emulated/0/Download/ia-get';
+        await FileUtils.getDefaultDownloadDirectory();
   }
 
   /// Get concurrent downloads preference
@@ -55,8 +56,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late SharedPreferences _prefs;
   bool _isLoading = true;
 
-  // Settings values
-  String _downloadPath = '/storage/emulated/0/Download/ia-get';
+  // Settings values (real default download path resolved in _loadSettings)
+  String _downloadPath = '';
   int _concurrentDownloads = 3;
   bool _autoDecompress = false;
   bool _verifyChecksums = true;
@@ -93,8 +94,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final autoSync = await cache.isAutoSyncEnabled();
     final stats = await cache.getCacheStats();
 
+    // Resolve the real default download directory before first paint
+    final defaultDownloadDir = await FileUtils.getDefaultDownloadDirectory();
+
     setState(() {
-      _downloadPath = _prefs.getString(_keyDownloadPath) ?? _downloadPath;
+      _downloadPath =
+          _prefs.getString(_keyDownloadPath) ?? defaultDownloadDir;
       _concurrentDownloads =
           _prefs.getInt(_keyConcurrentDownloads) ?? _concurrentDownloads;
       _autoDecompress = _prefs.getBool(_keyAutoDecompress) ?? _autoDecompress;
@@ -472,7 +477,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller: controller,
               decoration: const InputDecoration(
                 labelText: 'Path',
-                hintText: '/storage/emulated/0/Download/ia-get',
+                hintText: 'Default: app storage/ia-get',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -677,8 +682,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await _prefs.clear();
 
               // Reset to default values immediately
+              final defaultDownloadDir =
+                  await FileUtils.getDefaultDownloadDirectory();
               setState(() {
-                _downloadPath = '/storage/emulated/0/Download/ia-get';
+                _downloadPath = defaultDownloadDir;
                 _concurrentDownloads = 3;
                 _autoDecompress = false;
                 _verifyChecksums = true;

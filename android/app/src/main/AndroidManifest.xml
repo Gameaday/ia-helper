@@ -171,5 +171,12 @@
             <action android:name="android.intent.action.SEND" />
             <data android:mimeType="*/*" />
         </intent>
+
+        <!-- Opening downloaded files with external apps (ACTION_VIEW with a
+             file MIME type; needed for package visibility on Android 11+) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="*/*" />
+        </intent>
     </queries>
 </manifest>

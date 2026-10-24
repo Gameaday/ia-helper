@@ -267,9 +267,15 @@ class DownloadScheduler {
         continue;
       }
 
-      // Check network requirements
+      // Check network requirements. Rotate unsuitable tasks to the back of
+      // the queue instead of breaking: a single Wi-Fi-only task at the
+      // head must not starve any-network tasks queued behind it.
       if (!_isNetworkSuitable(task)) {
-        break; // Don't start any more tasks if network unsuitable
+        if (rotations >= queueLength) break;
+        rotations++;
+        _queue.removeFirst();
+        _queue.addLast(task);
+        continue;
       }
 
       // Remove from queue and start download
@@ -337,8 +343,12 @@ class DownloadScheduler {
       );
       await _db.updateDownloadTask(updatedTask);
 
-      // Start download (callbacks will handle completion)
-      _downloadService.downloadTask(updatedTask);
+      // Start download (callbacks will handle completion). downloadTask
+      // rethrows after reporting via onError, so swallow the rethrow here
+      // to avoid an unhandled async exception on every failure
+      _downloadService
+          .downloadTask(updatedTask)
+          .then((_) {}, onError: (Object e) {});
     } catch (e) {
       _handleDownloadError(task.id, e.toString());
     }

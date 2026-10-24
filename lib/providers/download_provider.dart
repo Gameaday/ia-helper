@@ -8,6 +8,7 @@ import '../models/download_progress_info.dart';
 import '../services/archive_service.dart';
 import '../core/constants/internet_archive_constants.dart';
 import '../providers/bandwidth_manager_provider.dart';
+import '../utils/file_utils.dart';
 
 /// Download State Management Provider
 ///
@@ -416,12 +417,31 @@ class DownloadProvider extends ChangeNotifier {
         throw Exception('No files to download after filtering');
       }
 
-      // Download each file
-      final downloadDir = outputDir ?? '/sdcard/Download/ia-get/$identifier';
+      // Download each file into a per-archive subfolder of the (app-scoped)
+      // default download directory; the previously hardcoded
+      // /sdcard/Download path is unwritable on Android 11+ production builds
+      final String downloadDir;
+      if (outputDir != null) {
+        downloadDir = outputDir;
+      } else {
+        final baseDir = await FileUtils.getDefaultDownloadDirectory();
+        downloadDir = '$baseDir/$identifier';
+      }
 
       for (final file in filesToDownload) {
         final url = IAUtils.buildDownloadUrl(identifier, file.name);
-        final outputPath = '$downloadDir/${file.name}';
+
+        // Archive-served file names are untrusted: never interpolate them
+        // into a filesystem path without sanitizing
+        final String outputPath;
+        try {
+          outputPath = FileUtils.safeJoin(downloadDir, file.name);
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('Skipping file with unsafe name: ' + file.name);
+          }
+          continue;
+        }
 
         // Initialize progress for this file
         final fileProgress = Map<String, DownloadProgress>.from(

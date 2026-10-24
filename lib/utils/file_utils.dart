@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Utility class for file operations and formatting
 class FileUtils {
@@ -223,7 +224,10 @@ class FileUtils {
     return uniqueName;
   }
 
-  /// Calculate MD5 hash of a file (for verification)
+  /// Calculate MD5 hash of a file (for verification).
+  ///
+  /// Streams the file instead of reading it fully into memory: multi-GB
+  /// archive downloads must not OOM during checksum validation.
   static Future<String?> calculateFileHash(String filePath) async {
     try {
       final file = File(filePath);
@@ -231,13 +235,39 @@ class FileUtils {
         return null;
       }
 
-      // Read file and calculate MD5 hash
-      final bytes = await file.readAsBytes();
-      final digest = md5.convert(bytes);
+      // The crypto hashes act as stream transformers: bind the file's
+      // byte stream and await the single emitted digest.
+      final digest = await md5.bind(file.openRead()).last;
       return digest.toString();
     } catch (e) {
       // Return null on any error (file not found, permission denied, etc.)
       return null;
     }
+  }
+
+  /// Join [directory] and [fileName] into a path inside [directory].
+  ///
+  /// Archive-served file names are untrusted input; this rejects names that
+  /// could escape the download directory. Never interpolate a
+  /// server-supplied file name into a filesystem path directly.
+  static String safeJoin(String directory, String fileName) {
+    final sanitized = sanitizeFilename(fileName);
+    if (sanitized.isEmpty || sanitized == '.' || sanitized == '..') {
+      throw ArgumentError('Invalid file name: ' + fileName);
+    }
+    return directory + '/' + sanitized;
+  }
+
+  /// Default download directory: the app-scoped external storage directory
+  /// plus an `ia-get` suffix. Writable on every supported Android version
+  /// with no storage permission (scoped storage). The previously hardcoded
+  /// `/storage/emulated/0/Download/ia-get` is NOT writable by production
+  /// builds on Android 11+ (MANAGE_EXTERNAL_STORAGE removed for Play).
+  static Future<String> getDefaultDownloadDirectory() async {
+    final dir = await getExternalStorageDirectory();
+    if (dir == null) {
+      throw Exception('External storage directory unavailable');
+    }
+    return dir.path + '/ia-get';
   }
 }

@@ -288,14 +288,9 @@ class _AppInitializerState extends State<AppInitializer> {
         },
       );
 
-      await deepLinkService.initialize().timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          debugPrint('DeepLink service initialization timed out');
-        },
-      );
-
-      // Set up deep link handler
+      // Set up the deep link handler BEFORE calling initialize():
+      // cold-start links are dispatched from inside initialize(), so
+      // assigning the handler afterwards dropped the initial link
       deepLinkService.onArchiveLinkReceived = (identifier) {
         if (!mounted) return;
 
@@ -350,7 +345,15 @@ class _AppInitializerState extends State<AppInitializer> {
                 ),
               );
             });
+            });
       };
+
+      await deepLinkService.initialize().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          debugPrint('DeepLink service initialization timed out');
+        },
+      );
 
       // Request notification permissions (non-blocking)
       _requestNotificationPermissions();

@@ -103,6 +103,14 @@ class RateLimiter {
       final completer = Completer<void>();
       _queue.add(completer);
       await completer.future;
+      // The permit was transferred directly from release(); incrementing
+      // here would double-count it and exceed maxConcurrent
+      if (kDebugMode) {
+        debugPrint(
+          '[RateLimiter] Acquired permit from queue (active: $_active/$maxConcurrent, queued: ${_queue.length})',
+        );
+      }
+      return;
     }
 
     _active++;
@@ -121,23 +129,27 @@ class RateLimiter {
     assert(_active > 0, 'Cannot release when no active permits');
 
     metrics.releases++;
-    _active--;
     _lastReleaseTime = DateTime.now();
 
-    if (kDebugMode) {
-      debugPrint(
-        '[RateLimiter] Released permit (active: $_active/$maxConcurrent, queued: ${_queue.length})',
-      );
-    }
-
-    // Process next queued request if any
+    // Transfer the permit directly to the next queued waiter: _active must
+    // NOT be decremented here (and the waiter must not increment it
+    // either). Decrement-then-wake let a concurrent acquire() slip in
+    // between the two steps and exceed maxConcurrent.
     if (_queue.isNotEmpty) {
       final completer = _queue.removeAt(0);
       completer.complete();
 
       if (kDebugMode) {
         debugPrint(
-          '[RateLimiter] Processed queued request (remaining: ${_queue.length})',
+          '[RateLimiter] Released permit, transferred to queued request (active: $_active/$maxConcurrent, remaining queue: ${_queue.length})',
+        );
+      }
+    } else {
+      _active--;
+
+      if (kDebugMode) {
+        debugPrint(
+          '[RateLimiter] Released permit (active: $_active/$maxConcurrent, queued: ${_queue.length})',
         );
       }
     }

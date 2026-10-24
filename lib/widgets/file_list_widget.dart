@@ -1,15 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:crypto/crypto.dart';
 import 'package:open_file/open_file.dart';
 import '../models/archive_metadata.dart';
 import '../services/archive_service.dart';
 import '../services/file_preview_service.dart';
 import '../screens/file_preview_screen.dart';
 import '../screens/filters_screen.dart';
-import '../utils/permission_utils.dart';
 import '../utils/animation_constants.dart';
+import '../utils/file_utils.dart';
+import '../screens/settings_screen.dart';
 import 'preview_dialog.dart';
 
 // File download state enum
@@ -40,17 +40,33 @@ class _FileListWidgetState extends State<FileListWidget> {
   bool _includeMetadata = false;
 
   // File state tracking
+  // File state tracking
   final Map<String, _FileState> _fileStates = {};
   String? _currentArchiveId;
+
+  // Download directory resolved once at init; must match where downloads
+  // are actually written (the previous hardcoded public path was unwritable
+  // by production builds and files were never detected as downloaded)
+  String _downloadBaseDir = '';
 
   @override
   void initState() {
     super.initState();
+    _loadDownloadBaseDir();
     // Get archive ID from service for constructing file paths
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final service = context.read<ArchiveService>();
       _currentArchiveId = service.currentMetadata?.identifier;
     });
+  }
+
+  Future<void> _loadDownloadBaseDir() async {
+    final dir = await SettingsScreen.getDownloadPath();
+    if (mounted) {
+      setState(() {
+        _downloadBaseDir = dir;
+      });
+    }
   }
 
   @override
@@ -739,18 +755,14 @@ class _FileListWidgetState extends State<FileListWidget> {
     }
   }
 
-  Future<String?> _calculateFileMD5(File file) async {
-    try {
-      final bytes = await file.readAsBytes();
-      final digest = md5.convert(bytes);
-      return digest.toString();
-    } catch (e) {
-      return null;
-    }
+  Future<String?> _calculateFileMD5(File file) {
+    // Delegates to the streaming implementation in FileUtils: multi-GB
+    // archive files must not be read fully into memory
+    return FileUtils.calculateFileHash(file.path);
   }
 
   String _getLocalFilePath(String archiveId, String filename) {
-    return '/storage/emulated/0/Download/ia-get/$archiveId/$filename';
+    return '$_downloadBaseDir/$archiveId/$filename';
   }
 
   // UI helper methods
@@ -932,32 +944,11 @@ class _FileListWidgetState extends State<FileListWidget> {
   Future<void> _openLocalFile(ArchiveFile file) async {
     if (_currentArchiveId == null) return;
 
-    // Check if we have permission to access files
-    final hasPermission = await PermissionUtils.hasManageStoragePermission();
-
-    if (!hasPermission) {
-      if (!mounted) return;
-
-      // Request permission with explanation
-      final granted = await PermissionUtils.requestManageStoragePermission(
-        context,
-      );
-
-      if (!granted) {
-        // User denied permission
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Storage access permission is required to open files',
-              ),
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-        return;
-      }
-    }
+    // Files live in the app-scoped download directory (or a user-chosen
+    // path), so opening them needs no storage permission. The old gate
+    // demanded MANAGE_EXTERNAL_STORAGE, which can never be granted on
+    // production builds (removed from the manifest) and blocked opening
+    // files that are perfectly accessible.
 
     final filePath = _getLocalFilePath(_currentArchiveId!, file.filename);
     final result = await OpenFile.open(filePath);

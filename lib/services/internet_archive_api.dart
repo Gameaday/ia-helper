@@ -39,7 +39,7 @@ class InternetArchiveApi {
   final BandwidthThrottle? _bandwidthThrottle;
 
   /// App version for User-Agent header
-  static const String _appVersion = '1.6.0';
+  static const String _appVersion = '1.7.1';
 
   /// Expose the HTTP client for rate limit status
   IAHttpClient get client => _client;
@@ -235,7 +235,7 @@ class InternetArchiveApi {
       final request = http.Request('GET', Uri.parse(url));
       request.headers.addAll({
         'User-Agent':
-            'ia-helper/$_appVersion (https://github.com/Gameaday/ia-helper)',
+            'InternetArchiveHelper/$_appVersion (+https://github.com/Gameaday/IA-Helper)',
       });
 
       // Add reduced priority header if requested
