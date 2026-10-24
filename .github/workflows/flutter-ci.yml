@@ -7,6 +7,7 @@ on:
     branches: [ main, master ]
   release:
     types: [published]
+  workflow_dispatch:
 
 concurrency:
   group: flutter-${{ github.workflow }}-${{ github.head_ref || github.ref }}
@@ -172,4 +173,3 @@ jobs:
           artifacts/ia-helper-android/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
