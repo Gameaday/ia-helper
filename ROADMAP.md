@@ -36,10 +36,14 @@ Verified against the codebase:
 **Conclusion: Month 1 is a distribution month, not a build month.**
 The engineering got done ahead of schedule; the job now is getting it into hands.
 
+Pre-launch audit (scope, tiers, polish, steps): [PRELAUNCH_AUDIT.md](./PRELAUNCH_AUDIT.md)
+
 ## Month 1 (Nov 2026) — Ship the free app everywhere
 
 - [x] Collection browsing + year/media-type filters in search *(shipped in v1.7.0 — audited 2026-10-24)*
 - [x] Batch download queue: file-type rules, size caps, auto-retry *(shipped in v1.7.0 — audited 2026-10-24)*
+- [ ] **Keep-alive: upload AAB to internal testing — protects the Play account, smallest possible submission** *(#76, deadline-driven)*
+- [ ] Start closed testing with ≥12 testers in week 1 — production access needs 14 continuous days
 - [ ] Publish to Google Play *(listing copy ready: docs/store/google-play-listing.md)*
 - [ ] Launch posts: r/DataHoarder, r/InternetArchive, Show HN + install links on the historylabs.dev archive site *(drafts ready: docs/launch/launch-posts.md)*
 
@@ -63,6 +67,8 @@ The engineering got done ahead of schedule; the job now is getting it into hands
 |---|---|---|
 | Free | $0 | search + filters, single downloads, library, offline access, metadata viewer |
 | Pro | $14.99 founding → $19.99 | batch/collection downloads, metadata export, watchlist, library backup |
+
+⚠️ *Open tier question (2026-10-24): the batch download queue already ships **free** in v1.7.0, but this table lists batch downloads under Pro. See [PRELAUNCH_AUDIT.md](./PRELAUNCH_AUDIT.md) for the recommended split (basic batch stays free; collection-wide downloads are the Pro feature). Decide before the Pro launch — do not paywall a feature users already have.*
 
 ## Sales rails
 
