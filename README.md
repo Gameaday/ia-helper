@@ -9,7 +9,7 @@
   <img src="docs/images/app-preview.png" alt="IA Helper Preview" width="800"/>
 </p>
 
-## � Quick Start
+## 🚀 Quick Start
 
 ### 🌐 **[Launch Web App](https://gameaday.github.io/ia-helper/app/)** 
 Try IA Helper instantly in your browser - no installation required!
@@ -19,7 +19,7 @@ Get the latest development build with full offline functionality.
 
 ---
 
-## �📱 About
+## 📱 About
 
 IA Helper is a powerful mobile app for accessing the Internet Archive (archive.org), the world's largest digital library. Whether you're downloading historical documents, discovering classic media, or building your personal digital archive, IA Helper makes it effortless.
 
@@ -55,7 +55,7 @@ The downloads page automatically updates with every commit to `main`:
 
 ### 📱 App Stores
 
-[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=com.gameaday.iahelper)
+[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=com.gameaday.internet_archive_helper)
 
 *Coming soon to Google Play Store*
 
@@ -139,7 +139,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 IA Helper is privacy-focused:
 - ❌ No user tracking or analytics
-- ❌ No ads or in-app purchases
+- ❌ No ads, no subscriptions
 - ❌ No data collection
 - ✅ All data stored locally on your device
 - ✅ No account required
