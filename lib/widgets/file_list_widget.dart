@@ -40,7 +40,6 @@ class _FileListWidgetState extends State<FileListWidget> {
   bool _includeMetadata = false;
 
   // File state tracking
-  // File state tracking
   final Map<String, _FileState> _fileStates = {};
   String? _currentArchiveId;
 

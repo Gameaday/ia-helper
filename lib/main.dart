@@ -345,7 +345,6 @@ class _AppInitializerState extends State<AppInitializer> {
                 ),
               );
             });
-            });
       };
 
       await deepLinkService.initialize().timeout(

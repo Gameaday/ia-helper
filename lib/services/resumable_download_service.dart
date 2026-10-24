@@ -261,13 +261,11 @@ class ResumableDownloadService {
       _progressMap.remove(task.id);
 
       rethrow;
-      rethrow;
     }
   }
 
   /// Pause a download
   Future<void> pauseDownload(String taskId) async {
-    final cancelToken = _cancelTokens[taskId];
     final cancelToken = _cancelTokens[taskId];
     if (cancelToken != null && !cancelToken.isCancelled) {
       _userPaused.add(taskId);
@@ -297,7 +295,6 @@ class ResumableDownloadService {
     }
 
     if (task.status != DownloadStatus.paused) {
-    if (task.status != DownloadStatus.paused) {
       throw Exception('Task is not paused: ${task.status}');
     }
 
@@ -310,7 +307,6 @@ class ResumableDownloadService {
     String taskId, {
     bool deletePartialFile = false,
   }) async {
-    final cancelToken = _cancelTokens[taskId];
     final cancelToken = _cancelTokens[taskId];
     if (cancelToken != null && !cancelToken.isCancelled) {
       _userCancelled.add(taskId);

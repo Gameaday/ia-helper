@@ -152,6 +152,8 @@ class BackgroundDownloadService extends ChangeNotifier {
         // as core functionality may still work
       }
 
+      // Start retry timer for failed downloads
+      _retryTimer = Timer.periodic(const Duration(seconds: 10), (_) {
         try {
           _retryFailedDownloads();
         } catch (e) {
@@ -172,7 +174,6 @@ class BackgroundDownloadService extends ChangeNotifier {
     }
   }
 
-  /// Dispose of resources
   /// Dispose of resources
   @override
   void dispose() {
@@ -368,7 +369,6 @@ class BackgroundDownloadService extends ChangeNotifier {
           final filePath = FileUtils.safeJoin(archiveDir, fileName);
           final fileStartBytes = totalDownloadedBytes;
           int currentFileBytes = 0;
-          final fileStartBytes = totalDownloadedBytes;
 
           // Download file using the API
           await api.downloadFile(
@@ -379,9 +379,6 @@ class BackgroundDownloadService extends ChangeNotifier {
               // Update progress with proper statistics
               if (_activeDownloads.containsKey(downloadId)) {
                 currentFileBytes = received;
-                final now = DateTime.now();
-                final currentTotalBytes = fileStartBytes + received;
-              if (_activeDownloads.containsKey(downloadId)) {
                 final now = DateTime.now();
                 final currentTotalBytes = fileStartBytes + received;
 
@@ -422,7 +419,6 @@ class BackgroundDownloadService extends ChangeNotifier {
                   transferSpeed: speed,
                   etaSeconds: eta,
                   status: DownloadStatus.downloading,
-                  status: DownloadStatus.downloading,
                 );
                 notifyListeners();
 
@@ -445,17 +441,19 @@ class BackgroundDownloadService extends ChangeNotifier {
           );
           completedFiles++;
           completedFileNames.add(fileName);
-          completedFiles++;
           // Track bytes for honest statistics
           totalDownloadedBytes += currentFileBytes;
 
           // Update completed count
           if (_activeDownloads.containsKey(downloadId)) {
-                  completedFiles: completedFiles,
-                  currentFileProgress: 0,
-                  currentFile: null,
-                );
+            _activeDownloads[downloadId] =
+                _activeDownloads[downloadId]!.copyWith(
+              completedFiles: completedFiles,
+              currentFileProgress: 0,
+              currentFile: null,
+            );
             notifyListeners();
+          }
         } catch (e) {
           if (cancellationToken.isCancelled) {
             // Pause/cancel: stop the file loop; the finalize block below
@@ -465,7 +463,6 @@ class BackgroundDownloadService extends ChangeNotifier {
           debugPrint('Failed to download file $fileName: $e');
           // Continue with next file even if one fails
         }
-      }
       }
 
       // User pause/cancel: the pause/cancel methods already set the final
@@ -532,7 +529,6 @@ class BackgroundDownloadService extends ChangeNotifier {
 
       // Mark as failed
       if (_activeDownloads.containsKey(downloadId)) {
-        _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
         _activeDownloads[downloadId] = _activeDownloads[downloadId]!.copyWith(
           status: DownloadStatus.error,
           errorMessage: e.toString(),
