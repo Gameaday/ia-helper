@@ -132,7 +132,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.gameaday.internet_archive_helper"
+        applicationId "com.gameaday.iahelper"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
