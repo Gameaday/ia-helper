@@ -68,7 +68,10 @@ Post-1.0.
 
 ## Test coverage snapshot (test/)
 
-- (no test directory found)
+- test/: widget_test.dart, models, services, utils
+- test/models/: cached_metadata_test.dart
+- test/services/: advanced_search_service_test.dart, bandwidth_throttle_test.dart, etag_http_client_test.dart, history_service_test.dart, ia_http_client_test.dart, identifier_verification_service_test.dart, metadata_cache_test.dart, rate_limiter_test.dart, saved_search_service_test.dart.skip, search_history_service_test.dart.skip
+- test/utils/: archive_identifier_normalizer_test.dart
 
 No unit tests exist for `DownloadScheduler` or `ResumableDownloadService` — the two files changed
 most in this pass. Recommend adding tests with a mocked Dio/DatabaseHelper before the
