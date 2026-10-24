@@ -43,7 +43,7 @@ jobs:
     - name: Analyze
       run: |
         rc=0
-        flutter analyze --no-fatal-infos --format=machine > analyze.out || rc=$?
+        dart analyze --format=machine --fatal-warnings > analyze.out || rc=$?
         cat analyze.out
         awk -F'|' '$1=="ERROR" {print "::error file="$4",line="$5"::"$8}' analyze.out
         awk -F'|' '$1=="WARNING" {print "::warning file="$4",line="$5"::"$8}' analyze.out
