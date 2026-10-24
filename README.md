@@ -154,7 +154,7 @@ Read our [Privacy Policy](PRIVACY_POLICY.md) for more details.
 
 ## 📧 Contact
 
-- **Email**: gameaday.project@gmail.com
+- **Email**: admin@historylabs.dev
 - **Issues**: [GitHub Issues](https://github.com/gameaday/ia-helper/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/gameaday/ia-helper/discussions)
 

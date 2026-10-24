@@ -235,7 +235,7 @@ c0772ba - Initial commit: Migrate Flutter app from ia-get-cli to ia-helper
 
 ## 📧 Support & Contact
 
-- **Developer Email**: gameaday.project@gmail.com
+- **Developer Email**: admin@historylabs.dev
 - **GitHub Issues**: https://github.com/gameaday/ia-helper/issues
 - **GitHub Discussions**: https://github.com/gameaday/ia-helper/discussions
 - **Privacy Policy**: https://github.com/gameaday/ia-helper/blob/main/PRIVACY_POLICY.md

@@ -316,7 +316,7 @@ Current status: ~78% MD3 compliant
 
 ## Contact & Support
 
-**Developer Contact**: gameaday.project@gmail.com
+**Developer Contact**: admin@historylabs.dev
 **GitHub Issues**: github.com/gameaday/ia-helper/issues
 **Documentation**: github.com/gameaday/ia-helper
 

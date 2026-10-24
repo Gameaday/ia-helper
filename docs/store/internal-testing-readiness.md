@@ -12,7 +12,7 @@
 | Versioning | versionName from the latest `v*` git tag; versionCode from commit count |
 | Release CI | `play-release.yml` builds the signed AAB on a `v*` tag, attaches it to the GitHub Release, and **fails fast if signing secrets are missing** |
 | Privacy policy | `PRIVACY_POLICY.md` exists (needs a public URL before closed testing) |
-| Support contact | gameaday.project@gmail.com in README — use it in the Play listing too |
+| Support contact | admin@historylabs.dev in README — use it in the Play listing too |
 | Listing copy | `docs/store/google-play-listing.md` staged |
 | Store walkthrough | `docs/store/play-console-steps.md` staged |
 | Repo hygiene | scratch files removed; README badge now points at the real applicationId |

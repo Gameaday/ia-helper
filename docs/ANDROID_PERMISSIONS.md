@@ -282,7 +282,7 @@ If added, may need:
 ## Developer Contact
 
 **Questions about permissions?**
-- Email: gameaday.project@gmail.com
+- Email: admin@historylabs.dev
 - GitHub Issues: github.com/gameaday/ia-helper/issues
 
 ---

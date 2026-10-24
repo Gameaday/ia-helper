@@ -239,7 +239,7 @@ padding: EdgeInsets.all(14),
 
 - Never commit API keys or secrets
 - Report security vulnerabilities privately
-- Email: gameaday.project@gmail.com
+- Email: admin@historylabs.dev
 - Do not create public issues for security bugs
 
 ## 📄 License
@@ -259,7 +259,7 @@ If you have questions about contributing:
 - Check existing issues and discussions
 - Read the documentation in `docs/`
 - Ask in GitHub Discussions
-- Email: gameaday.project@gmail.com
+- Email: admin@historylabs.dev
 
 ## 🙏 Thank You
 

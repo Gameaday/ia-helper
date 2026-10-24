@@ -190,7 +190,7 @@ curl https://archive.org/metadata/mario → {"metadata": {...}, "files": [...]}
   - User rights (access, deletion, portability)
   - Legal basis for data processing
 - ✅ Updated contact information
-  - Public email: gameaday.project@gmail.com
+  - Public email: admin@historylabs.dev
   - GitHub issues link
   - Official support channels
 
