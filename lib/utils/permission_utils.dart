@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /// Utility class for handling runtime permissions
@@ -251,27 +252,44 @@ class PermissionUtils {
     }
   }
 
+  /// Platform channel to the native side (MainActivity.kt).
+  static const MethodChannel _platformChannel = MethodChannel(
+      'com.gameaday.internet_archive_helper/platform');
+
+  /// Cached Build.VERSION.SDK_INT from the platform channel.
+  static int? _cachedSdkInt;
+
+  /// Returns the device's real Android SDK_INT via the existing platform
+  /// channel (getSdkInt). Falls back to 33 (modern path) only if the channel
+  /// is somehow unavailable - the channel ships with the app, so this merely
+  /// guards against non-standard embedders. Fix for #77: the old
+  /// permission-availability heuristic never returned false, making the
+  /// legacy storage paths unreachable on Android 10-12.
+  static Future<int> _androidSdkInt() async {
+    final cached = _cachedSdkInt;
+    if (cached != null) return cached;
+    int sdk;
+    try {
+      sdk = await _platformChannel.invokeMethod<int>('getSdkInt') ?? 33;
+    } on PlatformException catch (e) {
+      debugPrint('SDK_INT channel error ($e); assuming API 33+');
+      sdk = 33;
+    } on MissingPluginException {
+      debugPrint('SDK_INT channel not registered; assuming API 33+');
+      sdk = 33;
+    }
+    _cachedSdkInt = sdk;
+    return sdk;
+  }
+
   /// Check if running on Android 13 or higher (API 33+)
   static Future<bool> _isAndroid13OrHigher() async {
-    // This is a simplified check - in production you'd check Build.VERSION.SDK_INT
-    // For now, we'll assume newer Android versions based on permission availability
-    try {
-      await Permission.photos.status;
-      return true; // If photos permission exists, we're on Android 13+
-    } catch (e) {
-      return false;
-    }
+    return await _androidSdkInt() >= 33;
   }
 
   /// Check if running on Android 10 or higher (API 29+)
   static Future<bool> _isAndroid10OrHigher() async {
-    // This is a simplified check
-    try {
-      await Permission.manageExternalStorage.status;
-      return true; // If this permission exists, we're on Android 10+
-    } catch (e) {
-      return false;
-    }
+    return await _androidSdkInt() >= 29;
   }
 
   /// Show permission rationale dialog

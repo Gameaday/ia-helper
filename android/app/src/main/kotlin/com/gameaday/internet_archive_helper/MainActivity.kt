@@ -2,6 +2,7 @@ package com.gameaday.internet_archive_helper
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -31,6 +32,10 @@ class MainActivity: FlutterActivity() {
                     } catch (e: Exception) {
                         result.error("VERSION_ERROR", "Failed to get app version", e.message)
                     }
+                }
+                "getSdkInt" -> {
+                    // Real Android version for permission branching (issue #77)
+                    result.success(Build.VERSION.SDK_INT)
                 }
                 "shareFile" -> {
                     val filePath = call.argument<String>("filePath")

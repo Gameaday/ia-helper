@@ -20,9 +20,9 @@
         Android 13+ (API 33+): Uses granular media permissions (photos, videos, audio)
     -->
     
-    <!-- Legacy storage: Android 5-9 (API 21-28) only -->
+    <!-- Legacy write storage: requested by the Android 5-12 permission branches (see #77); scoped storage governs on 30+ where the grant is inert -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
-        android:maxSdkVersion="28" />
+        android:maxSdkVersion="32" />
     
     <!-- Scoped storage: Android 10-12 (API 29-32) only -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 

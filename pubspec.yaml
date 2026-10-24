@@ -1,6 +1,6 @@
 name: internet_archive_helper
 description: Internet Archive Helper - Mobile app for downloading files from the Internet Archive
-version: 1.7.0
+version: 1.7.1
 
 environment:
   sdk: '>=3.8.0 <4.0.0'

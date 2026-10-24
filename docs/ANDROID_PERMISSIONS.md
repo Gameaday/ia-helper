@@ -10,6 +10,7 @@ IA Helper follows Android best practices for permissions:
 - **Clear justifications**: Each permission has a specific, user-facing purpose
 - **Graceful degradation**: App functions with limited permissions (reduced features)
 - **Version-specific**: Uses appropriate permissions for each Android version
+- **Real version detection**: Android version branching uses SDK_INT via the platform channel (Oct 2026, #77) - permission availability is never used as a version proxy
 
 ## Required Permissions
 
@@ -43,7 +44,7 @@ IA Helper uses different storage permissions based on Android version to follow 
 
 #### WRITE_EXTERNAL_STORAGE (Dangerous Permission)
 - **Permission**: `android.permission.WRITE_EXTERNAL_STORAGE`
-- **Max SDK Version**: 28 (Android 9 and below)
+- **Max SDK Version**: 32 (Android 12 and below; meaningful up to API 29, inert on 30+)
 - **Purpose**: Save downloaded files to external storage
 - **Justification**: 
   - Users expect downloads in Downloads folder
@@ -153,6 +154,7 @@ IA Helper uses different storage permissions based on Android version to follow 
 2. Alternatives (Scoped Storage) must be insufficient
 3. Clear explanation in app description
 4. Will require Play Store review approval
+**Flavor policy (Oct 2026, issue #75, Option B)**: The **production** flavor - the one CI builds for Play - removes this permission via a `src/production/AndroidManifest.xml` overlay (`tools:node="remove"`). The Play build ships **no All-Files-Access permission at all**: no declaration video, no special approval, no broad-storage rejection risk. Dev and staging flavors keep it for testing the opt-in path.
 
 ## Permission Request Flow
 
@@ -285,8 +287,8 @@ If added, may need:
 
 ---
 
-**Last Updated**: October 8, 2025  
-**App Version**: 1.0.0  
-**Target SDK**: 34 (Android 14)  
+**Last Updated**: October 24, 2026  
+**App Version**: 1.7.1  
+**Target SDK**: 36 (Android 16)  
 **Min SDK**: 21 (Android 5.0)  
 **Status**: Ready for Play Store submission

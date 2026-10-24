@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Storage permission version detection (#77)** - `_isAndroid13OrHigher()` / `_isAndroid10OrHigher()` used permission availability as an Android-version proxy and always returned true, making WRITE_EXTERNAL_STORAGE unreachable on Android 10-12. Replaced with a real `Build.VERSION.SDK_INT` lookup over the existing platform channel (`getSdkInt`), cached after the first call; falls back to the modern path only if the channel is unavailable.
+- **WRITE_EXTERNAL_STORAGE manifest window (#77)** - maxSdkVersion raised 28 to 32 so the Android 10-12 branch can actually request it (inert on 30+, where scoped storage governs).
+- **Play flavor storage policy (#75, Option B)** - new `android/app/src/production/AndroidManifest.xml` overlay removes MANAGE_EXTERNAL_STORAGE from the Play build: no All-Files-Access declaration, no broad-storage rejection risk. Dev/staging flavors keep the opt-in path.
+
 ### Added
 - **CDN URL Preference** - User-configurable CDN vs Direct mode
   - New toggle in Settings → Data & Performance
