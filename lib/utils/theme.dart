@@ -5,9 +5,13 @@ import 'package:flutter/material.dart';
 /// This theme implements Material 3 and Material Expressive design principles
 /// with Internet Archive branding colors and modern accessibility standards.
 ///
-/// Material Expressive additions include enhanced component themes for
-/// Dialog, BottomSheet, Chip, SnackBar, NavigationBar, SearchBar, Badge,
-/// SegmentedButton, and NavigationDrawer.
+/// Light and dark themes are built from a single [_buildTheme] helper so both
+/// brightness modes stay perfectly symmetric. Component coverage includes
+/// AppBar, Card, all button variants (filled, elevated, text, outlined),
+/// InputDecorator, TabBar, Checkbox, Radio, Switch, Slider, Dialog,
+/// BottomSheet, Chip, SnackBar, NavigationBar, NavigationRail, NavigationDrawer,
+/// Badge, SegmentedButton, SearchBar, SearchView, PopupMenu, DropdownMenu,
+/// MenuButton, Tooltip, FAB, ListTile, Divider, and ProgressIndicator.
 class AppTheme {
   // Internet Archive brand colors
   static const Color internetArchiveBlue = Color(0xFF004B87);
@@ -26,30 +30,48 @@ class AppTheme {
   static const Color infoColor = Color(0xFF0288D1);
 
   // Light theme with Material 3 design
-  static ThemeData get lightTheme {
-    final ColorScheme lightColorScheme = ColorScheme.fromSeed(
-      seedColor: primaryColor,
-      brightness: Brightness.light,
-      // Override specific colors for Internet Archive branding
-      primary: internetArchiveBlue,
-      secondary: internetArchiveOrange,
-      tertiary: tertiaryColor,
-      error: errorColor,
-    );
+  static ThemeData get lightTheme => _buildTheme(
+        ColorScheme.fromSeed(
+          seedColor: primaryColor,
+          brightness: Brightness.light,
+          // Override specific colors for Internet Archive branding
+          primary: internetArchiveBlue,
+          secondary: internetArchiveOrange,
+          tertiary: tertiaryColor,
+          error: errorColor,
+        ),
+      );
 
+  // Dark theme with Material 3 / Material Expressive design
+  static ThemeData get darkTheme => _buildTheme(
+        ColorScheme.fromSeed(
+          seedColor: primaryColor,
+          brightness: Brightness.dark,
+          // Override specific colors for Internet Archive branding
+          primary: const Color(0xFF6BB6FF), // Lighter blue for dark theme
+          secondary: internetArchiveOrange,
+          tertiary: const Color(0xFF64B5F6),
+          error: const Color(0xFFFF5449),
+        ),
+      );
+
+  /// Builds a complete Material 3 / Material Expressive [ThemeData] from
+  /// [colorScheme], keeping light and dark modes structurally identical.
+  static ThemeData _buildTheme(ColorScheme colorScheme) {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: lightColorScheme,
+      colorScheme: colorScheme,
+      splashFactory: InkSparkle.splashFactory,
 
       // App Bar with modern Material 3 styling
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 1,
-        backgroundColor: lightColorScheme.surface,
-        foregroundColor: lightColorScheme.onSurface,
-        surfaceTintColor: lightColorScheme.surfaceTint,
-        iconTheme: IconThemeData(color: lightColorScheme.onSurface),
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        surfaceTintColor: colorScheme.surfaceTint,
+        iconTheme: IconThemeData(color: colorScheme.onSurface),
       ),
 
       // Cards with Material 3 styling
@@ -80,6 +102,17 @@ class AppTheme {
         ),
       ),
 
+      // Outlined buttons
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          side: BorderSide(color: colorScheme.outline),
+        ),
+      ),
+
       // Text buttons
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -96,15 +129,15 @@ class AppTheme {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: lightColorScheme.outline),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: lightColorScheme.primary, width: 2),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: lightColorScheme.error),
+          borderSide: BorderSide(color: colorScheme.error),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -114,23 +147,23 @@ class AppTheme {
 
       // Progress indicators
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: lightColorScheme.primary,
-        linearTrackColor: lightColorScheme.surfaceContainerHighest,
+        color: colorScheme.primary,
+        linearTrackColor: colorScheme.surfaceContainerHighest,
       ),
 
-      // Bottom navigation
+      // Bottom navigation (legacy widget support)
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: lightColorScheme.surface,
-        selectedItemColor: lightColorScheme.primary,
-        unselectedItemColor: lightColorScheme.onSurfaceVariant,
+        backgroundColor: colorScheme.surface,
+        selectedItemColor: colorScheme.primary,
+        unselectedItemColor: colorScheme.onSurfaceVariant,
         elevation: 3,
       ),
 
       // FAB with Material 3 styling
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: lightColorScheme.primaryContainer,
-        foregroundColor: lightColorScheme.onPrimaryContainer,
+        backgroundColor: colorScheme.primaryContainer,
+        foregroundColor: colorScheme.onPrimaryContainer,
         elevation: 3,
         focusElevation: 4,
         hoverElevation: 4,
@@ -140,7 +173,7 @@ class AppTheme {
 
       // Dividers
       dividerTheme: DividerThemeData(
-        color: lightColorScheme.outlineVariant,
+        color: colorScheme.outlineVariant,
         thickness: 1,
       ),
 
@@ -153,15 +186,15 @@ class AppTheme {
       // Material Expressive: Dialog theme
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        backgroundColor: lightColorScheme.surfaceContainerHigh,
+        backgroundColor: colorScheme.surfaceContainerHigh,
         elevation: 6,
         titleTextStyle: TextStyle(
-          color: lightColorScheme.onSurface,
+          color: colorScheme.onSurface,
           fontSize: 24,
           fontWeight: FontWeight.w400,
         ),
         contentTextStyle: TextStyle(
-          color: lightColorScheme.onSurfaceVariant,
+          color: colorScheme.onSurfaceVariant,
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
@@ -172,11 +205,11 @@ class AppTheme {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        backgroundColor: lightColorScheme.surfaceContainerLow,
-        surfaceTintColor: lightColorScheme.surfaceTint,
+        backgroundColor: colorScheme.surfaceContainerLow,
+        surfaceTintColor: colorScheme.surfaceTint,
         elevation: 1,
         showDragHandle: true,
-        dragHandleColor: lightColorScheme.onSurfaceVariant.withValues(
+        dragHandleColor: colorScheme.onSurfaceVariant.withValues(
           alpha: 0.4,
         ),
       ),
@@ -184,344 +217,117 @@ class AppTheme {
       // Material Expressive: Chip theme
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        side: BorderSide(color: lightColorScheme.outline),
-        backgroundColor: lightColorScheme.surface,
-        selectedColor: lightColorScheme.secondaryContainer,
-        labelStyle: TextStyle(color: lightColorScheme.onSurface),
+        side: BorderSide(color: colorScheme.outline),
+        backgroundColor: colorScheme.surface,
+        selectedColor: colorScheme.secondaryContainer,
+        labelStyle: TextStyle(color: colorScheme.onSurface),
         secondaryLabelStyle: TextStyle(
-          color: lightColorScheme.onSecondaryContainer,
+          color: colorScheme.onSecondaryContainer,
         ),
         showCheckmark: true,
-        checkmarkColor: lightColorScheme.onSecondaryContainer,
+        checkmarkColor: colorScheme.onSecondaryContainer,
       ),
 
       // Material Expressive: SnackBar theme
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: lightColorScheme.inverseSurface,
-        contentTextStyle: TextStyle(color: lightColorScheme.onInverseSurface),
-        actionTextColor: lightColorScheme.inversePrimary,
+        backgroundColor: colorScheme.inverseSurface,
+        contentTextStyle: TextStyle(color: colorScheme.onInverseSurface),
+        actionTextColor: colorScheme.inversePrimary,
         elevation: 6,
       ),
 
-      // Material Expressive: NavigationBar theme (MD3 replacement for BottomNavigationBar)
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: lightColorScheme.surfaceContainer,
-        indicatorColor: lightColorScheme.secondaryContainer,
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: lightColorScheme.onSecondaryContainer);
-          }
-          return IconThemeData(color: lightColorScheme.onSurfaceVariant);
-        }),
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return TextStyle(
-              color: lightColorScheme.onSurface,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            );
-          }
-          return TextStyle(
-            color: lightColorScheme.onSurfaceVariant,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          );
-        }),
-        elevation: 2,
-        height: 80,
-      ),
-
-      // Material Expressive: NavigationRail theme
-      navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: lightColorScheme.surface,
-        selectedIconTheme: IconThemeData(
-          color: lightColorScheme.onSecondaryContainer,
-        ),
-        unselectedIconTheme: IconThemeData(
-          color: lightColorScheme.onSurfaceVariant,
-        ),
-        selectedLabelTextStyle: TextStyle(
-          color: lightColorScheme.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelTextStyle: TextStyle(
-          color: lightColorScheme.onSurfaceVariant,
-        ),
-        indicatorColor: lightColorScheme.secondaryContainer,
-      ),
-
-      // Material Expressive: NavigationDrawer theme
-      navigationDrawerTheme: NavigationDrawerThemeData(
-        backgroundColor: lightColorScheme.surfaceContainerLow,
-        indicatorColor: lightColorScheme.secondaryContainer,
-        elevation: 1,
-        indicatorShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
-      ),
-
-      // Material Expressive: Badge theme
-      badgeTheme: BadgeThemeData(
-        backgroundColor: lightColorScheme.error,
-        textColor: lightColorScheme.onError,
-      ),
-
-      // Material Expressive: SegmentedButton theme
-      segmentedButtonTheme: SegmentedButtonThemeData(
-        style: ButtonStyle(
-          shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
-          backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return lightColorScheme.secondaryContainer;
-            }
-            return lightColorScheme.surface;
-          }),
-          foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return lightColorScheme.onSecondaryContainer;
-            }
-            return lightColorScheme.onSurface;
-          }),
-        ),
-      ),
-
-      // Material Expressive: Switch theme
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return lightColorScheme.onPrimary;
-          }
-          return lightColorScheme.outline;
-        }),
-        trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return lightColorScheme.primary;
-          }
-          return lightColorScheme.surfaceContainerHighest;
-        }),
-        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return Colors.transparent;
-          }
-          return lightColorScheme.outline;
-        }),
-      ),
-
-      // Material Expressive: Tooltip theme
-      tooltipTheme: TooltipThemeData(
-        decoration: BoxDecoration(
-          color: lightColorScheme.inverseSurface,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        textStyle: TextStyle(color: lightColorScheme.onInverseSurface),
-      ),
-    );
-  }
-
-  // Dark theme with Material 3 / Material Expressive design
-  static ThemeData get darkTheme {
-    final ColorScheme darkColorScheme = ColorScheme.fromSeed(
-      seedColor: primaryColor,
-      brightness: Brightness.dark,
-      // Override specific colors for Internet Archive branding
-      primary: const Color(0xFF6BB6FF), // Lighter blue for dark theme
-      secondary: internetArchiveOrange,
-      tertiary: const Color(0xFF64B5F6),
-      error: const Color(0xFFFF5449),
-    );
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: darkColorScheme,
-
-      // App Bar with dark theme styling
-      appBarTheme: AppBarTheme(
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        backgroundColor: darkColorScheme.surface,
-        foregroundColor: darkColorScheme.onSurface,
-        surfaceTintColor: darkColorScheme.surfaceTint,
-        iconTheme: IconThemeData(color: darkColorScheme.onSurface),
-      ),
-
-      // Cards with Material 3 dark styling
-      cardTheme: CardThemeData(
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        clipBehavior: Clip.hardEdge,
-      ),
-
-      // Filled buttons with Material 3 styling
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        ),
-      ),
-
-      // Elevated buttons
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          elevation: 2,
-        ),
-      ),
-
-      // Text buttons
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-      ),
-
-      // Input fields with Material 3 dark styling
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: darkColorScheme.outline),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: darkColorScheme.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: darkColorScheme.error),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-      ),
-
-      // Progress indicators
-      progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: darkColorScheme.primary,
-        linearTrackColor: darkColorScheme.surfaceContainerHighest,
-      ),
-
-      // Bottom navigation
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: darkColorScheme.surface,
-        selectedItemColor: darkColorScheme.primary,
-        unselectedItemColor: darkColorScheme.onSurfaceVariant,
-        elevation: 3,
-      ),
-
-      // FAB with Material 3 dark styling
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: darkColorScheme.primaryContainer,
-        foregroundColor: darkColorScheme.onPrimaryContainer,
-        elevation: 3,
-        focusElevation: 4,
-        hoverElevation: 4,
-        highlightElevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-
-      // Dividers
-      dividerTheme: DividerThemeData(
-        color: darkColorScheme.outlineVariant,
-        thickness: 1,
-      ),
-
-      // Lists
-      listTileTheme: ListTileThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      ),
-
-      // Material Expressive: Dialog theme
-      dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        backgroundColor: darkColorScheme.surfaceContainerHigh,
-        elevation: 6,
-        titleTextStyle: TextStyle(
-          color: darkColorScheme.onSurface,
-          fontSize: 24,
-          fontWeight: FontWeight.w400,
-        ),
-        contentTextStyle: TextStyle(
-          color: darkColorScheme.onSurfaceVariant,
+      // Material 3: Tab bar theme
+      tabBarTheme: TabBarThemeData(
+        labelColor: colorScheme.primary,
+        unselectedLabelColor: colorScheme.onSurfaceVariant,
+        dividerColor: colorScheme.outlineVariant,
+        indicatorColor: colorScheme.primary,
+        labelStyle: const TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
       ),
 
-      // Material Expressive: Bottom sheet theme
-      bottomSheetTheme: BottomSheetThemeData(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        backgroundColor: darkColorScheme.surfaceContainerLow,
-        surfaceTintColor: darkColorScheme.surfaceTint,
-        elevation: 1,
-        showDragHandle: true,
-        dragHandleColor: darkColorScheme.onSurfaceVariant.withValues(
-          alpha: 0.4,
-        ),
+      // Material 3: Checkbox theme
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          return Colors.transparent;
+        }),
+        side: BorderSide(color: colorScheme.outline),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
 
-      // Material Expressive: Chip theme
-      chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        side: BorderSide(color: darkColorScheme.outline),
-        backgroundColor: darkColorScheme.surface,
-        selectedColor: darkColorScheme.secondaryContainer,
-        labelStyle: TextStyle(color: darkColorScheme.onSurface),
-        secondaryLabelStyle: TextStyle(
-          color: darkColorScheme.onSecondaryContainer,
-        ),
-        showCheckmark: true,
-        checkmarkColor: darkColorScheme.onSecondaryContainer,
+      // Material 3: Radio theme
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          return colorScheme.onSurfaceVariant;
+        }),
       ),
 
-      // Material Expressive: SnackBar theme
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: darkColorScheme.inverseSurface,
-        contentTextStyle: TextStyle(color: darkColorScheme.onInverseSurface),
-        actionTextColor: darkColorScheme.inversePrimary,
-        elevation: 6,
+      // Material Expressive: Switch theme
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.onPrimary;
+          }
+          return colorScheme.outline;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          return colorScheme.surfaceContainerHighest;
+        }),
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Colors.transparent;
+          }
+          return colorScheme.outline;
+        }),
+      ),
+
+      // Material 3: Slider theme
+      sliderTheme: SliderThemeData(
+        activeTrackColor: colorScheme.primary,
+        inactiveTrackColor: colorScheme.surfaceContainerHighest,
+        thumbColor: colorScheme.primary,
+        overlayColor: colorScheme.primary.withValues(alpha: 0.12),
+        valueIndicatorColor: colorScheme.primary,
+        trackHeight: 4,
       ),
 
       // Material Expressive: NavigationBar theme (MD3 replacement for BottomNavigationBar)
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: darkColorScheme.surfaceContainer,
-        indicatorColor: darkColorScheme.secondaryContainer,
+        backgroundColor: colorScheme.surfaceContainer,
+        indicatorColor: colorScheme.secondaryContainer,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: darkColorScheme.onSecondaryContainer);
+            return IconThemeData(color: colorScheme.onSecondaryContainer);
           }
-          return IconThemeData(color: darkColorScheme.onSurfaceVariant);
+          return IconThemeData(color: colorScheme.onSurfaceVariant);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return TextStyle(
-              color: darkColorScheme.onSurface,
+              color: colorScheme.onSurface,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             );
           }
           return TextStyle(
-            color: darkColorScheme.onSurfaceVariant,
+            color: colorScheme.onSurfaceVariant,
             fontSize: 12,
             fontWeight: FontWeight.w500,
           );
@@ -532,27 +338,27 @@ class AppTheme {
 
       // Material Expressive: NavigationRail theme
       navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: darkColorScheme.surface,
+        backgroundColor: colorScheme.surface,
         selectedIconTheme: IconThemeData(
-          color: darkColorScheme.onSecondaryContainer,
+          color: colorScheme.onSecondaryContainer,
         ),
         unselectedIconTheme: IconThemeData(
-          color: darkColorScheme.onSurfaceVariant,
+          color: colorScheme.onSurfaceVariant,
         ),
         selectedLabelTextStyle: TextStyle(
-          color: darkColorScheme.onSurface,
+          color: colorScheme.onSurface,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelTextStyle: TextStyle(
-          color: darkColorScheme.onSurfaceVariant,
+          color: colorScheme.onSurfaceVariant,
         ),
-        indicatorColor: darkColorScheme.secondaryContainer,
+        indicatorColor: colorScheme.secondaryContainer,
       ),
 
       // Material Expressive: NavigationDrawer theme
       navigationDrawerTheme: NavigationDrawerThemeData(
-        backgroundColor: darkColorScheme.surfaceContainerLow,
-        indicatorColor: darkColorScheme.secondaryContainer,
+        backgroundColor: colorScheme.surfaceContainerLow,
+        indicatorColor: colorScheme.secondaryContainer,
         elevation: 1,
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
@@ -561,8 +367,8 @@ class AppTheme {
 
       // Material Expressive: Badge theme
       badgeTheme: BadgeThemeData(
-        backgroundColor: darkColorScheme.error,
-        textColor: darkColorScheme.onError,
+        backgroundColor: colorScheme.error,
+        textColor: colorScheme.onError,
       ),
 
       // Material Expressive: SegmentedButton theme
@@ -573,48 +379,83 @@ class AppTheme {
           ),
           backgroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return darkColorScheme.secondaryContainer;
+              return colorScheme.secondaryContainer;
             }
-            return darkColorScheme.surface;
+            return colorScheme.surface;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return darkColorScheme.onSecondaryContainer;
+              return colorScheme.onSecondaryContainer;
             }
-            return darkColorScheme.onSurface;
+            return colorScheme.onSurface;
           }),
         ),
       ),
 
-      // Material Expressive: Switch theme
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return darkColorScheme.onPrimary;
-          }
-          return darkColorScheme.outline;
-        }),
-        trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return darkColorScheme.primary;
-          }
-          return darkColorScheme.surfaceContainerHighest;
-        }),
-        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return Colors.transparent;
-          }
-          return darkColorScheme.outline;
-        }),
+      // Material Expressive: SearchBar theme
+      searchBarTheme: SearchBarThemeData(
+        backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+        elevation: const WidgetStatePropertyAll(0),
+        shape: const WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(28)),
+          ),
+        ),
+        hintStyle: WidgetStatePropertyAll(
+          TextStyle(color: colorScheme.onSurfaceVariant),
+        ),
+        textStyle: WidgetStatePropertyAll(
+          TextStyle(color: colorScheme.onSurface),
+        ),
+      ),
+
+      // Material Expressive: SearchView theme
+      searchViewTheme: SearchViewThemeData(
+        backgroundColor: colorScheme.surfaceContainerLow,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(28)),
+        ),
+        dividerColor: colorScheme.outlineVariant,
+      ),
+
+      // Material 3: PopupMenu theme
+      popupMenuTheme: PopupMenuThemeData(
+        color: colorScheme.surfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 2,
+        labelTextStyle: WidgetStatePropertyAll(
+          TextStyle(color: colorScheme.onSurfaceVariant),
+        ),
+      ),
+
+      // Material 3: DropdownMenu theme
+      dropdownMenuTheme: DropdownMenuThemeData(
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(colorScheme.surfaceContainerHigh),
+          elevation: const WidgetStatePropertyAll(2),
+          shape: const WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+        ),
+      ),
+
+      // Material 3: MenuButton theme
+      menuButtonTheme: MenuButtonThemeData(
+        style: MenuItemButton.styleFrom(
+          backgroundColor: colorScheme.surfaceContainerHigh,
+          foregroundColor: colorScheme.onSurface,
+        ),
       ),
 
       // Material Expressive: Tooltip theme
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: darkColorScheme.inverseSurface,
+          color: colorScheme.inverseSurface,
           borderRadius: BorderRadius.circular(4),
         ),
-        textStyle: TextStyle(color: darkColorScheme.onInverseSurface),
+        textStyle: TextStyle(color: colorScheme.onInverseSurface),
       ),
     );
   }
