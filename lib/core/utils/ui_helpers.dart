@@ -49,10 +49,12 @@ class UIHelpers {
   }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
         duration: duration,
         backgroundColor: AppTheme.successColor,
-        contentTextStyle: const TextStyle(color: Colors.white),
       ),
     );
   }
@@ -65,10 +67,12 @@ class UIHelpers {
   }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
         duration: duration,
         backgroundColor: AppTheme.warningColor,
-        contentTextStyle: const TextStyle(color: Colors.white),
       ),
     );
   }
