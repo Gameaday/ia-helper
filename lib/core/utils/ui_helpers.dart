@@ -3,6 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../utils/theme.dart';
+
 /// Utility class for common UI operations
 class UIHelpers {
   /// Show a simple snackbar with a message
@@ -49,7 +51,8 @@ class UIHelpers {
       SnackBar(
         content: Text(message),
         duration: duration,
-        backgroundColor: const Color(0xFF2E7D32),
+        backgroundColor: AppTheme.successColor,
+        contentTextStyle: const TextStyle(color: Colors.white),
       ),
     );
   }
@@ -64,7 +67,8 @@ class UIHelpers {
       SnackBar(
         content: Text(message),
         duration: duration,
-        backgroundColor: const Color(0xFFED6C02),
+        backgroundColor: AppTheme.warningColor,
+        contentTextStyle: const TextStyle(color: Colors.white),
       ),
     );
   }
@@ -369,29 +373,40 @@ class UIHelpers {
     String? message,
     Widget? action,
   }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            if (message != null) ...[
-              const SizedBox(height: 8),
+    return Builder(
+      builder: (context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 64,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 16),
               Text(
-                message,
-                style: TextStyle(color: Colors.grey[600]),
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
+              if (message != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (action != null) ...[const SizedBox(height: 24), action],
             ],
-            if (action != null) ...[const SizedBox(height: 24), action],
-          ],
+          ),
         ),
       ),
     );
@@ -416,36 +431,47 @@ class UIHelpers {
     String? message,
     VoidCallback? onRetry,
   }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red[700]),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            if (message != null) ...[
-              const SizedBox(height: 8),
+    return Builder(
+      builder: (context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
               Text(
-                message,
-                style: TextStyle(color: Colors.grey[600]),
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
+              if (message != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (onRetry != null) ...[
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
             ],
-            if (onRetry != null) ...[
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
