@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Support contact corrected repo-wide** - `admin@historylabs.dev` replaces `gameaday.project@gmail.com` (an address never owned by the project) across the README, CONTRIBUTING, privacy policy, and store docs; the Play listing will use the same address.
+- **Material 3 theme unified (#79 phase 1)** - `lightTheme`/`darkTheme` are now built from a single `_buildTheme(colorScheme)` helper, and the missing M3 component themes were added: TabBar, Checkbox, Radio, Slider, OutlinedButton, SearchBar, SearchView, PopupMenu, DropdownMenu, MenuButton, plus InkSparkle ripples. No visual change to already-themed components.
+
 ### Fixed
+- **Dark-mode legibility in shared UI helpers (#79 phase 2, part 1)** - empty/error states and success/warning snackbars now derive their colors from the active `ColorScheme` instead of hardcoded greys, reds, and duplicated hex values; success/warning snackbars use contrast-safe white text in both modes.
 - **Scoped-storage default download directory (pre-launch audit R2)** - The default download path is now the app-scoped external directory (`Android/data/<pkg>/files/ia-get`), resolved via `FileUtils.getDefaultDownloadDirectory()` everywhere. The previously hardcoded `/storage/emulated/0/Download/ia-get` is unwritable by production builds on Android 11+ (scoped storage, MANAGE_EXTERNAL_STORAGE removed for Play), so every download failed with EACCES before writing a byte.
 - **Working pause/cancel/resume on the home-screen bulk pipeline (pre-launch audit R2)** - `BackgroundDownloadService` pause/cancel/resume called native methods that were never implemented (buttons did nothing; a 500 ms status poller threw every tick). Now a pure-Dart implementation: a cancellation token threaded into `InternetArchiveApi.downloadFile`, per-archive subfolders (`<dir>/<archiveId>/<file>`) to prevent cross-archive name collisions, resume that skips already-completed files, throttled (1 s) progress notifications plus completion/error notifications, and an honest error state when every file in a download fails.
 - **User pause no longer kills scheduler tasks (pre-launch audit R2)** - In `ResumableDownloadService` a user pause/cancel surfaced as a Dio cancel exception and was recorded as an error with `retryCount+1`; five pauses permanently killed a task. User-intent flags now persist paused/cancelled without burning a retry.
