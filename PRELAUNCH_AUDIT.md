@@ -63,3 +63,11 @@ Done already and verified: listing copy (docs/store/google-play-listing.md), pri
 7. Launch posts (drafts ready: docs/launch/launch-posts.md).
 
 *Store-track facts above verified against Google Play Help, Oct 2026: inactive-account closure policy and new-personal-account testing requirements (12 testers / 14 days for production access). Re-verify if the upload slips past November.*
+
+## Update (Oct 25, 2026)
+
+- **Support contact: resolved.** `admin@historylabs.dev` everywhere in the repo (commit `40bb320`); the docs' old claim that `gameaday.project@gmail.com` was "verified" was wrong — that address was never owned by the project. Remaining Carl-side: set the email + phone in Play Console → Account details.
+- **New step 0 (before the push): Material Design UI pass (#79).** Priority call by Carl — the UI gets a consistency pass before the closed-testing upload. Landed so far: theme phase 1 (`ddce204`: unified light/dark builder, full M3 component coverage incl. TabBar/Checkbox/Radio/Slider/OutlinedButton/SearchBar/SearchView/PopupMenu/DropdownMenu/MenuButton, InkSparkle ripple); color-sweep part 1 (`f079c8e`: theme-aware empty/error states, semantic snackbar colors). Remaining: ~12-file hardcoded-color sweep, typography/spacing audit, screenshot refresh.
+- **Privacy-policy hosting: recommended `historylabs.dev/apps/ia-helper/privacy/`** (domain fully owned by the developer; the historylabs repo now has CI + house style after merging its foundation pass). Fallback: the existing GitHub Pages site. Avoid listing the bare GitHub blob URL.
+- **historylabs repo now green-tracked:** foundation pass merged (house style, site validator) and CI activated (`0eb10dc`), so the site repo is safe to touch for the archive-site install links and any hosted policy page.
+
