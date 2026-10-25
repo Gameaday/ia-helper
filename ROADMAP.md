@@ -42,6 +42,7 @@ Pre-launch audit (scope, tiers, polish, steps): [PRELAUNCH_AUDIT.md](./PRELAUNCH
 
 - [x] Collection browsing + year/media-type filters in search *(shipped in v1.7.0 — audited 2026-10-24)*
 - [x] Batch download queue: file-type rules, size caps, auto-retry *(shipped in v1.7.0 — audited 2026-10-24)*
+- [ ] **Material Design UI pass (#79) — first priority, before the push** *(theme phase 1 landed `ddce204`: unified light/dark + full M3 component coverage; remaining: hardcoded-color sweep, typography audit, screenshot refresh)*
 - [ ] **Keep-alive: upload AAB to internal testing — protects the Play account, smallest possible submission** *(#76, deadline-driven)*
 - [ ] Start closed testing with ≥12 testers in week 1 — production access needs 14 continuous days
 - [ ] Publish to Google Play *(listing copy ready: docs/store/google-play-listing.md)*
