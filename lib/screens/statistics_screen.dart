@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/theme.dart';
 import '../database/database_helper.dart';
 import '../services/local_archive_storage.dart';
 import '../utils/file_utils.dart';
@@ -193,7 +194,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               'Successful',
               _successfulDownloads.toString(),
               Icons.check_circle_outline_rounded,
-              color: const Color(0xFF2E7D32),
+              color: AppTheme.successColor,
             ),
             const Divider(height: 24),
             _buildStatRow(

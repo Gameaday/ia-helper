@@ -136,7 +136,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                   });
                 },
                 selectedColor: colorScheme.primaryContainer,
-                checkmarkColor: const Color(0xFF2E7D32),
+                checkmarkColor: colorScheme.onPrimaryContainer,
                 avatar: _includeOriginal
                     ? null
                     : const Icon(Icons.upload_file, size: 18),
@@ -163,8 +163,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
                     _includeMetadata = selected;
                   });
                 },
-                selectedColor: Colors.purple.shade200,
-                checkmarkColor: Colors.purple.shade700,
+                selectedColor: colorScheme.tertiaryContainer,
+                checkmarkColor: colorScheme.onTertiaryContainer,
                 avatar: _includeMetadata
                     ? null
                     : const Icon(Icons.info, size: 18),
@@ -321,7 +321,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
           color: Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: colorScheme.onSurface.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, -2),
             ),
