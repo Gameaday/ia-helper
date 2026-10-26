@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:internet_archive_helper/utils/theme.dart';
 import 'package:internet_archive_helper/models/date_range.dart';
 import 'package:internet_archive_helper/models/saved_search.dart';
 import 'package:internet_archive_helper/models/search_history_entry.dart';
@@ -472,7 +473,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                   if (_titleController.text.isNotEmpty ||
                       _creatorController.text.isNotEmpty ||
                       _subjectController.text.isNotEmpty)
-                    const Icon(Icons.check_circle, color: Color(0xFF2E7D32)),
+                    const Icon(Icons.check_circle, color: AppTheme.successColor),
                 ],
               ),
             ),

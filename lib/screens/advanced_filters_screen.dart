@@ -182,9 +182,8 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () =>
                           setState(() => _includeSubfolders.remove(folder)),
-                      backgroundColor: const Color(
-                        0xFF2E7D32,
-                      ).withValues(alpha: 0.2),
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer,
                     ),
                   )
                   .toList(),
@@ -289,9 +288,8 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () =>
                           setState(() => _includePatterns.remove(pattern)),
-                      backgroundColor: const Color(
-                        0xFF2E7D32,
-                      ).withValues(alpha: 0.2),
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer,
                     ),
                   )
                   .toList(),
@@ -396,7 +394,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                 label: const Text('Original'),
                 selected: _includeOriginal,
                 onSelected: (val) => setState(() => _includeOriginal = val),
-                selectedColor: const Color(0xFF2E7D32).withValues(alpha: 0.3),
+                selectedColor: Theme.of(context).colorScheme.primaryContainer,
               ),
               FilterChip(
                 label: const Text('Derivative'),
@@ -408,7 +406,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                 label: const Text('Metadata'),
                 selected: _includeMetadata,
                 onSelected: (val) => setState(() => _includeMetadata = val),
-                selectedColor: Colors.purple.shade200,
+                selectedColor: Theme.of(context).colorScheme.tertiaryContainer,
               ),
             ],
           ),

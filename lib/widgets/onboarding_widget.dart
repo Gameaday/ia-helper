@@ -29,72 +29,73 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
     super.dispose();
   }
 
-  void _nextPage() {
-    if (_currentPage < _pages.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      _completeOnboarding();
-    }
-  }
-
-  void _previousPage() {
-    if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
   void _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_onboardingCompleteKey, true);
     widget.onComplete();
   }
 
-  final List<OnboardingPage> _pages = [
-    const OnboardingPage(
-      icon: Icons.library_books_rounded,
-      title: 'Welcome to Internet Archive Helper',
-      description:
-          'Your comprehensive companion for accessing the vast digital collection of the Internet Archive.',
-      iconColor: Color(0xFF004B87),
-    ),
-    const OnboardingPage(
-      icon: Icons.search_rounded,
-      title: 'Find What You Need',
-      description:
-          'Search and browse millions of books, movies, music, software, and historical documents.',
-      iconColor: Color(0xFFFF6B35),
-    ),
-    const OnboardingPage(
-      icon: Icons.download_rounded,
-      title: 'Download with Ease',
-      description:
-          'High-performance downloads with smart resume capability and progress tracking.',
-      iconColor: Color(0xFF0088CC),
-    ),
-    const OnboardingPage(
-      icon: Icons.mobile_friendly_rounded,
-      title: 'Optimized for Mobile',
-      description:
-          'Touch-friendly interface designed for seamless browsing and downloading on your phone.',
-      iconColor: Color(0xFF2E7D32),
-    ),
-    const OnboardingPage(
-      icon: Icons.security_rounded,
-      title: 'Privacy & Security',
-      description:
-          'Your data stays private. We only access what you choose to download from the Internet Archive.',
-      iconColor: Color(0xFFED6C02),
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final pages = <OnboardingPage>[
+      OnboardingPage(
+        icon: Icons.library_books_rounded,
+        title: 'Welcome to Internet Archive Helper',
+        description:
+            'Your comprehensive companion for accessing the vast digital collection of the Internet Archive.',
+        iconColor: colorScheme.primary,
+      ),
+      OnboardingPage(
+        icon: Icons.search_rounded,
+        title: 'Find What You Need',
+        description:
+            'Search and browse millions of books, movies, music, software, and historical documents.',
+        iconColor: colorScheme.secondary,
+      ),
+      OnboardingPage(
+        icon: Icons.download_rounded,
+        title: 'Download with Ease',
+        description:
+            'High-performance downloads with smart resume capability and progress tracking.',
+        iconColor: colorScheme.tertiary,
+      ),
+      OnboardingPage(
+        icon: Icons.mobile_friendly_rounded,
+        title: 'Optimized for Mobile',
+        description:
+            'Touch-friendly interface designed for seamless browsing and downloading on your phone.',
+        iconColor: colorScheme.primary,
+      ),
+      OnboardingPage(
+        icon: Icons.security_rounded,
+        title: 'Privacy & Security',
+        description:
+            'Your data stays private. We only access what you choose to download from the Internet Archive.',
+        iconColor: colorScheme.secondary,
+      ),
+    ];
+
+    void nextPage() {
+      if (_currentPage < pages.length - 1) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _completeOnboarding();
+      }
+    }
+
+    void previousPage() {
+      if (_currentPage > 0) {
+        _pageController.previousPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -104,7 +105,7 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: List.generate(
-                  _pages.length,
+                  pages.length,
                   (index) => Expanded(
                     child: Container(
                       height: 4,
@@ -132,11 +133,11 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
                     _currentPage = index;
                   });
                 },
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.all(24),
-                    child: _pages[index],
+                    child: pages[index],
                   );
                 },
               ),
@@ -151,13 +152,13 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
                   // Back button
                   if (_currentPage > 0)
                     TextButton(
-                      onPressed: _previousPage,
+                      onPressed: previousPage,
                       child: const Text('Back'),
                     )
                   else
                     const SizedBox(width: 64), // Placeholder for alignment
                   // Skip button (only on first pages)
-                  if (_currentPage < _pages.length - 1)
+                  if (_currentPage < pages.length - 1)
                     TextButton(
                       onPressed: _completeOnboarding,
                       child: const Text('Skip'),
@@ -165,9 +166,9 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
 
                   // Next/Get Started button
                   FilledButton(
-                    onPressed: _nextPage,
+                    onPressed: nextPage,
                     child: Text(
-                      _currentPage == _pages.length - 1
+                      _currentPage == pages.length - 1
                           ? 'Get Started'
                           : 'Next',
                     ),

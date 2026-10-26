@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/theme.dart';
 import '../services/ia_health_service.dart';
 import '../utils/responsive_utils.dart';
 import '../utils/snackbar_helper.dart';
@@ -287,7 +288,7 @@ class _IAHealthScreenState extends State<IAHealthScreen> {
             Text(
               endpoint.isAvailable ? 'Available' : 'Unavailable',
               style: TextStyle(
-                color: isHealthy ? const Color(0xFF2E7D32) : colorScheme.error,
+                color: isHealthy ? AppTheme.successColor : colorScheme.error,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -317,7 +318,7 @@ class _IAHealthScreenState extends State<IAHealthScreen> {
 
     final colorScheme = Theme.of(context).colorScheme;
     if (responseTimeMs < 1000) {
-      badgeColor = const Color(0xFF2E7D32);
+      badgeColor = AppTheme.successColor;
       label = 'Fast';
     } else if (responseTimeMs < 3000) {
       badgeColor = colorScheme.secondary;
@@ -400,7 +401,7 @@ class _IAHealthScreenState extends State<IAHealthScreen> {
               context,
               'Fast',
               '< 1 second',
-              const Color(0xFF2E7D32),
+              AppTheme.successColor,
             ),
             const SizedBox(height: 8),
             _buildLegendRow(

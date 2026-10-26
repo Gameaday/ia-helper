@@ -3,6 +3,9 @@
 // Provides standardized border radius values following Material Design 3
 // shape scale for consistent shapes throughout the app.
 //
+// The scale sits one step rounder than the M3 baseline so the app reads
+// friendly and expressive rather than corporate-neutral.
+//
 // Reference: https://m3.material.io/styles/shape/shape-scale-tokens
 
 import 'package:flutter/material.dart';
@@ -19,17 +22,17 @@ class AppShapes {
   /// Use for: Small chips, badges, avatars
   static const double extraSmallRadius = 4.0;
 
-  /// Small - 8dp
+  /// Small - 12dp
   /// Use for: Buttons, small cards, input fields
-  static const double smallRadius = 8.0;
+  static const double smallRadius = 12.0;
 
-  /// Medium - 12dp
+  /// Medium - 16dp
   /// Use for: Cards, dialogs, bottom sheets
-  static const double mediumRadius = 12.0;
+  static const double mediumRadius = 16.0;
 
-  /// Large - 16dp
+  /// Large - 20dp
   /// Use for: Large cards, extended FAB
-  static const double largeRadius = 16.0;
+  static const double largeRadius = 20.0;
 
   /// Extra Large - 28dp
   /// Use for: Extra large containers, hero elements
@@ -42,17 +45,17 @@ class AppShapes {
     Radius.circular(extraSmallRadius),
   );
 
-  /// Small BorderRadius (8dp)
+  /// Small BorderRadius (12dp)
   static const BorderRadius small = BorderRadius.all(
     Radius.circular(smallRadius),
   );
 
-  /// Medium BorderRadius (12dp)
+  /// Medium BorderRadius (16dp)
   static const BorderRadius medium = BorderRadius.all(
     Radius.circular(mediumRadius),
   );
 
-  /// Large BorderRadius (16dp)
+  /// Large BorderRadius (20dp)
   static const BorderRadius large = BorderRadius.all(
     Radius.circular(largeRadius),
   );
@@ -67,13 +70,13 @@ class AppShapes {
   /// Extra Small Circular Radius (4dp)
   static const Radius circularExtraSmall = Radius.circular(extraSmallRadius);
 
-  /// Small Circular Radius (8dp)
+  /// Small Circular Radius (12dp)
   static const Radius circularSmall = Radius.circular(smallRadius);
 
-  /// Medium Circular Radius (12dp)
+  /// Medium Circular Radius (16dp)
   static const Radius circularMedium = Radius.circular(mediumRadius);
 
-  /// Large Circular Radius (16dp)
+  /// Large Circular Radius (20dp)
   static const Radius circularLarge = Radius.circular(largeRadius);
 
   /// Extra Large Circular Radius (28dp)
@@ -87,19 +90,19 @@ class AppShapes {
     topRight: circularExtraSmall,
   );
 
-  /// Small Top Corners (8dp)
+  /// Small Top Corners (12dp)
   static const BorderRadius topSmall = BorderRadius.only(
     topLeft: circularSmall,
     topRight: circularSmall,
   );
 
-  /// Medium Top Corners (12dp)
+  /// Medium Top Corners (16dp)
   static const BorderRadius topMedium = BorderRadius.only(
     topLeft: circularMedium,
     topRight: circularMedium,
   );
 
-  /// Large Top Corners (16dp)
+  /// Large Top Corners (20dp)
   static const BorderRadius topLarge = BorderRadius.only(
     topLeft: circularLarge,
     topRight: circularLarge,
@@ -119,19 +122,19 @@ class AppShapes {
     bottomRight: circularExtraSmall,
   );
 
-  /// Small Bottom Corners (8dp)
+  /// Small Bottom Corners (12dp)
   static const BorderRadius bottomSmall = BorderRadius.only(
     bottomLeft: circularSmall,
     bottomRight: circularSmall,
   );
 
-  /// Medium Bottom Corners (12dp)
+  /// Medium Bottom Corners (16dp)
   static const BorderRadius bottomMedium = BorderRadius.only(
     bottomLeft: circularMedium,
     bottomRight: circularMedium,
   );
 
-  /// Large Bottom Corners (16dp)
+  /// Large Bottom Corners (20dp)
   static const BorderRadius bottomLarge = BorderRadius.only(
     bottomLeft: circularLarge,
     bottomRight: circularLarge,
@@ -173,20 +176,20 @@ class AppShapes {
 /// - Small avatars
 /// - Status indicators
 ///
-/// **Small (8dp):**
+/// **Small (12dp):**
 /// - Buttons (text, outlined, filled)
 /// - Input fields
 /// - Small cards
 /// - Dropdown menus
 ///
-/// **Medium (12dp):**
+/// **Medium (16dp):**
 /// - Cards
 /// - Dialogs
 /// - Bottom sheets
 /// - Navigation rail
 /// - Snackbars
 ///
-/// **Large (16dp):**
+/// **Large (20dp):**
 /// - Large cards
 /// - Extended FAB
 /// - Top app bar (if rounded)

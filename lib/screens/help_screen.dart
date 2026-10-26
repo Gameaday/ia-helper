@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Help and About screen for Internet Archive Helper
@@ -315,7 +316,7 @@ class HelpScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle, size: 16, color: Color(0xFF2E7D32)),
+          const Icon(Icons.check_circle, size: 16, color: AppTheme.successColor),
           const SizedBox(width: 8),
           Expanded(child: Text(text)),
         ],

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import '../utils/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/api_intensity_settings.dart';
 import '../utils/snackbar_helper.dart';
@@ -155,7 +156,7 @@ class _ApiIntensitySettingsScreenState
                   ApiIntensityLevel.minimal,
                   ApiIntensitySettings.minimal(),
                   Icons.flash_off,
-                  const Color(0xFF2E7D32),
+                  AppTheme.successColor,
                 ),
                 _buildLevelOption(
                   ApiIntensityLevel.cacheOnly,

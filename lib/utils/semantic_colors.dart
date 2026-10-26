@@ -28,6 +28,34 @@ class SemanticColors {
   static const Color info = Color(0xFF2196F3);
 
   // ============================================================================
+  // THEME-AWARE SEMANTIC VARIANTS
+  // ============================================================================
+  //
+  // The constants above are tuned for light surfaces. These helpers return a
+  // lighter tone in dark mode so success, warning, and info stay legible on
+  // dark surfaces without washing out.
+
+  /// Success color adapted to the current theme
+  ///
+  /// Light: deep brand green. Dark: soft green that keeps contrast on ink.
+  static Color successOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light
+          ? const Color(0xFF2E7D32)
+          : const Color(0xFF81C784);
+
+  /// Warning color adapted to the current theme
+  static Color warningOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light
+          ? const Color(0xFFED6C02)
+          : const Color(0xFFFFB74D);
+
+  /// Info color adapted to the current theme
+  static Color infoOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light
+          ? const Color(0xFF0288D1)
+          : const Color(0xFF4FC3F7);
+
+  // ============================================================================
   // THEME-AWARE COLORS (Get from ColorScheme for proper theme support)
   // ============================================================================
 
