@@ -44,11 +44,17 @@ jobs:
           cache: true
 
       - name: Check signing secrets are present
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 == '' }}
+        # The `secrets` context is NOT allowed in `if:` conditionals — GitHub rejects the
+        # entire workflow file as invalid (Unrecognized named-value: 'secrets'). An env
+        # reference is allowed, so the fail-fast check runs in shell instead.
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo '::error::ANDROID_KEYSTORE_BASE64 secret is missing.'
-          echo 'Add the four ANDROID_* secrets (see docs/store/play-console-steps.md) and re-run.'
-          exit 1
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo '::error::ANDROID_KEYSTORE_BASE64 secret is missing.'
+            echo 'Add the four ANDROID_* secrets (see docs/store/play-console-steps.md) and re-run.'
+            exit 1
+          fi
 
       - name: Decode upload keystore
         run: |
