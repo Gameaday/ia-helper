@@ -1,0 +1,104 @@
+name: Play Store Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Signed AAB & Create Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.35.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: flutter-deps-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+        restore-keys: |
+          flutter-deps-${{ runner.os }}-
+
+    - name: Get dependencies
+      run: flutter pub get
+
+    - name: Decode Keystore
+      run: |
+        echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/upload-keystore.jks
+
+    - name: Create key.properties
+      run: |
+        cat > android/key.properties << EOF
+        uploadKeyStore=upload-keystore.jks
+        uploadKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+        uploadStorePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        uploadKeyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+        EOF
+
+    - name: Build Signed AAB
+      run: |
+        flutter build appbundle --release --flavor production --no-tree-shake-icons
+      env:
+        GRADLE_OPTS: -Xmx4g -Dorg.gradle.daemon=false
+        JAVA_OPTS: -Xmx4g
+
+    - name: Generate Build Info
+      id: build-info
+      run: |
+        VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | tr -d '\r')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        COMMIT_SHA=$(git rev-parse --short HEAD)
+        echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+        BUILD_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        echo "build_time=$BUILD_TIME" >> $GITHUB_OUTPUT
+        AAB_SIZE=$(ls -lh build/app/outputs/bundle/release/app-production-release.aab | awk '{print $5}')
+        echo "aab_size=$AAB_SIZE" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build/app/outputs/bundle/release/app-production-release.aab
+        name: Release v${{ steps.build-info.outputs.version }}
+        body: |
+          ## IA Helper Release v${{ steps.build-info.outputs.version }}
+          
+          - **Commit**: ${{ steps.build-info.outputs.commit_sha }}
+          - **Build Time**: ${{ steps.build-info.outputs.build_time }}
+          - **AAB Size**: ${{ steps.build-info.outputs.aab_size }}
+          
+          ### Play Store Instructions
+          1. Download the `.aab` file
+          2. Go to [Play Console](https://play.google.com/console)
+          3. Select your app → Test and release → Internal testing
+          4. Create a new release and drag in the `.aab`
+          5. Accept Play App Signing when prompted
+          6. Add testers and roll out
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
