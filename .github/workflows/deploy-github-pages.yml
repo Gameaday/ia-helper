@@ -135,3 +135,9 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+      with:
+        # Runs #107/#108 aborted with "Timeout reached, aborting!": GitHub's Pages
+        # deployment service exceeded the action's default 10-minute polling window.
+        # The upload succeeds; the deployment itself just needs longer to finish.
+        # Allow 30 minutes before giving up (default: 600000 ms).
+        timeout: 1800000
