@@ -1,6 +1,6 @@
 # Internet Archive Helper - Privacy Policy
 
-**Last updated: October 24, 2026**  
+**Last updated: November 6, 2026**  
 **Effective Date: October 24, 2026**
 
 ## Overview
@@ -66,11 +66,20 @@ The app requests only essential permissions. Here's exactly why each permission 
 - **Scope**: Only checks connection type locally
 - **Data**: No network data is transmitted to us
 
-#### Storage Access (`WRITE_EXTERNAL_STORAGE`, `READ_EXTERNAL_STORAGE`)
-- **Purpose**: Save downloaded files to your device storage
-- **Scope**: Only files you explicitly choose to download
-- **Control**: You can revoke this permission anytime in Android settings
+#### Storage & Media Access (scoped storage)
+- **Purpose**: Save downloaded files to your device
+- **Default location**: The app's own external directory (scoped storage) — no broad storage access needed
+- **Legacy permissions** (`READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`): Android 12 and below only
+- **Granular media permissions** (`READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, `READ_MEDIA_AUDIO`): Android 13+
+- **Play Store build**: Does not request All Files Access (`MANAGE_EXTERNAL_STORAGE`); development/staging builds may optionally, for testing
+- **Control**: You can revoke permissions anytime in Android settings
 - **Data**: No data collected, only saves files you request
+
+#### Notifications (`android.permission.POST_NOTIFICATIONS`)
+- **Purpose**: Show download progress and completion notifications (Android 13+)
+- **Scope**: Only download-related notifications
+- **Control**: You can disable notifications in Android settings
+- **Data**: No data collected
 
 #### Wake Lock (`android.permission.WAKE_LOCK`)
 - **Purpose**: Keep downloads running when screen is off

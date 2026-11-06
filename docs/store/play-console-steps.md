@@ -50,7 +50,7 @@ title, short description, full description, graphics per the asset checklist.
 
 Privacy policy URL (required): host PRIVACY_POLICY.md via the existing GitHub Pages
 site (add a link on the landing page), or use this stopgap:
-https://github.com/Gameaday/ia-helper/blob/main/PRIVACY_POLICY.md
+https://gameaday.github.io/ia-helper/privacy/
 
 ## 5. Data safety form (answers pre-decided)
 
