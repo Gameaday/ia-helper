@@ -6,12 +6,14 @@ import 'package:internet_archive_helper/models/search_query.dart';
 import 'package:internet_archive_helper/screens/archive_detail_screen.dart';
 import 'package:internet_archive_helper/screens/search_results_screen.dart';
 import 'package:internet_archive_helper/services/archive_service.dart';
+import 'package:internet_archive_helper/services/archive_sync_service.dart';
 import 'package:internet_archive_helper/services/collections_service.dart';
 import 'package:internet_archive_helper/services/favorites_service.dart';
 import 'package:internet_archive_helper/services/local_archive_storage.dart';
 import 'package:internet_archive_helper/utils/animation_constants.dart';
 import 'package:internet_archive_helper/core/utils/formatting_utils.dart';
 import 'package:internet_archive_helper/utils/snackbar_helper.dart';
+import 'package:internet_archive_helper/widgets/archive_sync_dialog.dart';
 import 'package:internet_archive_helper/widgets/error_card.dart';
 import 'package:provider/provider.dart';
 
@@ -728,6 +730,16 @@ class _LibraryScreenState extends State<LibraryScreen>
                   ),
                 ),
                 const PopupMenuItem(
+                  value: 'sync',
+                  child: Row(
+                    children: [
+                      Icon(Icons.sync),
+                      SizedBox(width: 12),
+                      Text('Sync with Archive.org'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
                   value: 'add_to_collection',
                   child: Row(
                     children: [
@@ -1083,12 +1095,53 @@ class _LibraryScreenState extends State<LibraryScreen>
       case 'open':
         _openArchive(archive);
         break;
+      case 'sync':
+        _syncArchive(archive);
+        break;
       case 'add_to_collection':
         _addToCollection(archive);
         break;
       case 'delete':
         _deleteArchive(archive);
         break;
+    }
+  }
+
+  /// Local <-> remote sync (#94): conditional metadata refresh + file
+  /// audit, then user-confirmed repair of missing/changed/corrupt files
+  /// and removal of orphaned local copies.
+  Future<void> _syncArchive(DownloadedArchive archive) async {
+    final archiveService = context.read<ArchiveService>();
+    // The fetcher goes through ArchiveService's ETag-cached pipeline, so
+    // an unchanged item costs a conditional GET (304), not a full
+    // re-download.
+    final syncService = ArchiveSyncService(
+      metadataFetcher: (identifier) =>
+          archiveService.fetchMetadata(identifier),
+    );
+    try {
+      final report = await syncService.audit(archive);
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => ArchiveSyncDialog(
+          report: report,
+          onApplyFixes: () async {
+            final outcome = await syncService.applyFixes(archive, report);
+            // Persist the refreshed record (new metadata + file states).
+            await _localArchiveStorage.saveArchive(outcome.updatedArchive);
+            if (mounted) {
+              await _loadData();
+            }
+            return outcome;
+          },
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      SnackBarHelper.showError(context, e);
+    } finally {
+      syncService.dispose();
     }
   }
 
