@@ -101,8 +101,6 @@ android {
             resValue "string", "app_name", "Internet Archive Helper (Dev)"
             buildConfigField "String", "ENVIRONMENT", '"development"'
             // NOTE: boolean fields need a bare Java literal ('true'/'false').
-            // A quoted value ('"true"') generates: boolean DEBUG_MODE = "true";
-            // which javac rejects (this exact error broke CI runs #214-#215).
             buildConfigField "boolean", "DEBUG_MODE", 'true'
             manifestPlaceholders = [
                 applicationName: "io.flutter.app.FlutterApplication",
@@ -144,9 +142,6 @@ android {
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        
-        // Enable multidex for large APKs
-        multiDexEnabled true
         
         // Native library architecture (removed x86 for Play Store compliance)
         ndk {
@@ -264,15 +259,12 @@ buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
     // App Bundle configuration for Play Store
     bundle {
         language {
-            // Enable language splits for smaller downloads
             enableSplit = true
         }
         density {
-            // Enable density splits for smaller downloads  
             enableSplit = true
         }
         abi {
-            // Enable ABI splits for smaller downloads
             enableSplit = true
         }
     }
@@ -294,33 +286,8 @@ buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
 }
 
 dependencies {
-    implementation 'androidx.multidex:multidex:2.0.1'
-    
-    // Core Android libraries - Updated for Play Store compliance
+    // FileProvider for sharing/opening downloaded files (see MainActivity.kt
+    // and the provider in AndroidManifest.xml). Everything else this app uses
+    // ships via Flutter plugins with their own transitive dependencies.
     implementation 'androidx.core:core-ktx:1.15.0'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
-    implementation 'androidx.activity:activity-compose:1.9.3'
-    
-    // Material Design - Latest version
-    implementation 'com.google.android.material:material:1.12.0'
-    
-    // File provider and storage
-    implementation 'androidx.core:core:1.15.0'
-    
-    // Network security and privacy compliance
-    implementation 'androidx.security:security-crypto:1.1.0'
-    implementation 'androidx.work:work-runtime-ktx:2.10.0'
-    
-    // Play Core for app updates and feature delivery
-    implementation 'com.google.android.play:core:1.10.3'
-    implementation 'com.google.android.play:core-ktx:1.8.1'
-    
-    // Testing dependencies
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    
-    // For Play Store compliance and better app performance
-    implementation 'androidx.startup:startup-runtime:1.2.0'
 }
