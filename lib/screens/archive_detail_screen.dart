@@ -79,7 +79,7 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
                       icon: const Icon(Icons.hub_outlined),
                       tooltip: 'Seed externally via torrent',
                       onPressed: () => TorrentHandoffSheet.show(
-                        context: context,
+                        context,
                         identifier: identifier,
                         title: service.currentMetadata?.title,
                       ),
