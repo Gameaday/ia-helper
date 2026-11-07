@@ -38,7 +38,6 @@ def getGitVersionInfo() {
         }
     } catch (Exception e) {
         println "Warning: Could not get git version info: ${e.message}"
-        // Fallback to default values
     }
     
     return ['versionName': versionName, 'versionCode': versionCode]
@@ -69,10 +68,6 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace 'com.gameaday.internet_archive_helper'
     compileSdk 36
-    // NDK version - Flutter may use side-by-side NDK from Android SDK automatically
-    // Not explicitly required for pure Dart implementation
-    // If you have build issues, ensure Android SDK includes side-by-side NDK
-    // ndkVersion can be omitted to use the side-by-side NDK from Android SDK
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -87,6 +82,15 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    // AGP 9 removed the android.defaults.buildfeatures.* gradle.properties flags,
+    // so declare the build features this app needs directly.
+    // buildConfig: the app defines ENVIRONMENT/DEBUG_MODE/VERSION_* fields below.
+    // resValues: product flavors set the app_name string via resValue(...).
+    buildFeatures {
+        buildConfig true
+        resValues true
+    }
+
     // Product flavors for different environments
     flavorDimensions "environment"
     productFlavors {
@@ -96,7 +100,7 @@ android {
             versionNameSuffix "-dev"
             resValue "string", "app_name", "Internet Archive Helper (Dev)"
             buildConfigField "String", "ENVIRONMENT", '"development"'
-            buildConfigField "boolean", "DEBUG_MODE", "true"
+            buildConfigField "boolean", "DEBUG_MODE", '"true"'
             manifestPlaceholders = [
                 applicationName: "io.flutter.app.FlutterApplication",
                 appIcon: "@mipmap/ic_launcher",
@@ -110,7 +114,7 @@ android {
             versionNameSuffix "-staging"
             resValue "string", "app_name", "Internet Archive Helper (Staging)"
             buildConfigField "String", "ENVIRONMENT", '"staging"'
-            buildConfigField "boolean", "DEBUG_MODE", "true"
+            buildConfigField "boolean", "DEBUG_MODE", '"true"'
             manifestPlaceholders = [
                 applicationName: "io.flutter.app.FlutterApplication",
                 appIcon: "@mipmap/ic_launcher",
@@ -122,7 +126,7 @@ android {
             dimension "environment"
             resValue "string", "app_name", "Internet Archive Helper"
             buildConfigField "String", "ENVIRONMENT", '"production"'
-            buildConfigField "boolean", "DEBUG_MODE", "false"
+            buildConfigField "boolean", "DEBUG_MODE", '"false"'
             manifestPlaceholders = [
                 applicationName: "io.flutter.app.FlutterApplication",
                 appIcon: "@mipmap/ic_launcher",
@@ -209,7 +213,7 @@ android {
             shrinkResources false
             
             // Build config fields for debugging
-            buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
+buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
             buildConfigField "int", "VERSION_CODE", "${flutterVersionCode}"
             buildConfigField "String", "BUILD_TYPE", "\"debug\""
             buildConfigField "long", "BUILD_TIME", "${System.currentTimeMillis()}L"
@@ -223,7 +227,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             
             // Build config fields for profiling
-            buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
+buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
             buildConfigField "int", "VERSION_CODE", "${flutterVersionCode}"
             buildConfigField "String", "BUILD_TYPE", "\"profile\""
             buildConfigField "long", "BUILD_TIME", "${System.currentTimeMillis()}L"
@@ -239,7 +243,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             
             // Build config fields
-            buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
+buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
             buildConfigField "int", "VERSION_CODE", "${flutterVersionCode}"
             buildConfigField "String", "BUILD_TYPE", "\"release\""
             buildConfigField "long", "BUILD_TIME", "${System.currentTimeMillis()}L"
@@ -247,7 +251,6 @@ android {
             // Disable debugging
             debuggable false
             jniDebuggable false
-            // renderscriptDebuggable removed (obsolete since AGP 7.0+)
             
             // Additional optimizations for Play Store
             zipAlignEnabled true
@@ -271,8 +274,8 @@ android {
         }
     }
 
-    // Lint options for Play Store compliance
-    lintOptions {
+    // Lint configuration (renamed from lintOptions, which AGP 9 removed)
+    lint {
         checkReleaseBuilds true
         abortOnError false
         disable 'InvalidPackage', 'MissingTranslation'
@@ -284,8 +287,8 @@ android {
         enable 'GoogleAppIndexingWarning', 'GoogleAppIndexingUrlError'
     }
 
-    // Packaging options
-    packagingOptions {
+    // Packaging options (renamed from packagingOptions for AGP 9)
+    packaging {
         pickFirst '**/libc++_shared.so'
         pickFirst '**/libjsc.so'
     }
