@@ -12,6 +12,18 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
+// AGP 9 keeps the BuildConfig feature disabled by default. A plugin that
+// declares a custom buildConfigField in a build type (app_links' profile
+// build type) fails configuration with "Build Type 'profile' contains custom
+// BuildConfig fields, but the feature is disabled" unless the feature is
+// enabled in that module. Plugin build scripts cannot be edited, so enable
+// the feature for every Android library subproject from here.
+subprojects { sub ->
+    sub.plugins.withId('com.android.library') {
+        sub.extensions.getByName('android').buildFeatures.buildConfig = true
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

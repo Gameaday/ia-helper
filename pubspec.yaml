@@ -70,7 +70,7 @@ dev_dependencies:
   mockito: ^5.8.1
   
   # Code generation tools
-  build_runner: ^2.17.1
+  build_runner: ^2.16.2
   freezed: ^4.0.3
   json_serializable: ^6.15.2
 
