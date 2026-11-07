@@ -35,8 +35,8 @@ jobs:
           {
             echo 'dart analyze --fatal-warnings exit code:' "$rc"
             echo ''
-            echo '~~~text'
+            echo '```text'
             cat /tmp/analyze.log
-            echo '~~~'
+            echo '```'
           } > /tmp/comment.md
           gh api --method POST repos/Gameaday/ia-helper/issues/93/comments -F body=@/tmp/comment.md
