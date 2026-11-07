@@ -1,0 +1,42 @@
+name: Diagnose analyze (#93)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze and post findings to #93
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          dart analyze --fatal-warnings > /tmp/analyze.log 2>&1
+          rc=$?
+          set -e
+          cat /tmp/analyze.log
+          {
+            echo 'dart analyze --fatal-warnings exit code:' "$rc"
+            echo ''
+            echo '```text'
+            cat /tmp/analyze.log
+            echo '```'
+          } > /tmp/comment.md
+          gh api --method POST repos/Gameaday/ia-helper/issues/93/comments -f body=@/tmp/comment.md
