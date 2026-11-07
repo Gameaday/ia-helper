@@ -22,7 +22,6 @@ import 'models/search_query.dart';
 import 'widgets/onboarding_widget.dart';
 import 'widgets/whats_new_dialog.dart';
 import 'utils/theme.dart';
-import 'utils/permission_utils.dart';
 import 'utils/animation_constants.dart';
 
 void main() async {
@@ -354,9 +353,6 @@ class _AppInitializerState extends State<AppInitializer> {
         },
       );
 
-      // Request notification permissions (non-blocking)
-      _requestNotificationPermissions();
-
       // Show What's New dialog if this is a new version
       _showWhatsNewIfNeeded();
     } catch (e) {
@@ -388,21 +384,6 @@ class _AppInitializerState extends State<AppInitializer> {
     } catch (e) {
       // Non-critical - just log and continue
       debugPrint('Failed to show What\'s New dialog: $e');
-    }
-  }
-
-  /// Request notification permissions for download notifications (non-blocking)
-  Future<void> _requestNotificationPermissions() async {
-    try {
-      // Check if already granted
-      final hasPermission = await PermissionUtils.hasNotificationPermissions();
-      if (hasPermission) return;
-
-      // Request permission (will be silently skipped on older Android versions)
-      await PermissionUtils.requestNotificationPermissions();
-    } catch (e) {
-      // Non-critical - just log and continue
-      debugPrint('Failed to request notification permissions: $e');
     }
   }
 
