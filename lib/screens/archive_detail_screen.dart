@@ -7,6 +7,7 @@ import '../widgets/download_controls_widget.dart';
 import '../widgets/download_manager_widget.dart';
 import '../widgets/favorite_button.dart';
 import '../widgets/collection_picker.dart';
+import '../widgets/torrent_handoff_sheet.dart';
 
 /// Screen showing archive details with files and download options
 class ArchiveDetailScreen extends StatefulWidget {
@@ -70,6 +71,17 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
                         archiveOrgCollections:
                             service.currentMetadata?.archiveOrgCollections ??
                             [],
+                      ),
+                    ),
+                    // Torrent handoff (#93): export the official torrent
+                    // so an external app can download/seed the item
+                    IconButton(
+                      icon: const Icon(Icons.hub_outlined),
+                      tooltip: 'Seed externally via torrent',
+                      onPressed: () => TorrentHandoffSheet.show(
+                        context: context,
+                        identifier: identifier,
+                        title: service.currentMetadata?.title,
                       ),
                     ),
                   ],
@@ -152,7 +164,7 @@ class _ArchiveDetailScreenState extends State<ArchiveDetailScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left sidebar: Archive metadata (30% width, scrollable)
+        // Left sidebar: Archive metadata (30% width)
         SizedBox(
           width: 360, // Fixed width for consistency (roughly 30% of 1200dp)
           child: SingleChildScrollView(
