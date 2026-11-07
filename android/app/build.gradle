@@ -100,7 +100,10 @@ android {
             versionNameSuffix "-dev"
             resValue "string", "app_name", "Internet Archive Helper (Dev)"
             buildConfigField "String", "ENVIRONMENT", '"development"'
-            buildConfigField "boolean", "DEBUG_MODE", '"true"'
+            // NOTE: boolean fields need a bare Java literal ('true'/'false').
+            // A quoted value ('"true"') generates: boolean DEBUG_MODE = "true";
+            // which javac rejects (this exact error broke CI runs #214-#215).
+            buildConfigField "boolean", "DEBUG_MODE", 'true'
             manifestPlaceholders = [
                 applicationName: "io.flutter.app.FlutterApplication",
                 appIcon: "@mipmap/ic_launcher",
@@ -114,7 +117,7 @@ android {
             versionNameSuffix "-staging"
             resValue "string", "app_name", "Internet Archive Helper (Staging)"
             buildConfigField "String", "ENVIRONMENT", '"staging"'
-            buildConfigField "boolean", "DEBUG_MODE", '"true"'
+            buildConfigField "boolean", "DEBUG_MODE", 'true'
             manifestPlaceholders = [
                 applicationName: "io.flutter.app.FlutterApplication",
                 appIcon: "@mipmap/ic_launcher",
@@ -126,7 +129,7 @@ android {
             dimension "environment"
             resValue "string", "app_name", "Internet Archive Helper"
             buildConfigField "String", "ENVIRONMENT", '"production"'
-            buildConfigField "boolean", "DEBUG_MODE", '"false"'
+            buildConfigField "boolean", "DEBUG_MODE", 'false'
             manifestPlaceholders = [
                 applicationName: "io.flutter.app.FlutterApplication",
                 appIcon: "@mipmap/ic_launcher",
