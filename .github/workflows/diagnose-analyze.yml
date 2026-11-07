@@ -30,23 +30,25 @@ jobs:
 
       # Runs the same command as the CI Analyze step and posts the analyzer
       # findings as an issue comment, because step logs are admin-only on
-      # this repo and the annotations API path was unavailable. Temporary:
-      # delete this workflow once the failure is fixed.
+      # this repo. Temporary: delete this workflow once the failure is fixed.
+      # NOTE: the step shell is bash -e; without set +e the failing analyze
+      # would abort the script before posting (that is what happened in the
+      # first version of this workflow).
       - name: Analyze and post findings
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set +e
           dart analyze --fatal-warnings > /tmp/analyze.log 2>&1
           rc=$?
+          set -e
           cat /tmp/analyze.log
           {
-            echo "Automated diagnosis: `dart analyze --fatal-warnings` exited with code $rc"
+            echo "Automated diagnosis: dart analyze --fatal-warnings exited with code $rc"
             echo ""
-            echo '+++'
-            echo ""
+            echo '```'
             grep -E " • " /tmp/analyze.log | head -40 || true
-            echo ""
-            echo '+++'
+            echo '```'
             echo ""
             echo "_Posted by the temporary diagnose workflow; it will be removed once the failure is fixed._"
           } > /tmp/comment.md
