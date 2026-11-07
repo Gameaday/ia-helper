@@ -35,31 +35,23 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        # Previously pinned 3.35.0, whose Flutter Gradle plugin cannot run against
-      # the repo's modernized Android config (Pages runs failed in configuration
-      # at "Build Android Development APK"). Use the same stable toolchain as
-      # flutter-ci and play-release so all three pipelines stay consistent.
-      channel: 'stable'
+        channel: 'stable'
         cache: true
     
     - name: Get dependencies
       run: flutter pub get
     
     - name: Build Android Development APK
-      run: |
-        flutter build apk --debug --flavor development
-      env:
-        GRADLE_OPTS: -Xmx4g -Dorg.gradle.daemon=false
+      run: flutter build apk --debug --flavor development --no-tree-shake-icons
     
-    - name: Build Web (no icon tree-shaking)
-      run: |
-        flutter build web --release --no-tree-shake-icons --base-href="/ia-helper/app/"
+    - name: Build Web
+      run: flutter build web --release --no-tree-shake-icons --base-href="/ia-helper/app/"
     
     - name: Get build info
       id: build-info
       run: |
         # Get version from pubspec.yaml
-        VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | tr -d '\r')
+        VERSION=$(grep '^version:' pubspec.yaml | cut -d ' ' -f2 | tr -d '\r')
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         
         # Get git commit info

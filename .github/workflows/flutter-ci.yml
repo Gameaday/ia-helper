@@ -1,184 +1,61 @@
-name: CI/CD - Flutter Mobile & Web
+name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
-  release:
-    types: [published]
+    branches: [ main ]
   workflow_dispatch:
 
 concurrency:
-  group: flutter-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  group: ci-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
   analyze:
     name: Analyze & Test
     runs-on: ubuntu-24.04
-    # v* version releases are owned by play-release.yml (which attaches the properly
-    # upload-signed AAB). Skip this workflow for them so the heavy Android build is
-    # not duplicated on every release.
-    if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'v')
-
     steps:
-    - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
-        cache: true
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
 
-    - name: Cache Flutter dependencies
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.pub-cache
-          .dart_tool
-        key: flutter-deps-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
-        restore-keys: |
-          flutter-deps-${{ runner.os }}-
+      - name: Get dependencies
+        run: flutter pub get
 
-    - name: Get dependencies
-      run: flutter pub get
+      - name: Analyze
+        run: dart analyze --fatal-warnings
 
-    - name: Analyze
-      run: |
-        rc=0
-        dart analyze --format=machine --fatal-warnings > analyze.out || rc=$?
-        cat analyze.out
-        awk -F'|' '$1=="ERROR" {print "::error file="$4",line="$5"::"$8}' analyze.out
-        awk -F'|' '$1=="WARNING" {print "::warning file="$4",line="$5"::"$8}' analyze.out
-        exit $rc
-
-    - name: Test
-      run: flutter test --no-pub
+      - name: Test
+        run: flutter test
 
   build-android:
-    name: Build Android APK & AAB
+    name: Build production AAB
     runs-on: ubuntu-24.04
     needs: analyze
-
     steps:
-    - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-    - name: Setup Java
-      uses: actions/setup-java@v5
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-        cache: 'gradle'
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: '17'
+          cache: gradle
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
-        cache: true
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
 
-    - name: Cache Gradle dependencies
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-          android/.gradle
-        key: gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'android/build.gradle', 'android/app/build.gradle') }}
-        restore-keys: |
-          gradle-${{ runner.os }}-
-
-    - name: Cache Flutter build
-      uses: actions/cache@v5
-      with:
-        path: |
-          .dart_tool
-          build
-        key: flutter-build-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
-        restore-keys: |
-          flutter-build-${{ runner.os }}-
-
-    - name: Get dependencies
-      run: flutter pub get
-
-    - name: Stop Gradle daemons and clean
-      run: |
-        # Stop any running Gradle daemons to clear file watchers
-        cd android && ./gradlew --stop || true
-        cd ..
-        # Clean Flutter build artifacts
-        flutter clean
-
-    - name: Build APK and AAB (optimized)
-      run: |
-        # Build both APK and AAB with production flavor:
-        # APK: For direct download, sideloading, testing
-        # AAB: For Google Play Store submission (required format)
-        # --flavor production: Explicitly use production product flavor
-        # --no-tree-shake-icons: Skip font tree-shaking to save build time
-        # --release: Production build with optimizations
-        flutter build apk --release --flavor production --no-tree-shake-icons
-        flutter build appbundle --release --flavor production --no-tree-shake-icons
-      env:
-        # Gradle JVM memory settings to prevent OOM during native lib processing
-        # GitHub Actions runners have 7GB RAM, allocate 4GB to Gradle JVM
-        # daemon=false: Prevents "Already watching path" errors from stale file watchers
-        GRADLE_OPTS: -Xmx4g -Xms512m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.caching=true
-        JAVA_OPTS: -Xmx4g -Xms512m
-
-    - name: List build outputs
-      working-directory: build/app/outputs
-      run: |
-        echo "=== Listing build outputs ==="
-        find . -name "*.apk" -o -name "*.aab"
-        echo "=== Directory structure ==="
-        ls -R
-
-    - name: Generate checksums
-      working-directory: build/app/outputs
-      run: |
-        # Find actual APK and AAB files and generate checksums
-        find . -name "*.apk" -type f -exec sh -c 'sha256sum "$1" > "$1.sha256"' _ {} \;
-        find . -name "*.aab" -type f -exec sh -c 'sha256sum "$1" > "$1.sha256"' _ {} \;
-
-    - name: Upload APK and AAB
-      uses: actions/upload-artifact@v4
-      with:
-        name: ia-helper-android
-        path: |
-          build/app/outputs/**/*.apk
-          build/app/outputs/**/*.apk.sha256
-          build/app/outputs/**/*.aab
-          build/app/outputs/**/*.aab.sha256
-        retention-days: 30
-
-
-  # Note: Web build and GitHub Pages deployment is now handled by deploy-github-pages.yml
-  # This avoids duplication and ensures a single, streamlined deployment process
-
-  release:
-    name: Upload to Release
-    runs-on: ubuntu-24.04
-    needs: [build-android]
-    permissions:
-      # Required to upload release assets; without it the job fails with
-      # 'Resource not accessible by integration' when the repo default token is read-only.
-      contents: write
-    # v* releases are owned by play-release.yml, which attaches the properly upload-signed
-    # AAB. This job's artifacts are debug-signed (no signing config in CI), so skip v* tags
-    # to keep unsigned/duplicate bundles off the Play release.
-    if: github.event_name == 'release' && !startsWith(github.event.release.tag_name, 'v')
-
-    steps:
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-
-    - name: Upload to release
-      uses: softprops/action-gh-release@v2
-      with:
-        files: |
-          artifacts/ia-helper-android/*
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build production AAB
+        run: |
+          flutter pub get
+          # --no-tree-shake-icons avoids icon tree-shaker build failures.
+          # Signed releases for Google Play are built by play-release.yml on v* tags.
+          flutter build appbundle --release --flavor production --no-tree-shake-icons
