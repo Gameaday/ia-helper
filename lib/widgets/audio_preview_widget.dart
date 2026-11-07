@@ -2,6 +2,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
+// ignore_for_file: experimental_member_use
+// just_audio 0.10.x marks StreamAudioSource/StreamAudioResponse @experimental
+// upstream. This widget intentionally uses them for byte-array audio previews;
+// the analyzer warns on any reference to them, which is fatal under
+// dart analyze --fatal-warnings.
+
 /// Widget for previewing audio files with playback controls
 class AudioPreviewWidget extends StatefulWidget {
   final Uint8List audioBytes;
