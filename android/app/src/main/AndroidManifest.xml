@@ -14,20 +14,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     
     <!-- 
-        STORAGE PERMISSIONS - Android Version-Specific Strategy:
-        
-        Android 5-9 (API 21-28): Uses WRITE_EXTERNAL_STORAGE
-        Android 10-12 (API 29-32): Uses READ_EXTERNAL_STORAGE + Scoped Storage
-        Android 13+ (API 33+): App-scoped storage, no runtime storage permission needed (#81)
+        STORAGE MODEL (Nov 2026, #81/#82):
+        All downloads, caches and previews use app-scoped directories
+        (path_provider), writable on every supported Android version
+        (API 21+) with NO storage permission. Public-folder saves will
+        use SAF with persistable URI grants (#90), which also needs none.
+        The legacy WRITE/READ storage permissions are therefore not
+        declared at all.
     -->
-    
-    <!-- Legacy write storage: requested by the Android 5-12 permission branches (see #77); scoped storage governs on 30+ where the grant is inert -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
-        android:maxSdkVersion="32" />
-    
-    <!-- Scoped storage: Android 10-12 (API 29-32) only -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
-        android:maxSdkVersion="32" />
     
     <!-- 
         OPTIONAL PERMISSIONS
@@ -37,9 +31,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     
     <!-- 
-        All Files Access: Android 11+ (API 30+) - Optional full storage access
-        Requires special Google Play Store approval and strong justification.
-        User must grant manually in system settings.
+        All Files Access: Android 11+ (API 30+) - dev/staging builds only.
+        The production flavor removes this via the src/production overlay
+        (tools:node="remove", #75); the Play build ships without it.
+        Never requested at runtime (helpers removed in #81); kept so a
+        developer can grant it manually in Settings for broad-access testing.
     -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" 
         android:minSdkVersion="30"
@@ -63,8 +59,6 @@
         android:fullBackupContent="@xml/backup_rules"
         android:theme="@style/LaunchTheme"
         android:networkSecurityConfig="${networkSecurityConfig}"
-        android:requestLegacyExternalStorage="true"
-        android:largeHeap="true"
         android:hardwareAccelerated="true"
         android:supportsRtl="true">
         
@@ -78,7 +72,7 @@
             android:windowSoftInputMode="adjustResize">
             
             <!-- App launch intent -->
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
@@ -106,7 +100,7 @@
             </intent-filter>
             
             <!-- Handle custom deep links (ia-get://identifier) -->
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />

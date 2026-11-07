@@ -14,7 +14,7 @@ dependencies:
   
   # Storage and file management
   path_provider: ^2.1.6
-  permission_handler: ^12.0.1  # 13.x requires compileSdk 37 (AGP 9.1 max 36); bump together with AGP when the Flutter template moves
+  permission_handler: ^12.0.1  # no direct usage after #81/#82 (app-scoped storage); kept for the Phase 3 notifications feature (#92). 13.x requires compileSdk 37 (AGP 9.1 max 36); bump together with AGP when the Flutter template moves
   open_file: ^4.0.0
   sqflite: ^2.4.5  # SQLite for metadata caching
   sqflite_common_ffi_web: ^1.2.0  # Web-compatible SQLite using IndexedDB
