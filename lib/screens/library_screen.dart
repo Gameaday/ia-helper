@@ -430,7 +430,6 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   /// Returns a [IconData] for a collection category name.
   /// Uses a const lookup map instead of constructing IconData dynamically.
-  /// Returns a [IconData] for a collection category name.
   static final Map<String, IconData> _collectionIcons = {
     'software': Icons.apps,
     'image': Icons.image,
@@ -442,13 +441,6 @@ class _LibraryScreenState extends State<LibraryScreen>
     'data': Icons.storage,
     'code': Icons.code,
   };
-
-  IconData _parseCollectionIcon(String? iconString) {
-    if (iconString == null || !_collectionIcons.containsKey(iconString)) {
-      return Icons.folder;
-    }
-    return _collectionIcons[iconString]!;
-  }
 
   IconData _parseCollectionIcon(String? iconString) {
     if (iconString == null || !_collectionIcons.containsKey(iconString)) {

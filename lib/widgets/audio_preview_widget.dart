@@ -429,14 +429,18 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
 }
 
 /// Custom audio source that loads audio from a byte array.
-//
-//  See https://docs.flutter.dev/release/breaking-changes/stream-audio
-//  for info on experimental StreamAudioSource/StreamAudioResponse APIs.
-//
-//  These APIs are marked as @experimental in the Dart SDK documentation,
-//  but they are not blocked by the analyzer. Only compiler-level errors
-//  prevent builds; these warnings do not.
+///
+/// See https://docs.flutter.dev/release/breaking-changes/stream-audio
+/// for info on experimental StreamAudioSource/StreamAudioResponse APIs.
+class _ByteArrayAudioSource extends StreamAudioSource {
+  final Uint8List _bytes;
 
+  _ByteArrayAudioSource(this._bytes);
+
+  @override
+  Future<StreamAudioResponse> request([int? start, int? end]) async {
+    start ??= 0;
+    end ??= _bytes.length;
     return StreamAudioResponse(
       sourceLength: _bytes.length,
       contentLength: end - start,
