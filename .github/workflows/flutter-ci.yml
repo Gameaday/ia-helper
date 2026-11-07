@@ -27,11 +27,50 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      # Step logs on this repo are admin-only; analyzer findings are only
+      # visible without log-download rights when re-emitted as ::error
+      # annotations (same channel as the build step below).
       - name: Analyze
-        run: dart analyze --fatal-warnings
+        run: |
+          set +e
+          dart analyze --fatal-warnings > /tmp/analyze.log 2>&1
+          rc=$?
+          set -e
+          cat /tmp/analyze.log
+          if [ $rc -ne 0 ]; then
+            grep -E " • " /tmp/analyze.log | head -20 > /tmp/keylines.txt
+            echo "--- last 10 lines ---" >> /tmp/keylines.txt
+            tail -10 /tmp/analyze.log >> /tmp/keylines.txt
+            i=0
+            while IFS= read -r line && [ $i -lt 10 ]; do
+              [ -z "$line" ] && continue
+              printf "::error::%.240s\n" "$line"
+              i=$((i+1))
+            done < /tmp/keylines.txt
+          fi
+          exit $rc
 
+      # Test failures (compile errors, assertion failures) re-emitted as
+      # ::error annotations, same reason as above.
       - name: Test
-        run: flutter test
+        run: |
+          set +e
+          flutter test > /tmp/test.log 2>&1
+          rc=$?
+          set -e
+          cat /tmp/test.log
+          if [ $rc -ne 0 ]; then
+            grep -nE "Error:|Exception|FAILED|Compilation error|Expected:|Actual:|Some tests failed" /tmp/test.log | tail -30 > /tmp/keylines.txt
+            echo "--- last 15 lines ---" >> /tmp/keylines.txt
+            tail -15 /tmp/test.log >> /tmp/keylines.txt
+            i=0
+            while IFS= read -r line && [ $i -lt 10 ]; do
+              [ -z "$line" ] && continue
+              printf "::error::%.240s\n" "$line"
+              i=$((i+1))
+            done < /tmp/keylines.txt
+          fi
+          exit $rc
 
   build-android:
     name: Build production AAB
