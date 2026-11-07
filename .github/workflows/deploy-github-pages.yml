@@ -41,8 +41,29 @@ jobs:
     - name: Get dependencies
       run: flutter pub get
     
+    # Error lines are re-emitted as ::error annotations on failure so the
+    # root cause is visible without admin log-download rights.
     - name: Build Android Development APK
-      run: flutter build apk --debug --flavor development --no-tree-shake-icons
+      run: |
+        set +e
+        flutter build apk --debug --flavor development --no-tree-shake-icons > /tmp/apk.log 2>&1
+        rc=$?
+        set -e
+        cat /tmp/apk.log
+        if [ $rc -ne 0 ]; then
+          {
+            grep -nE "FAILURE|error:|ERROR|Exception|Caused by|Could not|Unsupported|incompatible|must not|Execution failed|A problem occurred|Build failed|already on the classpath" /tmp/apk.log | tail -40
+            echo "--- last 15 lines ---"
+            tail -15 /tmp/apk.log
+          } > /tmp/keylines.txt
+          i=0
+          while IFS= read -r line && [ $i -lt 10 ]; do
+            [ -z "$line" ] && continue
+            printf "::error::%.240s\n" "$line"
+            i=$((i+1))
+          done < /tmp/keylines.txt
+        fi
+        exit $rc
     
     - name: Build Web
       run: flutter build web --release --no-tree-shake-icons --base-href="/ia-helper/app/"

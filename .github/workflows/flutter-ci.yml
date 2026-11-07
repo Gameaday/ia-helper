@@ -53,9 +53,27 @@ jobs:
           channel: stable
           cache: true
 
+      # Captures the full build log so that on failure the key Gradle error
+      # lines are re-emitted as ::error annotations, which are visible
+      # without admin log-download rights (this repo's logs are admin-only).
       - name: Build production AAB
         run: |
-          flutter pub get
-          # --no-tree-shake-icons avoids icon tree-shaker build failures.
-          # Signed releases for Google Play are built by play-release.yml on v* tags.
-          flutter build appbundle --release --flavor production --no-tree-shake-icons
+          set +e
+          flutter build appbundle --release --flavor production --no-tree-shake-icons > /tmp/build.log 2>&1
+          rc=$?
+          set -e
+          cat /tmp/build.log
+          if [ $rc -ne 0 ]; then
+            {
+              grep -nE "FAILURE|error:|ERROR|Exception|Caused by|Could not|Unsupported|incompatible|must not|Execution failed|A problem occurred|Build failed|already on the classpath" /tmp/build.log | tail -40
+              echo "--- last 15 lines ---"
+              tail -15 /tmp/build.log
+            } > /tmp/keylines.txt
+            i=0
+            while IFS= read -r line && [ $i -lt 10 ]; do
+              [ -z "$line" ] && continue
+              printf "::error::%.240s\n" "$line"
+              i=$((i+1))
+            done < /tmp/keylines.txt
+          fi
+          exit $rc

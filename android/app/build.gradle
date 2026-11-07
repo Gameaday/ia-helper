@@ -274,17 +274,13 @@ buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
         }
     }
 
-    // Lint configuration (renamed from lintOptions, which AGP 9 removed)
+    // Lint configuration. Only reference issue ids that still exist in
+    // modern lint: unknown ids are a hard usage error that fails the build.
     lint {
         checkReleaseBuilds true
         abortOnError false
-        disable 'InvalidPackage', 'MissingTranslation'
         warningsAsErrors false
-        xmlReport true
-        htmlReport true
-        
-        // Play Store specific checks
-        enable 'GoogleAppIndexingWarning', 'GoogleAppIndexingUrlError'
+        disable 'MissingTranslation'
     }
 
     // Packaging options (renamed from packagingOptions for AGP 9)
@@ -295,7 +291,6 @@ buildConfigField "String", "VERSION_NAME", "\"${flutterVersionName}\""
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.multidex:multidex:2.0.1'
     
     // Core Android libraries - Updated for Play Store compliance
