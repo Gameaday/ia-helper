@@ -11,6 +11,7 @@ import 'internet_archive_api.dart';
 import 'notification_service.dart';
 import 'local_archive_storage.dart';
 import 'archive_url_service.dart';
+import 'download_queue_store.dart';
 import 'download_retry_policy.dart';
 import '../utils/file_utils.dart';
 
@@ -71,6 +72,10 @@ class BackgroundDownloadService extends ChangeNotifier {
 
   /// Earliest time each download may be retried again (backoff window).
   final Map<String, DateTime> _nextRetryAt = {};
+
+  /// Queue persistence (#84): survives app/OS kills so the queue can be
+  /// restored on next launch.
+  final DownloadQueueStore _queueStore = DownloadQueueStore.instance;
   LocalArchiveStorage? _archiveStorage;
   final ArchiveUrlService _urlService = ArchiveUrlService();
 
@@ -173,6 +178,9 @@ class BackgroundDownloadService extends ChangeNotifier {
       _sessionStartTime = DateTime.now();
 
       _isInitialized = true;
+
+      // Reload the queue persisted before any app/OS kill (#84)
+      await restorePersistedQueue();
 
       debugPrint('BackgroundDownloadService initialized successfully');
     } catch (e) {
@@ -300,6 +308,10 @@ class BackgroundDownloadService extends ChangeNotifier {
 
       notifyListeners();
 
+      // Persist the queued entry: a force-stop from this moment on is
+      // recoverable on next launch (#84)
+      _persistDownload(downloadId);
+
       // Start download in background using Dart isolate
       _startDartDownload(
         downloadId: downloadId,
@@ -338,6 +350,7 @@ class BackgroundDownloadService extends ChangeNotifier {
           status: DownloadStatus.downloading,
         );
         notifyListeners();
+        _persistDownload(downloadId);
       }
 
       // Use the InternetArchiveApi to download files
@@ -477,6 +490,9 @@ class BackgroundDownloadService extends ChangeNotifier {
 
           completedFiles++;
           completedFileNames.add(fileName);
+          // Persist the completed-file set so a mid-archive kill resumes
+          // with exactly these files skipped (#84)
+          _persistDownload(downloadId);
           // Track bytes for honest statistics
           totalDownloadedBytes += currentFileBytes;
 
@@ -531,6 +547,7 @@ class BackgroundDownloadService extends ChangeNotifier {
             errorMessage: 'All file downloads failed',
           );
           notifyListeners();
+          _persistDownload(downloadId);
         }
         return;
       }
@@ -553,6 +570,7 @@ class BackgroundDownloadService extends ChangeNotifier {
           _cancelTokens.remove(downloadId);
           _lastProgressNotificationMs.remove(downloadId);
           notifyListeners();
+          _persistDownload(downloadId);
         }
         return;
       }
@@ -584,6 +602,7 @@ class BackgroundDownloadService extends ChangeNotifier {
         _completedFileNames.remove(downloadId);
         _lastProgressNotificationMs.remove(downloadId);
         _nextRetryAt.remove(downloadId);
+        _queueStore.delete(downloadId);
 
         notifyListeners();
       }
@@ -599,6 +618,7 @@ class BackgroundDownloadService extends ChangeNotifier {
         _cancelTokens.remove(downloadId);
         _completedFileNames.remove(downloadId);
         _lastProgressNotificationMs.remove(downloadId);
+        _persistDownload(downloadId);
       }
     }
   }
@@ -625,6 +645,9 @@ class BackgroundDownloadService extends ChangeNotifier {
     _downloadPaths.remove(downloadId);
     _downloadMetadata.remove(downloadId);
     _downloadFiles.remove(downloadId);
+
+    // Drop the persisted queue entry (#84)
+    _queueStore.delete(downloadId);
 
     // Track metrics
     metrics.cancellations++;
@@ -665,6 +688,7 @@ class BackgroundDownloadService extends ChangeNotifier {
       }
 
       notifyListeners();
+      _persistDownload(downloadId);
     }
 
     return true;
@@ -701,6 +725,7 @@ class BackgroundDownloadService extends ChangeNotifier {
     }
 
     notifyListeners();
+    _persistDownload(downloadId);
 
     // Restart the download
     _startDartDownload(
@@ -861,6 +886,7 @@ class BackgroundDownloadService extends ChangeNotifier {
               '${download.errorMessage ?? "Unknown error"} '
               '(gave up after ${download.retryCount} attempt(s))',
         );
+        _persistDownload(entry.key);
         continue;
       }
 
@@ -877,6 +903,7 @@ class BackgroundDownloadService extends ChangeNotifier {
         status: DownloadStatus.queued,
       );
       _activeDownloads[entry.key] = updatedDownload;
+      _persistDownload(entry.key);
 
       if (kDebugMode) {
         debugPrint(
@@ -1128,6 +1155,86 @@ class BackgroundDownloadService extends ChangeNotifier {
     return true;
   }
 
+  /// Persist one queue entry so an app/OS kill is recoverable (#84).
+  /// Fire-and-forget: persistence failures must never break a download.
+  Future<void> _persistDownload(String downloadId) async {
+    try {
+      final progress = _activeDownloads[downloadId];
+      if (progress == null) {
+        await _queueStore.delete(downloadId);
+        return;
+      }
+      final downloadPath = _downloadPaths[downloadId] ?? '';
+      await _queueStore.save(
+        PersistedDownload(
+          downloadId: downloadId,
+          identifier: progress.identifier,
+          downloadPath: downloadPath,
+          archiveDir: downloadPath.isEmpty
+              ? ''
+              : '$downloadPath/${progress.identifier}',
+          progress: progress,
+          selectedFiles: _downloadFiles[downloadId] ?? const [],
+          completedFiles: _completedFileNames[downloadId] ?? const {},
+          metadata: _downloadMetadata[downloadId],
+        ),
+      );
+    } catch (e) {
+      debugPrint('Failed to persist download $downloadId: $e');
+    }
+  }
+
+  /// Restore downloads persisted before an app/OS kill (#84).
+  ///
+  /// Recoverable entries come back as PAUSED with their completed-file set
+  /// intact: the transfers screen offers Resume, which skips already
+  /// completed files and continues partial files from their byte offset
+  /// (#83 Range resume). Entries whose download directory no longer exists
+  /// (cleared app data) are dropped instead of restored as zombies.
+  Future<void> restorePersistedQueue() async {
+    try {
+      final persisted = await _queueStore.loadRecoverable();
+      for (final entry in persisted) {
+        if (_activeDownloads.containsKey(entry.downloadId)) continue;
+
+        if (entry.downloadPath.isEmpty) {
+          await _queueStore.delete(entry.downloadId);
+          continue;
+        }
+        final dirExists =
+            await Directory(entry.archiveDir).exists() ||
+                await Directory(entry.downloadPath).exists();
+        if (!dirExists) {
+          await _queueStore.delete(entry.downloadId);
+          continue;
+        }
+
+        final wasError = entry.progress.status == DownloadStatus.error;
+        _activeDownloads[entry.downloadId] = entry.progress.copyWith(
+          status: DownloadStatus.paused,
+          errorMessage: wasError
+              ? entry.progress.errorMessage
+              : 'Interrupted by app restart',
+        );
+        _downloadFiles[entry.downloadId] = entry.selectedFiles;
+        _downloadPaths[entry.downloadId] = entry.downloadPath;
+        _completedFileNames[entry.downloadId] = entry.completedFiles;
+        if (entry.metadata != null) {
+          _downloadMetadata[entry.downloadId] = entry.metadata!;
+        }
+      }
+      if (persisted.isNotEmpty) {
+        debugPrint(
+          '[BackgroundDownloadService] Restored ${persisted.length} '
+          'download(s) after restart',
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Failed to restore persisted downloads: $e');
+    }
+  }
+
   /// Save completed download to local archive storage
   Future<void> _saveToLocalArchive(
     String identifier,
@@ -1180,3 +1287,4 @@ class BackgroundDownloadService extends ChangeNotifier {
     }
   }
 }
+

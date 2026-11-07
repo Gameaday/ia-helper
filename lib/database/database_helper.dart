@@ -13,7 +13,7 @@ import 'database_factory_stub.dart'
 /// Used for metadata caching and file preview caching with versioning and migrations
 class DatabaseHelper {
   static const String _databaseName = 'ia_helper.db';
-  static const int _databaseVersion = 6;
+  static const int _databaseVersion = 7;
 
   // Table names
   static const String tableCachedMetadata = 'cached_metadata';
@@ -24,6 +24,7 @@ class DatabaseHelper {
   static const String tableSearchHistory = 'search_history';
   static const String tableSavedSearches = 'saved_searches';
   static const String tableDownloadTasks = 'download_tasks';
+  static const String tableDownloadQueue = 'download_queue'; // #84
 
   // Singleton pattern
   DatabaseHelper._privateConstructor();
@@ -301,6 +302,10 @@ class DatabaseHelper {
       ON $tableDownloadTasks(identifier)
     ''');
 
+    // Download queue table (#84): production queue persistence across
+    // app/OS kills
+    await _createDownloadQueueTable(db);
+
     debugPrint('Database schema created successfully');
   }
 
@@ -539,7 +544,59 @@ class DatabaseHelper {
 
       debugPrint('Migration to version 6 completed successfully');
     }
+
+    // Migration from version 6 to version 7: Add download_queue table for
+    // production download queue persistence (#84) - a force-stop mid-queue
+    // is recoverable on next launch.
+    if (oldVersion < 7) {
+      debugPrint('Migrating to version 7: Adding download_queue table');
+      await _createDownloadQueueTable(db);
+      debugPrint('Migration to version 7 completed successfully');
+    }
   }
+
+  /// Download queue table DDL, shared by fresh installs (_onCreate) and the
+  /// v6 -> v7 migration so the two paths cannot drift (#84).
+  Future<void> _createDownloadQueueTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE $tableDownloadQueue (
+        download_id TEXT PRIMARY KEY,
+        identifier TEXT NOT NULL,
+        download_path TEXT NOT NULL,
+        archive_dir TEXT NOT NULL,
+        status TEXT NOT NULL,
+        total_files INTEGER NOT NULL,
+        selected_files TEXT NOT NULL,
+        completed_files TEXT NOT NULL,
+        progress_json TEXT,
+        metadata_json TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_download_queue_status 
+      ON $tableDownloadQueue(status)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_download_queue_identifier 
+      ON $tableDownloadQueue(identifier)
+    ''');
+  }
+
+  /// Runs an upgrade chain against [db] - test hook for the versioned
+  /// migration tests (#84).
+  @visibleForTesting
+  Future<void> debugUpgrade(Database db, int oldVersion, int newVersion) =>
+      _onUpgrade(db, oldVersion, newVersion);
+
+  /// Creates the current schema in [db] - test hook for fresh-install
+  /// migration tests (#84).
+  @visibleForTesting
+  Future<void> debugCreateSchema(Database db) =>
+      _onCreate(db, _databaseVersion);
 
   /// Close database connection
   Future<void> close() async {
@@ -691,3 +748,4 @@ class DatabaseHelper {
     );
   }
 }
+

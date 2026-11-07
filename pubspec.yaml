@@ -68,6 +68,8 @@ dev_dependencies:
   # The plugin gets registered but isn't included in release dependencies
   flutter_lints: ^6.0.0
   mockito: ^5.8.1
+  # SQLite FFI for database/migration tests in the Dart VM (#84)
+  sqflite_common_ffi: ^2.3.0
   
   # Code generation tools
   build_runner: ^2.16.2
@@ -80,3 +82,4 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+
