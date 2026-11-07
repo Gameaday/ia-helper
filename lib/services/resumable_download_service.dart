@@ -160,7 +160,7 @@ class ResumableDownloadService {
         await file.delete();
         _cancelTokens.remove(task.id);
         _progressMap.remove(task.id);
-        return downloadTask(task.copyWith(partialBytes: 0));
+        return await downloadTask(task.copyWith(partialBytes: 0));
       }
 
       // Download complete

@@ -428,16 +428,25 @@ class _LibraryScreenState extends State<LibraryScreen>
     }
   }
 
-  IconData _parseCollectionIcon(String? iconString) {
-    if (iconString == null) return Icons.folder;
+  /// Returns a [IconData] for a collection category name.
+  /// Uses a const lookup map instead of constructing IconData dynamically.
+  static const Map<String, IconData> _collectionIcons = {
+    'software': Icons.apps,
+    'image': Icons.image,
+    'web': Icons.public,
+    'archive': Icons.archive,
+    'video': Icons.play_circle_outline,
+    'audio': Icons.music_note,
+    'text': Icons.article,
+    'data': Icons.database,
+    'code': Icons.code,
+  };
 
-    try {
-      final codePoint = int.parse(iconString);
-      return IconData(codePoint, fontFamily: 'MaterialIcons');
-    } catch (e) {
-      // If parsing fails, use default folder icon
+  IconData _parseCollectionIcon(String? iconString) {
+    if (iconString == null || !_collectionIcons.containsKey(iconString)) {
       return Icons.folder;
     }
+    return _collectionIcons[iconString]!;
   }
 
   String _formatDate(DateTime date) {

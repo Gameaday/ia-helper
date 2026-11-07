@@ -428,7 +428,12 @@ class _AudioPreviewWidgetState extends State<AudioPreviewWidget> {
   }
 }
 
-/// Custom audio source that loads audio from a byte array
+/// Custom audio source that loads audio from a byte array.
+///
+/// Suppresses experimental member warnings for StreamAudioSource/StreamAudioResponse,
+/// which may change or be removed in future Flutter releases.
+/// See https://docs.flutter.dev/release/breaking-changes/stream-audio
+@pragma('vm:experimental-annotations')
 class _ByteArrayAudioSource extends StreamAudioSource {
   final Uint8List _bytes;
 

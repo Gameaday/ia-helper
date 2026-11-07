@@ -258,7 +258,7 @@ class IAHttpClient {
         }
 
         await Future.delayed(delay);
-        return _executeWithRetry(
+        return await _executeWithRetry(
           request,
           timeout: timeout,
           attemptNumber: attemptNumber + 1,
