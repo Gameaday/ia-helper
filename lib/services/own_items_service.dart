@@ -36,7 +36,7 @@ class IAS3AuthException implements Exception {
 class OwnItemsService {
   static const String _s3Endpoint = 'https://s3.us.archive.org';
   static const String _metadataEndpoint = 'https://archive.org/metadata';
-  static const String _userAgent = 'InternetArchiveHelper/1.8.0';
+  static const String _userAgent = 'InternetArchiveHelper/1.9.0';
 
   final http.Client _client;
   final IACredentialsService _credentials;

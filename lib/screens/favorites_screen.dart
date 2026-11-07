@@ -304,17 +304,29 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Widget _buildGridView() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.7,
-      ),
-      itemCount: _filteredFavorites.length,
-      itemBuilder: (context, index) {
-        return _buildGridItem(_filteredFavorites[index]);
+    // Add columns on wider windows so cards keep a sensible size on
+    // tablets instead of stretching two columns across the screen.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final crossAxisCount = width < 600
+            ? 2
+            : width < 900
+            ? 3
+            : 4;
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.7,
+          ),
+          itemCount: _filteredFavorites.length,
+          itemBuilder: (context, index) {
+            return _buildGridItem(_filteredFavorites[index]);
+          },
+        );
       },
     );
   }
@@ -696,3 +708,4 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 enum ViewMode { grid, list }
 
 enum SortOption { recent, title, mediatype }
+

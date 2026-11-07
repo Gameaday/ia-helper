@@ -39,15 +39,9 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
-
+  // System UI overlay style is applied theme-aware in IAGetMobileApp so
+  // status bar and navigation bar icons stay legible in both light and
+  // dark modes.
   runApp(const IAGetMobileApp());
 }
 
@@ -136,7 +130,29 @@ class IAGetMobileApp extends StatelessWidget {
         ),
       ],
       child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) => MaterialApp(
+        builder: (context, themeProvider, _) {
+          // Keep the system bars in sync with the active theme so status and
+          // navigation bar icons are always legible (dark icons on the paper
+          // theme, light icons on the Stacks at Night theme).
+          final isDark =
+              themeProvider.themeMode == ThemeMode.dark ||
+              (themeProvider.themeMode == ThemeMode.system &&
+                  WidgetsBinding
+                      .instance.platformDispatcher.platformBrightness ==
+                      Brightness.dark);
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness:
+                  isDark ? Brightness.light : Brightness.dark,
+              statusBarBrightness:
+                  isDark ? Brightness.dark : Brightness.light,
+              systemNavigationBarColor: Colors.transparent,
+              systemNavigationBarIconBrightness:
+                  isDark ? Brightness.light : Brightness.dark,
+              systemNavigationBarContrastEnforced: false,
+            ),
+            child: MaterialApp(
           title: 'Internet Archive Helper',
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
@@ -219,7 +235,9 @@ class IAGetMobileApp extends StatelessWidget {
                 );
             }
           },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

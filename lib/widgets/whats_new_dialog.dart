@@ -8,7 +8,7 @@ class WhatsNewDialog extends StatelessWidget {
   const WhatsNewDialog({super.key});
 
   /// Version for which this What's New content is shown
-  static const String targetVersion = '1.6.0';
+  static const String targetVersion = '1.9.0';
 
   /// SharedPreferences key for tracking last shown version
   static const String _prefKey = 'whats_new_last_shown_version';
@@ -37,7 +37,7 @@ class WhatsNewDialog extends StatelessWidget {
             size: 28,
           ),
           const SizedBox(width: 12),
-          const Text('What\'s New in v1.6'),
+          const Text("What's New in v1.9"),
         ],
       ),
       content: SingleChildScrollView(
@@ -46,7 +46,7 @@ class WhatsNewDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'We\'ve been busy improving your experience!',
+              "A big reliability and management update - here's what's new:",
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -55,39 +55,61 @@ class WhatsNewDialog extends StatelessWidget {
 
             _buildFeatureItem(
               context,
-              icon: Icons.speed,
-              iconColor: SemanticColors.info,
-              title: 'Real-Time Progress',
-              description:
-                  'Watch your downloads with live speed and time remaining',
-            ),
-            const SizedBox(height: 16),
-
-            _buildFeatureItem(
-              context,
-              icon: Icons.folder_open,
+              icon: Icons.download_done_outlined,
               iconColor: SemanticColors.success,
-              title: 'Open Downloaded Files',
-              description: 'Tap files to open them instantly from the app',
-            ),
-            const SizedBox(height: 16),
-
-            _buildFeatureItem(
-              context,
-              icon: Icons.link,
-              iconColor: SemanticColors.primary(context),
-              title: 'Deep Links',
+              title: 'Resumable Downloads',
               description:
-                  'Click archive.org links anywhere - they open in the app!',
+                  'Downloads pick up where they left off and survive app restarts',
             ),
             const SizedBox(height: 16),
 
             _buildFeatureItem(
               context,
-              icon: Icons.tune,
+              icon: Icons.wifi_off_outlined,
+              iconColor: SemanticColors.info,
+              title: 'Connection-Aware',
+              description:
+                  'Transfers pause when you go offline and resume automatically',
+            ),
+            const SizedBox(height: 16),
+
+            _buildFeatureItem(
+              context,
+              icon: Icons.hub_outlined,
               iconColor: SemanticColors.warning,
-              title: 'Bandwidth Controls',
-              description: 'Limit download speed in Settings to save data',
+              title: 'Torrent Handoff',
+              description:
+                  'Share an item\'s official torrent to your torrent app for seeding',
+            ),
+            const SizedBox(height: 16),
+
+            _buildFeatureItem(
+              context,
+              icon: Icons.sync_outlined,
+              iconColor: SemanticColors.primary(context),
+              title: 'Library Sync',
+              description:
+                  'Verify downloaded items against Archive.org and repair changes',
+            ),
+            const SizedBox(height: 16),
+
+            _buildFeatureItem(
+              context,
+              icon: Icons.manage_accounts_outlined,
+              iconColor: SemanticColors.info,
+              title: 'Manage Your Items',
+              description:
+                  'Add your Archive.org S3 keys to browse and edit your own uploads',
+            ),
+            const SizedBox(height: 16),
+
+            _buildFeatureItem(
+              context,
+              icon: Icons.tablet_outlined,
+              iconColor: SemanticColors.success,
+              title: 'Tablet Layout',
+              description:
+                  'Adaptive navigation and grids that feel at home on big screens',
             ),
             const SizedBox(height: 20),
 
@@ -107,7 +129,7 @@ class WhatsNewDialog extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Explore Settings for more customization options',
+                      'Check Settings for bandwidth limits, cache controls, and your account',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                       ),
