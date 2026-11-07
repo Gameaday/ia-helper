@@ -224,11 +224,27 @@ class FileUtils {
     return uniqueName;
   }
 
-  /// Calculate MD5 hash of a file (for verification).
+  /// Calculate a streaming file hash (md5 or sha1) for verification.
   ///
   /// Streams the file instead of reading it fully into memory: multi-GB
-  /// archive downloads must not OOM during checksum validation.
-  static Future<String?> calculateFileHash(String filePath) async {
+  /// archive downloads must not OOM during checksum validation (#83).
+  /// Returns null when the file does not exist or cannot be read.
+  static Future<String?> calculateFileHash(
+    String filePath, {
+    String algorithm = 'md5',
+  }) async {
+    switch (algorithm) {
+      case 'md5':
+      case 'sha1':
+        break; // supported
+      default:
+        throw ArgumentError.value(
+          algorithm,
+          'algorithm',
+          'Unsupported hash algorithm (use md5 or sha1)',
+        );
+    }
+
     try {
       final file = File(filePath);
       if (!await file.exists()) {
@@ -237,12 +253,31 @@ class FileUtils {
 
       // The crypto hashes act as stream transformers: bind the file's
       // byte stream and await the single emitted digest.
-      final digest = await md5.bind(file.openRead()).last;
+      final source = file.openRead();
+      final digest = algorithm == 'sha1'
+          ? await sha1.bind(source).last
+          : await md5.bind(source).last;
       return digest.toString();
     } catch (e) {
       // Return null on any error (file not found, permission denied, etc.)
       return null;
     }
+  }
+
+  /// Verify a downloaded file against an expected hex checksum (#83).
+  ///
+  /// Returns true when the file's digest matches [expected]; false when the
+  /// file is missing, unreadable, or corrupt.
+  static Future<bool> verifyChecksum(
+    String filePath,
+    String expected, {
+    String algorithm = 'md5',
+  }) async {
+    final actual = await calculateFileHash(filePath, algorithm: algorithm);
+    if (actual == null) {
+      return false;
+    }
+    return actual.toLowerCase() == expected.trim().toLowerCase();
   }
 
   /// Join [directory] and [fileName] into a path inside [directory].

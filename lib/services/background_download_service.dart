@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'internet_archive_api.dart';
 import 'notification_service.dart';
 import 'local_archive_storage.dart';
 import 'archive_url_service.dart';
+import 'download_retry_policy.dart';
 import '../utils/file_utils.dart';
 
 /// Metrics for tracking download operations
@@ -63,6 +65,12 @@ class BackgroundDownloadService extends ChangeNotifier {
   bool _isInitialized = false;
   int _maxConcurrentDownloads = 3;
   int _maxRetries = 3;
+
+  /// Retry policy (#83): bounded attempts, exponential backoff + jitter.
+  final DownloadRetryPolicy _retryPolicy = DownloadRetryPolicy();
+
+  /// Earliest time each download may be retried again (backoff window).
+  final Map<String, DateTime> _nextRetryAt = {};
   LocalArchiveStorage? _archiveStorage;
   final ArchiveUrlService _urlService = ArchiveUrlService();
 
@@ -350,6 +358,10 @@ class BackgroundDownloadService extends ChangeNotifier {
         () => <String>{},
       );
 
+      // Files that failed this run (#83): drives the partial-failure error
+      // status so the bounded retry sweep re-attempts just those files.
+      final failedFiles = <String>{};
+
       int completedFiles = 0;
       int totalDownloadedBytes = 0;
       DateTime? lastUpdateTime;
@@ -371,6 +383,14 @@ class BackgroundDownloadService extends ChangeNotifier {
           final fileStartBytes = totalDownloadedBytes;
           int currentFileBytes = 0;
 
+          // Bytes already on disk from a paused/interrupted run: the API's
+          // progress callback reports the FULL file length (resumed prefix
+          // included), so subtract it to keep run totals honest (#83).
+          final existingFile = File(filePath);
+          final partialOnDisk = await existingFile.exists()
+              ? await existingFile.length()
+              : 0;
+
           // Download file using the API
           await api.downloadFile(
             fileUrl,
@@ -379,9 +399,11 @@ class BackgroundDownloadService extends ChangeNotifier {
             onProgress: (received, total) {
               // Update progress with proper statistics
               if (_activeDownloads.containsKey(downloadId)) {
-                currentFileBytes = received;
+                final newBytes =
+                    received > partialOnDisk ? received - partialOnDisk : 0;
+                currentFileBytes = newBytes;
                 final now = DateTime.now();
-                final currentTotalBytes = fileStartBytes + received;
+                final currentTotalBytes = fileStartBytes + newBytes;
 
                 // Calculate transfer speed (bytes per second)
                 double? speed;
@@ -440,6 +462,19 @@ class BackgroundDownloadService extends ChangeNotifier {
               }
             },
           );
+          // Checksum verification (#83): archive.org metadata carries md5
+          // and sha1 per file; a corrupt download must be detected and
+          // re-fetched, never surfaced as a completed file.
+          if (!await _verifyFileChecksum(downloadId, fileName, filePath)) {
+            // Delete the corrupt file so a retry re-fetches from byte 0
+            if (await existingFile.exists()) {
+              await existingFile.delete();
+            }
+            throw Exception(
+              'Checksum mismatch (corrupt download): $fileName',
+            );
+          }
+
           completedFiles++;
           completedFileNames.add(fileName);
           // Track bytes for honest statistics
@@ -458,11 +493,14 @@ class BackgroundDownloadService extends ChangeNotifier {
         } catch (e) {
           if (cancellationToken.isCancelled) {
             // Pause/cancel: stop the file loop; the finalize block below
-            // keeps the status set by pause/cancel
+            // keeps the status set by pause/cancel. The partial file stays
+            // on disk - resume continues from its offset (#83).
             break;
           }
           debugPrint('Failed to download file $fileName: $e');
-          // Continue with next file even if one fails
+          failedFiles.add(fileName);
+          // Continue with next file even if one fails; the finalize block
+          // below reports partial failure instead of a bogus "completed"
         }
       }
 
@@ -486,11 +524,34 @@ class BackgroundDownloadService extends ChangeNotifier {
           _cancelTokens.remove(downloadId);
           _completedFileNames.remove(downloadId);
           _lastProgressNotificationMs.remove(downloadId);
+          _nextRetryAt.remove(downloadId);
           NotificationService.showDownloadError(
             downloadId: downloadId,
             title: failed.identifier,
             errorMessage: 'All file downloads failed',
           );
+          notifyListeners();
+        }
+        return;
+      }
+
+      // Partial failure (#83): some files failed but others completed.
+      // Surface an error status so the bounded retry sweep re-attempts
+      // just the failures (completed files are skipped via
+      // _completedFileNames); the downloaded files remain on disk.
+      if (failedFiles.isNotEmpty) {
+        if (_activeDownloads.containsKey(downloadId)) {
+          metrics.failures++;
+          final failed = _activeDownloads[downloadId]!;
+          final sample = failedFiles.take(3).join(', ');
+          final suffix = failedFiles.length > 3 ? ', ...' : '';
+          _activeDownloads[downloadId] = failed.copyWith(
+            status: DownloadStatus.error,
+            errorMessage:
+                '${failedFiles.length} of ${selectedFiles.length} files failed ($sample$suffix)',
+          );
+          _cancelTokens.remove(downloadId);
+          _lastProgressNotificationMs.remove(downloadId);
           notifyListeners();
         }
         return;
@@ -522,6 +583,7 @@ class BackgroundDownloadService extends ChangeNotifier {
         _cancelTokens.remove(downloadId);
         _completedFileNames.remove(downloadId);
         _lastProgressNotificationMs.remove(downloadId);
+        _nextRetryAt.remove(downloadId);
 
         notifyListeners();
       }
@@ -557,6 +619,7 @@ class BackgroundDownloadService extends ChangeNotifier {
 
     _cancelTokens.remove(downloadId);
     _pausedDownloads.remove(downloadId);
+    _nextRetryAt.remove(downloadId);
     _completedFileNames.remove(downloadId);
     _lastProgressNotificationMs.remove(downloadId);
     _downloadPaths.remove(downloadId);
@@ -758,7 +821,12 @@ class BackgroundDownloadService extends ChangeNotifier {
     }
   }
 
-  /// Retry failed downloads automatically
+  /// Retry failed downloads automatically.
+  ///
+  /// Bounded attempts with exponential backoff + jitter (#83). The sweep
+  /// timer runs every 10s, but each download only becomes eligible after
+  /// its backoff window. Unrecoverable errors (missing file, auth, out of
+  /// space) are never retried and get a clear final message.
   Future<void> _retryFailedDownloads() async {
     final failedDownloads = _activeDownloads.entries
         .where((entry) => entry.value.status == DownloadStatus.error)
@@ -767,52 +835,57 @@ class BackgroundDownloadService extends ChangeNotifier {
     for (final entry in failedDownloads) {
       final download = entry.value;
 
-      // Check if we should retry based on retry count and max retries
-      if (download.retryCount < _maxRetries) {
-        // Skip retrying for certain unrecoverable errors
-        if (download.errorMessage != null &&
-            (download.errorMessage!.contains('Insufficient space') ||
-                download.errorMessage!.contains('Permission denied') ||
-                download.errorMessage!.contains('Not found'))) {
-          if (kDebugMode) {
-            debugPrint(
-              '[BackgroundDownloadService] Skipping retry for unrecoverable error: ${download.errorMessage}',
-            );
-          }
-          continue;
-        }
-
-        // Track retry metric
-        metrics.retries++;
-
-        // Increment retry count
-        final updatedDownload = download.copyWith(
-          retryCount: download.retryCount + 1,
-          status: DownloadStatus.queued,
-        );
-        _activeDownloads[entry.key] = updatedDownload;
-
-        if (kDebugMode) {
-          debugPrint(
-            '[BackgroundDownloadService] Auto-retrying failed download: ${download.identifier} '
-            '(attempt ${download.retryCount + 1}/$_maxRetries)',
-          );
-        }
-
-        await resumeDownload(entry.key);
-      } else {
-        if (kDebugMode) {
-          debugPrint(
-            '[BackgroundDownloadService] Max retries reached for ${download.identifier}, giving up',
-          );
-        }
-
-        // Mark as permanently failed
-        final updatedDownload = download.copyWith(
-          errorMessage: '${download.errorMessage} (Max retries: $_maxRetries)',
-        );
-        _activeDownloads[entry.key] = updatedDownload;
+      // Backoff window not elapsed yet - skip this sweep tick
+      final nextRetryAt = _nextRetryAt[entry.key];
+      if (nextRetryAt != null && DateTime.now().isBefore(nextRetryAt)) {
+        continue;
       }
+
+      final retryable = _retryPolicy.shouldRetry(
+        download.errorMessage ?? '',
+        attempt: download.retryCount,
+        maxAttempts: _maxRetries,
+      );
+
+      if (!retryable) {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackgroundDownloadService] Not retrying ${download.identifier}: '
+            '${download.errorMessage ?? "unknown error"}',
+          );
+        }
+        // Permanent failure: make the final state clear for the UI
+        _nextRetryAt.remove(entry.key);
+        _activeDownloads[entry.key] = download.copyWith(
+          errorMessage:
+              '${download.errorMessage ?? "Unknown error"} '
+              '(gave up after ${download.retryCount} attempt(s))',
+        );
+        continue;
+      }
+
+      // Track retry metric
+      metrics.retries++;
+
+      // Schedule the next allowed retry (exponential backoff + jitter)
+      _nextRetryAt[entry.key] =
+          DateTime.now().add(_retryPolicy.delayFor(download.retryCount));
+
+      // Increment retry count
+      final updatedDownload = download.copyWith(
+        retryCount: download.retryCount + 1,
+        status: DownloadStatus.queued,
+      );
+      _activeDownloads[entry.key] = updatedDownload;
+
+      if (kDebugMode) {
+        debugPrint(
+          '[BackgroundDownloadService] Auto-retrying failed download: ${download.identifier} '
+          '(attempt ${download.retryCount + 1}/$_maxRetries)',
+        );
+      }
+
+      await resumeDownload(entry.key);
     }
 
     notifyListeners();
@@ -1018,6 +1091,41 @@ class BackgroundDownloadService extends ChangeNotifier {
       'downloadsWithRetries': downloadsWithRetries,
       'retryRate': retryRate,
     };
+  }
+
+  /// Verify one downloaded file against the checksums in the archive's IA
+  /// metadata (#83). Returns true when the file matches, or when no
+  /// checksum is available (nothing to verify).
+  Future<bool> _verifyFileChecksum(
+    String downloadId,
+    String fileName,
+    String filePath,
+  ) async {
+    final metadata = _downloadMetadata[downloadId];
+    if (metadata == null) {
+      return true;
+    }
+
+    ArchiveFile? fileMeta;
+    for (final candidate in metadata.files) {
+      if (candidate.name == fileName) {
+        fileMeta = candidate;
+        break;
+      }
+    }
+    if (fileMeta == null) {
+      return true;
+    }
+
+    final md5Hash = fileMeta.md5;
+    if (md5Hash != null && md5Hash.isNotEmpty) {
+      return FileUtils.verifyChecksum(filePath, md5Hash, algorithm: 'md5');
+    }
+    final sha1Hash = fileMeta.sha1;
+    if (sha1Hash != null && sha1Hash.isNotEmpty) {
+      return FileUtils.verifyChecksum(filePath, sha1Hash, algorithm: 'sha1');
+    }
+    return true;
   }
 
   /// Save completed download to local archive storage

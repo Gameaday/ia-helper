@@ -16,6 +16,22 @@ import 'rate_limiter.dart';
 import 'bandwidth_throttle.dart';
 import 'metadata_cache.dart';
 
+/// How a fresh GET should treat a file that may already exist on disk (#83).
+enum ResumeDecision {
+  /// No usable partial file on disk: write from byte 0.
+  fresh,
+
+  /// Partial file shorter than the resource: continue via a Range request.
+  resume,
+
+  /// Partial file longer than the resource (stale/corrupt): delete, restart.
+  restart,
+
+  /// File length already equals the resource: nothing to download.
+  alreadyComplete,
+}
+
+
 /// Pure Dart/Flutter implementation of Internet Archive API client
 ///
 /// This replaces the Rust FFI implementation with native Dart code for:
@@ -177,7 +193,9 @@ class InternetArchiveApi {
   ///
   /// [url] - Full URL to the file
   /// [outputPath] - Local path where file should be saved
-  /// [onProgress] - Optional callback for progress updates (downloaded, total)
+  /// [onProgress] - Optional callback for progress updates (downloaded, total).
+  ///                [downloaded] always includes bytes resumed from a partial
+  ///                file, so progress is relative to the full file.
   /// [cancellationToken] - Optional token to cancel the download
   /// [useReducedPriority] - Optional flag to mark download as lower priority
   ///                        If null, will auto-detect based on file size (>50MB)
@@ -185,6 +203,13 @@ class InternetArchiveApi {
   ///
   /// Returns the path to the downloaded file
   /// Throws exception on failure
+  ///
+  /// Resume support (#83): a partial file from an interrupted run is kept
+  /// on disk and the next attempt continues from its length via an HTTP
+  /// Range request (archive.org serves 206 Partial Content). Partial files
+  /// are never deleted on error or user pause - they ARE the resume
+  /// material. A fully downloaded file returns immediately (skip), and a
+  /// partial longer than the server's copy is discarded and re-fetched.
   ///
   /// Uses BandwidthThrottle for rate control and supports X-Accept-Reduced-Priority
   /// header to reduce strain on Internet Archive servers.
@@ -212,6 +237,35 @@ class InternetArchiveApi {
         debugPrint('[InternetArchiveApi] Content length: $contentLength bytes');
       }
 
+      // Resume planning (#83): what to do with the bytes already on disk
+      final existingFile = File(outputPath);
+      final int existingLength;
+      if (await existingFile.exists()) {
+        existingLength = await existingFile.length();
+      } else {
+        existingLength = 0;
+      }
+
+      final resumeDecision = planResume(
+        existingLength: existingLength,
+        contentLength: contentLength,
+      );
+
+      if (resumeDecision == ResumeDecision.alreadyComplete) {
+        if (kDebugMode) {
+          debugPrint(
+            '[InternetArchiveApi] File already complete, skipping: $outputPath',
+          );
+        }
+        return outputPath;
+      }
+      if (resumeDecision == ResumeDecision.restart) {
+        // Stale partial longer than the server's copy: corrupt, start over
+        await existingFile.delete();
+      }
+      final startByte =
+          resumeDecision == ResumeDecision.resume ? existingLength : 0;
+
       // Determine if we should use reduced priority
       // Priority logic:
       // 1. If explicitly set by caller, use that
@@ -230,8 +284,6 @@ class InternetArchiveApi {
         );
       }
 
-      // Use IAHttpClient's GET for retry/rate-limit, but we need streaming
-      // For now, use a simple streaming approach with the same headers
       final request = http.Request('GET', Uri.parse(url));
       request.headers.addAll({
         'User-Agent':
@@ -244,27 +296,57 @@ class InternetArchiveApi {
             IAHeaders.reducedPriorityValue;
       }
 
-      // Use plain http client for streaming (IAHttpClient handles rate limiting via RateLimiter)
-      // We create a temporary client for the download
+      if (startByte > 0) {
+        // HTTP Range resume (#83): continue from the partial file's length
+        request.headers['Range'] = 'bytes=$startByte-';
+      }
+
+      // Use plain http client for streaming (IAHttpClient handles rate
+      // limiting via RateLimiter for metadata calls)
       final streamClient = http.Client();
       try {
         final streamedResponse = await streamClient.send(request);
+        final status = streamedResponse.statusCode;
 
-        if (streamedResponse.statusCode != 200) {
+        if (status == 416 && startByte > 0) {
+          // The offset lies past the end of the resource (stale partial for
+          // a changed file). Restart cleanly from byte 0 - exactly once,
+          // because the recursive call takes the fresh path.
+          await streamedResponse.stream.drain();
+          await File(outputPath).delete();
+          return downloadFile(
+            url,
+            outputPath,
+            onProgress: onProgress,
+            cancellationToken: cancellationToken,
+            useReducedPriority: useReducedPriority,
+          );
+        }
+
+        if (status != 200 && status != 206) {
           await streamedResponse.stream.drain();
           throw IAHttpException(
-            'Failed to download file: HTTP ${streamedResponse.statusCode}',
-            statusCode: streamedResponse.statusCode,
-            type: streamedResponse.statusCode >= 500
+            'Failed to download file: HTTP $status',
+            statusCode: status,
+            type: status >= 500
                 ? IAHttpExceptionType.serverError
                 : IAHttpExceptionType.clientError,
           );
         }
+
+        // The server ignored the Range request and sent the FULL body:
+        // appending would corrupt the file, so write from byte 0 instead
+        // (the same 200-vs-206 trap the resumable_download_service guards).
+        final bool append = status == 206 && startByte > 0;
+        final int effectiveStart = append ? startByte : 0;
+
         final outputFile = File(outputPath);
         await outputFile.parent.create(recursive: true);
 
-        final sink = outputFile.openWrite();
-        int downloaded = 0;
+        final sink = append
+            ? outputFile.openWrite(mode: FileMode.append)
+            : outputFile.openWrite();
+        int downloaded = effectiveStart;
 
         try {
           await for (final chunk in streamedResponse.stream) {
@@ -281,12 +363,22 @@ class InternetArchiveApi {
             sink.add(chunk);
             downloaded += chunk.length;
 
-            // Report progress
+            // Report progress (downloaded counts the full file, resumed
+            // prefix included)
             onProgress?.call(downloaded, contentLength);
           }
 
           await sink.flush();
           await sink.close();
+
+          // Truncated transfer: the stream ended before the expected
+          // length. Keep the partial file - the next attempt resumes it.
+          if (contentLength > 0 && downloaded != contentLength) {
+            throw IAHttpException(
+              'Connection closed early: got $downloaded of $contentLength bytes',
+              type: IAHttpExceptionType.network,
+            );
+          }
 
           if (kDebugMode) {
             debugPrint('[InternetArchiveApi] Download complete: $outputPath');
@@ -294,11 +386,16 @@ class InternetArchiveApi {
 
           return outputPath;
         } catch (e) {
-          await sink.close();
-          // Clean up partial download
-          if (await outputFile.exists()) {
-            await outputFile.delete();
+          // Close the sink but KEEP the partial file on disk: it is exactly
+          // what the next attempt (or a resume after pause) continues from
+          // (#83). The previous behavior deleted it here, turning every
+          // mid-file failure into a restart from zero.
+          try {
+            await sink.flush();
+          } catch (_) {
+            // The socket may already be broken; the OS will clean up
           }
+          await sink.close();
           rethrow;
         }
       } finally {
@@ -315,6 +412,21 @@ class InternetArchiveApi {
         type: IAHttpExceptionType.network,
       );
     }
+  }
+
+  /// Pure resume planner (#83): given the partial file's length and the
+  /// server's content length, decide how a GET should treat the bytes that
+  /// are already on disk. Extracted so the decision table is unit-testable
+  /// without a network.
+  static ResumeDecision planResume({
+    required int existingLength,
+    required int contentLength,
+  }) {
+    if (existingLength <= 0) return ResumeDecision.fresh;
+    if (contentLength <= 0) return ResumeDecision.resume;
+    if (existingLength == contentLength) return ResumeDecision.alreadyComplete;
+    if (existingLength > contentLength) return ResumeDecision.restart;
+    return ResumeDecision.resume;
   }
 
   /// Validate file checksum
@@ -338,18 +450,20 @@ class InternetArchiveApi {
       debugPrint('Validating $hashType checksum for: $filePath');
     }
 
-    final bytes = await file.readAsBytes();
-    Digest digest;
+    // Stream the file instead of reading it fully into memory: multi-GB
+    // archive downloads must not OOM during checksum validation (#83).
+    final source = file.openRead();
+    final Digest digest;
 
     switch (hashType.toLowerCase()) {
       case 'md5':
-        digest = md5.convert(bytes);
+        digest = await md5.bind(source).last;
         break;
       case 'sha1':
-        digest = sha1.convert(bytes);
+        digest = await sha1.bind(source).last;
         break;
       case 'sha256':
-        digest = sha256.convert(bytes);
+        digest = await sha256.bind(source).last;
         break;
       default:
         throw Exception('Unsupported hash type: $hashType');
