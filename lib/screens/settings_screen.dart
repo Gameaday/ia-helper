@@ -13,6 +13,7 @@ import '../utils/snackbar_helper.dart';
 import '../utils/file_utils.dart';
 import '../widgets/cache_statistics_widget.dart';
 import '../widgets/cache_metrics_card.dart';
+import 'ia_account_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -180,6 +181,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 trailing: const Icon(Icons.arrow_forward),
                 onTap: _showThemeDialog,
+              ),
+
+              const Divider(),
+
+              // Account section (#95): S3 keys for own-item management
+              _buildSectionHeader('Account'),
+
+              ListTile(
+                leading: const Icon(Icons.manage_accounts),
+                title: const Text('My Archive.org Account'),
+                subtitle: const Text('S3 keys, your items, remote metadata'),
+                trailing: const Icon(Icons.arrow_forward),
+                onTap: () =>
+                    Navigator.pushNamed(context, IAAccountScreen.routeName),
               ),
 
               const Divider(),
