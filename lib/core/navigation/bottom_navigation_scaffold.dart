@@ -203,27 +203,27 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
         NavigationRailDestination(
           icon: Icon(Icons.home_outlined),
           selectedIcon: Icon(Icons.home),
-          label: 'Home',
+          label: Text('Home'),
         ),
         NavigationRailDestination(
           icon: Icon(Icons.library_books_outlined),
           selectedIcon: Icon(Icons.library_books),
-          label: 'Library',
+          label: Text('Library'),
         ),
         NavigationRailDestination(
           icon: Icon(Icons.explore_outlined),
           selectedIcon: Icon(Icons.explore),
-          label: 'Discover',
+          label: Text('Discover'),
         ),
         NavigationRailDestination(
           icon: Icon(Icons.swap_vert_outlined),
           selectedIcon: Icon(Icons.swap_vert),
-          label: 'Transfers',
+          label: Text('Transfers'),
         ),
         NavigationRailDestination(
           icon: Icon(Icons.more_horiz),
           selectedIcon: Icon(Icons.more_horiz),
-          label: 'More',
+          label: Text('More'),
         ),
       ],
     );
