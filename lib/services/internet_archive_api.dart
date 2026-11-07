@@ -314,7 +314,7 @@ class InternetArchiveApi {
           // because the recursive call takes the fresh path.
           await streamedResponse.stream.drain();
           await File(outputPath).delete();
-          return downloadFile(
+          return await downloadFile(
             url,
             outputPath,
             onProgress: onProgress,

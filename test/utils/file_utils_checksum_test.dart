@@ -76,7 +76,7 @@ void main() {
     final sink = file.openSync(mode: FileMode.write);
     final rng = Random(1);
     for (var i = 0; i < 4096; i++) {
-      sink.addSync(List<int>.generate(1024, (_) => rng.nextInt(256)));
+      sink.writeFromSync(List<int>.generate(1024, (_) => rng.nextInt(256)));
     }
     await sink.flush();
     sink.closeSync();
