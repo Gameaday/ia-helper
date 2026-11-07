@@ -28,12 +28,11 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # Runs the same command as the CI Analyze step and posts the analyzer
-      # findings as an issue comment, because step logs are admin-only on
-      # this repo. Temporary: delete this workflow once the failure is fixed.
-      # NOTE: the step shell is bash -e; without set +e the failing analyze
-      # would abort the script before posting (that is what happened in the
-      # first version of this workflow).
+      # Runs the same command as the CI Analyze step and posts the FULL
+      # analyzer output as an issue comment, because step logs are
+      # admin-only on this repo. The first version filtered for bullet
+      # lines and matched nothing, so the format is unknown. Temporary:
+      # delete this workflow once the failure is fixed.
       - name: Analyze and post findings
         env:
           GH_TOKEN: ${{ github.token }}
@@ -47,7 +46,7 @@ jobs:
             echo "Automated diagnosis: dart analyze --fatal-warnings exited with code $rc"
             echo ""
             echo '```'
-            grep -E " • " /tmp/analyze.log | head -40 || true
+            tail -100 /tmp/analyze.log || true
             echo '```'
             echo ""
             echo "_Posted by the temporary diagnose workflow; it will be removed once the failure is fixed._"
