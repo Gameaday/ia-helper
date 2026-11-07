@@ -13,6 +13,7 @@ import 'local_archive_storage.dart';
 import 'archive_url_service.dart';
 import 'download_queue_store.dart';
 import 'download_retry_policy.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/file_utils.dart';
 
 /// Metrics for tracking download operations
@@ -76,6 +77,22 @@ class BackgroundDownloadService extends ChangeNotifier {
   /// Queue persistence (#84): survives app/OS kills so the queue can be
   /// restored on next launch.
   final DownloadQueueStore _queueStore = DownloadQueueStore.instance;
+
+  /// Whether the device currently has a usable connection (#85). Gates the
+  /// retry sweep and queue processing; drives pause/resume on change.
+  @visibleForTesting
+  bool isOnline = true;
+
+  /// Downloads paused because connectivity dropped (#85). Only these are
+  /// auto-resumed on reconnect - user-paused downloads stay paused.
+  final Set<String> _connectivityPausedDownloads = {};
+
+  /// Connectivity stream subscription (#85); cancelled in [dispose].
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+
+  /// Test seam (#85): when true, resume paths skip the real network call.
+  @visibleForTesting
+  bool debugDisableNetworkRestarts = false;
   LocalArchiveStorage? _archiveStorage;
   final ArchiveUrlService _urlService = ArchiveUrlService();
 
@@ -179,6 +196,20 @@ class BackgroundDownloadService extends ChangeNotifier {
 
       _isInitialized = true;
 
+      // Connectivity-aware pause/resume (#85): resolve the initial state
+      // and subscribe before restoring the persisted queue, so a device
+      // that starts offline restores the queue without auto-starting it.
+      try {
+        final results = await Connectivity().checkConnectivity();
+        isOnline = results.any((r) => r != ConnectivityResult.none);
+      } catch (e) {
+        debugPrint('Failed to check initial connectivity: $e');
+      }
+      _connectivitySub ??= Connectivity().onConnectivityChanged.listen(
+        _onConnectivityChanged,
+        onError: (Object e) => debugPrint('Connectivity stream error: $e'),
+      );
+
       // Reload the queue persisted before any app/OS kill (#84)
       await restorePersistedQueue();
 
@@ -194,6 +225,7 @@ class BackgroundDownloadService extends ChangeNotifier {
   @override
   void dispose() {
     _retryTimer?.cancel();
+    _connectivitySub?.cancel();
     super.dispose();
   }
 
@@ -728,12 +760,14 @@ class BackgroundDownloadService extends ChangeNotifier {
     _persistDownload(downloadId);
 
     // Restart the download
-    _startDartDownload(
-      downloadId: downloadId,
-      identifier: download.identifier,
-      selectedFiles: files,
-      downloadPath: path,
-    );
+    if (!debugDisableNetworkRestarts) {
+      _startDartDownload(
+        downloadId: downloadId,
+        identifier: download.identifier,
+        selectedFiles: files,
+        downloadPath: path,
+      );
+    }
 
     return true;
   }
@@ -846,6 +880,101 @@ class BackgroundDownloadService extends ChangeNotifier {
     }
   }
 
+  /// Connectivity change callback (#85): maps raw results onto
+  /// online/offline and forwards to the state machine.
+  void _onConnectivityChanged(List<ConnectivityResult> results) {
+    unawaited(
+      handleConnectivityChange(
+        online: results.any((r) => r != ConnectivityResult.none),
+      ),
+    );
+  }
+
+  /// Connectivity-aware pause/resume state machine (#85).
+  ///
+  /// Connection loss pauses in-flight downloads cleanly: the token-cancel
+  /// path in the file loop keeps their state paused, so there is no error
+  /// status, no retry spam, and partial files stay on disk (#83 resume).
+  /// Reconnect auto-resumes only downloads paused by connectivity;
+  /// user-paused downloads stay untouched. Failed and queued downloads
+  /// get an immediate chance instead of waiting up to 10s for the next
+  /// sweep tick.
+  @visibleForTesting
+  Future<void> handleConnectivityChange({required bool online}) async {
+    if (online == isOnline) {
+      return; // Ignore duplicate/flapping reports
+    }
+    isOnline = online;
+
+    if (!online) {
+      debugPrint(
+        '[BackgroundDownloadService] Connection lost: pausing in-flight '
+        'download(s)',
+      );
+      for (final downloadId in _activeDownloads.keys.toList()) {
+        if (_activeDownloads[downloadId]?.status !=
+            DownloadStatus.downloading) {
+          continue;
+        }
+        _connectivityPausedDownloads.add(downloadId);
+        await pauseDownload(downloadId);
+      }
+    } else {
+      debugPrint(
+        '[BackgroundDownloadService] Connection restored: resuming '
+        '${_connectivityPausedDownloads.length} download(s)',
+      );
+      final toResume = _connectivityPausedDownloads.toList();
+      _connectivityPausedDownloads.clear();
+      for (final downloadId in toResume) {
+        if (!_activeDownloads.containsKey(downloadId)) {
+          continue; // cancelled while offline
+        }
+        await resumeDownload(downloadId);
+      }
+      // Give failed and queued downloads an immediate retry chance
+      await _retryFailedDownloads();
+      await _processQueue();
+    }
+  }
+
+  /// Test seam (#85): place a download in a specific state without any
+  /// network I/O so the connectivity state machine is unit-testable.
+  @visibleForTesting
+  void debugSeedDownload({
+    required String downloadId,
+    required String identifier,
+    required List<String> selectedFiles,
+    required String downloadPath,
+    DownloadStatus status = DownloadStatus.downloading,
+    bool queued = false,
+    String? errorMessage,
+  }) {
+    _activeDownloads[downloadId] = DownloadProgress(
+      downloadId: downloadId,
+      identifier: identifier,
+      totalFiles: selectedFiles.length,
+      status: status,
+      errorMessage: errorMessage,
+    );
+    _downloadFiles[downloadId] = selectedFiles;
+    _downloadPaths[downloadId] = downloadPath;
+    if (status == DownloadStatus.downloading) {
+      _cancelTokens[downloadId] = CancellationToken();
+    }
+    if (queued) {
+      _downloadQueue.add(downloadId);
+    }
+  }
+
+  /// Test seam (#85): drive the private retry sweep from tests.
+  @visibleForTesting
+  Future<void> debugRunRetrySweep() => _retryFailedDownloads();
+
+  /// Test seam (#85): drive the private queue processor from tests.
+  @visibleForTesting
+  Future<void> debugProcessQueue() => _processQueue();
+
   /// Retry failed downloads automatically.
   ///
   /// Bounded attempts with exponential backoff + jitter (#83). The sweep
@@ -853,6 +982,12 @@ class BackgroundDownloadService extends ChangeNotifier {
   /// its backoff window. Unrecoverable errors (missing file, auth, out of
   /// space) are never retried and get a clear final message.
   Future<void> _retryFailedDownloads() async {
+    // While offline, don't burn retry attempts (#85): the reconnect
+    // handler gives failed downloads a fresh chance.
+    if (!isOnline) {
+      return;
+    }
+
     final failedDownloads = _activeDownloads.entries
         .where((entry) => entry.value.status == DownloadStatus.error)
         .toList();
@@ -921,6 +1056,7 @@ class BackgroundDownloadService extends ChangeNotifier {
   /// Process the download queue
   Future<void> _processQueue() async {
     if (_downloadQueue.isEmpty) return;
+    if (!isOnline) return; // Don't start new downloads while offline (#85)
     if (_activeDownloads.length >= _maxConcurrentDownloads) return;
 
     // Track queue operations
