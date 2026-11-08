@@ -1,10 +1,19 @@
 package com.gameaday.internet_archive_helper
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -14,13 +23,23 @@ import io.flutter.plugin.common.MethodChannel
  * Handles deep links and integrates with the background download service
  */
 class MainActivity: FlutterActivity() {
-    
+
     private val methodChannelName = "com.gameaday.internet_archive_helper/platform"
+    private val notificationChannelName = "com.internetarchive.helper/notifications"
     private lateinit var methodChannel: MethodChannel
-    
+
+    /** Pending result while the POST_NOTIFICATIONS system dialog is showing (#92). */
+    private var pendingNotificationPermissionResult: MethodChannel.Result? = null
+
+    companion object {
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 4292
+        private const val DOWNLOAD_PROGRESS_CHANNEL_ID = "download_progress"
+        private const val DOWNLOAD_COMPLETION_CHANNEL_ID = "download_completion"
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        
+
         // Set up platform method channel for native integration
         // Note: Rust FFI has been removed - using pure Dart implementation instead
         methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, methodChannelName)
@@ -63,6 +82,220 @@ class MainActivity: FlutterActivity() {
                 }
             }
         }
+
+        // Download progress/completion notifications (#92). The Dart side
+        // (NotificationService) talks to this channel; POST_NOTIFICATIONS is
+        // declared in the manifest and requested in-context at the first
+        // download, never at launch.
+        val notificationChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            notificationChannelName
+        )
+        notificationChannel.setMethodCallHandler { call, result ->
+            handleNotificationCall(call.method, call.arguments, result)
+        }
+    }
+
+    /**
+     * Method calls for the notification channel (#92).
+     *
+     * Implements the surface NotificationService invokes:
+     * initialize / requestPermissions / arePermissionsGranted /
+     * showProgressNotification / showNotification / cancelNotification /
+     * cancelAllNotifications / updateBadgeCount. Notification action
+     * buttons (pause/cancel from the shade) are a follow-up; tapping the
+     * notification opens the app.
+     */
+    private fun handleNotificationCall(
+        method: String,
+        arguments: Any?,
+        result: MethodChannel.Result
+    ) {
+        val args = if (arguments is Map<*, *>) arguments else emptyMap<Any, Any>()
+        when (method) {
+            "initialize" -> {
+                initializeNotificationChannels()
+                result.success(true)
+            }
+            "requestPermissions" -> requestNotificationPermission(result)
+            "arePermissionsGranted" -> result.success(canPostNotifications())
+            "showProgressNotification" -> {
+                showProgressNotification(args)
+                result.success(true)
+            }
+            "showNotification" -> {
+                showStaticNotification(args)
+                result.success(true)
+            }
+            "cancelNotification" -> {
+                val id = (args["notificationId"] as? Int) ?: 0
+                NotificationManagerCompat.from(this).cancel(id)
+                result.success(true)
+            }
+            "cancelAllNotifications" -> {
+                NotificationManagerCompat.from(this).cancelAll()
+                result.success(true)
+            }
+            // Badge counts are launcher-dependent; accepted as a no-op.
+            "updateBadgeCount" -> result.success(null)
+            else -> result.notImplemented()
+        }
+    }
+
+    /** Create the two notification channels (API 26+; no-op below). */
+    private fun initializeNotificationChannels() {
+        if (Build.VERSION.SDK_INT < 26) return
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        val progress = NotificationChannel(
+            DOWNLOAD_PROGRESS_CHANNEL_ID,
+            "Download Progress",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Shows progress of ongoing downloads"
+            setShowBadge(false)
+        }
+
+        val completion = NotificationChannel(
+            DOWNLOAD_COMPLETION_CHANNEL_ID,
+            "Download Complete",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Notifications when downloads are completed"
+            setShowBadge(true)
+        }
+
+        manager.createNotificationChannel(progress)
+        manager.createNotificationChannel(completion)
+    }
+
+    /**
+     * Whether notifications may be posted right now: the runtime grant on
+     * Android 13+ (#92) plus the user's master notification toggle.
+     */
+    private fun canPostNotifications(): Boolean {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
+        }
+        return NotificationManagerCompat.from(this).areNotificationsEnabled()
+    }
+
+    /**
+     * Request POST_NOTIFICATIONS (Android 13+). On older versions the
+     * permission does not exist and only the master toggle applies.
+     * The dialog result is delivered back through the MethodChannel result.
+     */
+    private fun requestNotificationPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < 33) {
+            result.success(NotificationManagerCompat.from(this).areNotificationsEnabled())
+            return
+        }
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            result.success(true)
+            return
+        }
+        if (pendingNotificationPermissionResult != null) {
+            // A request is already in flight; never stack dialogs.
+            result.success(false)
+            return
+        }
+        pendingNotificationPermissionResult = result
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            NOTIFICATION_PERMISSION_REQUEST_CODE
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            val granted = grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            pendingNotificationPermissionResult?.success(granted)
+            pendingNotificationPermissionResult = null
+        }
+    }
+
+    /** Content intent that reopens the app when the notification is tapped. */
+    private fun launchPendingIntent(): PendingIntent {
+        val intent = packageManager.getLaunchIntentForPackage(packageName) ?: Intent()
+        // FLAG_IMMUTABLE exists from API 23; on 21-22 the plain update flag
+        // is enough (the immutability bit is simply not interpreted).
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or
+            if (Build.VERSION.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0
+        return PendingIntent.getActivity(this, 0, intent, flags)
+    }
+
+    private fun baseNotificationBuilder(
+        channelId: String,
+        title: String,
+        text: String
+    ): NotificationCompat.Builder =
+        NotificationCompat.Builder(this, channelId)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setContentIntent(launchPendingIntent())
+            .setOnlyAlertOnce(true)
+
+    /** Ongoing progress notification with a determinate progress bar. */
+    private fun showProgressNotification(args: Map<*, *>) {
+        if (!canPostNotifications()) return
+        val id = args["notificationId"] as? Int ?: return
+        val channelId = args["channelId"] as? String ?: return
+        val title = args["title"] as? String ?: return
+        val text = args["description"] as? String ?: ""
+        val progress = args["progress"] as? Int ?: 0
+        val max = args["maxProgress"] as? Int ?: 100
+        val indeterminate = args["indeterminate"] as? Boolean ?: false
+        val ongoing = args["ongoing"] as? Boolean ?: true
+
+        val builder = baseNotificationBuilder(channelId, title, text)
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setProgress(if (max > 0) max else 100, progress, indeterminate)
+            .setOngoing(ongoing)
+            .setAutoCancel(false)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+
+        NotificationManagerCompat.from(this).notify(id, builder.build())
+    }
+
+    /** Completion / error notification (the "download_completion" channel). */
+    private fun showStaticNotification(args: Map<*, *>) {
+        if (!canPostNotifications()) return
+        val id = args["notificationId"] as? Int ?: return
+        val channelId = args["channelId"] as? String ?: return
+        val title = args["title"] as? String ?: return
+        val text = args["description"] as? String ?: ""
+        val autoCancel = args["autoCancel"] as? Boolean ?: true
+        val priority = args["priority"] as? String ?: "default"
+
+        // The Dart side titles error notifications "Download Failed"; use
+        // the warning icon for those and the done icon for completions.
+        val isError = title.contains("Failed")
+        val builder = baseNotificationBuilder(channelId, title, text)
+            .setSmallIcon(
+                if (isError) android.R.drawable.stat_notify_error
+                else android.R.drawable.stat_sys_download_done
+            )
+            .setAutoCancel(autoCancel)
+            .setPriority(
+                if (priority == "high") NotificationCompat.PRIORITY_HIGH
+                else NotificationCompat.PRIORITY_DEFAULT
+            )
+
+        NotificationManagerCompat.from(this).notify(id, builder.build())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

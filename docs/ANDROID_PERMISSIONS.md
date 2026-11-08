@@ -8,7 +8,7 @@ IA Helper requests **no dangerous permissions at runtime**:
 
 - **App-scoped storage only**: every download, cache and preview write goes to app-owned directories (see the destination map below), writable on every supported Android version (API 21+) with **no storage permission**.
 - **No media library access**: nothing in the app or its dependency tree reads the shared media collections, so no `READ_MEDIA_*` permissions are declared.
-- **No notifications yet**: the app contains no notification code, so `POST_NOTIFICATIONS` is not declared. It will be re-added together with the notifications feature (#92), requested in-context at first download rather than at launch.
+- **One runtime permission for notifications (#92)**: download progress + completion notifications declare `POST_NOTIFICATIONS` (Android 13+), requested in-context at the first download of a session - never at launch. On Android 12 and below the master notification toggle applies and no runtime grant exists.
 - **Public-folder exports** (planned, #90) will use `ACTION_OPEN_DOCUMENT_TREE` (SAF) with persistable URI grants — also permission-free.
 
 ## Required Permissions
@@ -27,6 +27,14 @@ IA Helper requests **no dangerous permissions at runtime**:
 - **Justification**: Pause downloads on connection loss, resume when connectivity returns, avoid wasted cellular data
 - **Play Store**: Standard for download manager apps
 
+### 3. POST_NOTIFICATIONS (Android 13+ runtime permission, #92)
+- **Permission**: `android.permission.POST_NOTIFICATIONS`
+- **Protection Level**: Dangerous (runtime grant on API 33+; not a runtime permission on older versions)
+- **Purpose**: Show download progress and completion/error notifications
+- **Request**: In-context at the first download of a session (PermissionUtils via permission_handler); at most one system prompt per session; never at launch
+- **Behavior if denied**: Downloads proceed normally; notifications are silently skipped. No feature is lost, only the convenience of shade notifications.
+- **Play Store**: Standard for download manager apps; declared in the main manifest and intentionally kept in the production flavor (unlike media/storage permissions), since the feature ships in the same release (#92)
+
 ## Dev/Staging-Only Permission
 
 ### MANAGE_EXTERNAL_STORAGE (Android 11+, special access)
@@ -38,7 +46,7 @@ IA Helper requests **no dangerous permissions at runtime**:
 
 | Permission / flag | Removed by | Rationale |
 |---|---|---|
-| `POST_NOTIFICATIONS` | #81 | No notification code in the app; the declaration plus launch-time request was pure first-launch friction. Re-added with the feature (#92). |
+| `POST_NOTIFICATIONS` | #81 | No notification code in the app; the declaration plus launch-time request was pure first-launch friction. **Re-added in #92** together with the notifications feature, requested in-context at first download. |
 | `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` / `READ_MEDIA_AUDIO` | #81 | Nothing in the app or its dependency tree can read the media library; the Android 13+ media gate blocked downloads behind scary prompts for nothing. |
 | `READ_MEDIA_VISUAL_USER_SELECTED` | #81 | Same. |
 | `WRITE_EXTERNAL_STORAGE` (was maxSdk 32) | #82 | Every write is app-scoped on API 21-33+; the legacy grant served no code path, so it was removed entirely rather than tightened. |
@@ -60,7 +68,7 @@ Verified by code search (Nov 2026): no `getExternalStoragePublicDirectory`, no `
 
 ## Permission Request Flow
 
-None. App launch and downloads prompt for **zero permissions** on every supported Android version. (Historical storage-prompt flows were removed with #81/#82.)
+App launch prompts for **zero permissions**. The only runtime prompt in the app is the Android 13+ POST_NOTIFICATIONS dialog (#92), shown in-context at the first download of a session (once per session, never nagging; historical storage-prompt flows were removed with #81/#82).
 
 ## User Control & Privacy
 
@@ -71,15 +79,14 @@ None. App launch and downloads prompt for **zero permissions** on every supporte
 ## Play Store Compliance Checklist
 
 - [x] Only permissions with clear, user-facing justification
-- [x] No storage, media, or notification permissions
-- [x] Production permission report: INTERNET + ACCESS_NETWORK_STATE only
+- [x] No storage or media permissions
+- [x] Production permission report: INTERNET + ACCESS_NETWORK_STATE + POST_NOTIFICATIONS (#92, in-context request)
 - [x] Dev-only MANAGE_EXTERNAL_STORAGE stripped from production (#75)
 - [x] Data-safety form: no data collected
 
 ## Future Considerations
 
 - **Download-location picker (#90)**: SAF `ACTION_OPEN_DOCUMENT_TREE`; no new permissions.
-- **Download notifications (#92)**: adds `POST_NOTIFICATIONS`, requested in-context at first download, never at launch.
 
 ## Developer Contact
 
@@ -92,4 +99,4 @@ None. App launch and downloads prompt for **zero permissions** on every supporte
 **App Version**: 1.9.0-dev  
 **Target SDK**: 36 (Android 16)  
 **Min SDK**: 21 (Android 5.0)  
-**Status**: Zero runtime permission prompts on all supported versions
+**Status**: One optional runtime prompt (POST_NOTIFICATIONS on Android 13+, in-context at first download, #92); none at launch

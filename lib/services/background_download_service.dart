@@ -15,6 +15,7 @@ import 'download_queue_store.dart';
 import 'download_retry_policy.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/file_utils.dart';
+import '../utils/permission_utils.dart';
 
 /// Metrics for tracking download operations
 class DownloadMetrics {
@@ -305,6 +306,11 @@ class BackgroundDownloadService extends ChangeNotifier {
       metrics.starts++;
 
       // Store metadata and files for later use
+      // #92: ask for POST_NOTIFICATIONS in context - the first download
+      // of a session triggers the Android 13+ system dialog; later calls
+      // just re-check the grant without prompting. Never asked at launch.
+      unawaited(PermissionUtils.requestNotificationPermission());
+
       if (metadata != null) {
         _downloadMetadata[downloadId] = metadata;
       }

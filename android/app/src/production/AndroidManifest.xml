@@ -7,15 +7,19 @@
     manage-storage request degrades gracefully (returns false). Dev/staging
     builds keep the permission via the main manifest.
 
-    Additionally strips every media/storage/notification permission from the
-    MERGED manifest (issues #81/#82 + Play photo/video permissions policy,
+    Additionally strips every media/storage permission from the MERGED
+    manifest (issues #81/#82 + Play photo/video permissions policy,
     support.google.com/googleplay/android-developer/answer/16935362).
     A dependency can inject uses-permissions into the merged manifest at
     build time even when the app's own source manifest never declares them;
     tools:node="remove" wins the merge regardless of which library declares
     them. The app never reads the media library and writes only app-scoped
     storage, so these are safe to strip unconditionally on this flavor.
-    CI enforces this via the "Guard merged manifest permissions" step.
+    POST_NOTIFICATIONS is deliberately NOT stripped anymore: #92 re-added
+    download progress/completion notifications, so the production build
+    declares it (requested in-context at the first download, never at
+    launch). CI enforces the media/storage ban via the "Guard merged
+    manifest permissions" step - and asserts POST_NOTIFICATIONS is present.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
@@ -39,8 +43,5 @@
         tools:node="remove" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.POST_NOTIFICATIONS"
         tools:node="remove" />
 </manifest>

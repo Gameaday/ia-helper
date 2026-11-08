@@ -30,6 +30,13 @@
     <!-- Network state: Allows app to detect connection type and status -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     
+    <!-- Notifications (Android 13+, #92): download progress + completion
+         notifications. Declared here and requested in-context at the first
+         download (never at launch). On Android 12 and below no runtime
+         grant exists - the master notification toggle applies. Unlike the
+         media/storage permissions, the production flavor keeps this one. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    
     <!-- 
         All Files Access: Android 11+ (API 30+) - dev/staging builds only.
         The production flavor removes this via the src/production overlay

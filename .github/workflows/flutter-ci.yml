@@ -121,9 +121,10 @@ jobs:
           exit $rc
 
       # Play policy guard: the merged manifest (app + all plugins) is what
-      # Google Play scans. Phase 0 (#81/#82) removed all media/storage/
-      # notification permissions from the app manifest; this step fails the
-      # build if any of them ever reappear via the manifest merger.
+      # Google Play scans. Phase 0 (#81/#82) removed all media/storage
+      # permissions; #92 re-added POST_NOTIFICATIONS, which is expected and
+      # asserted present below. This step fails the build if a media/storage
+      # permission ever reappears via the manifest merger.
       - name: Guard merged manifest permissions
         env:
           GH_TOKEN: ${{ github.token }}
@@ -152,14 +153,14 @@ jobs:
           fi
           echo "---------------------------------------------"
           cat /tmp/perms.txt | while IFS= read -r p; do printf "::notice::AAB permission: %s\n" "$p"; done
-          if grep -qE "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt; then
+          if grep -qE "READ_MEDIA|EXTERNAL_STORAGE" /tmp/perms.txt; then
             VIOL=1
-            grep -E "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt | while IFS= read -r line; do printf "::error::%s in AAB manifest (Play policy risk)\n" "$line"; done
+            grep -E "READ_MEDIA|EXTERNAL_STORAGE" /tmp/perms.txt | while IFS= read -r line; do printf "::error::%s in AAB manifest (Play policy risk)\n" "$line"; done
             {
               echo "Play-policy-sensitive permissions found in the production AAB manifest:"
               echo ""
               echo "```"
-              grep -E "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt
+              grep -E "READ_MEDIA|EXTERNAL_STORAGE" /tmp/perms.txt
               echo "```"
               echo ""
               echo "Injector hunt - build-tree manifests declaring READ_MEDIA:"
@@ -170,6 +171,13 @@ jobs:
               echo "```"
             } > /tmp/comment.md
             gh api --method POST repos/Gameaday/ia-helper/issues/81/comments -F body=@/tmp/comment.md
+          fi
+          # #92: POST_NOTIFICATIONS is now expected in the production AAB
+          # (download progress/completion notifications ship together with
+          # the declaration). A build where it goes missing regressed.
+          if ! grep -q "android.permission.POST_NOTIFICATIONS" /tmp/perms.txt; then
+            echo "::error::POST_NOTIFICATIONS missing from the production AAB manifest - expected since #92 (declaration + usage ship together)"
+            VIOL=1
           fi
           if [ $VIOL -ne 0 ]; then exit 1; fi
 
