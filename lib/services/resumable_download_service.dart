@@ -1,27 +1,45 @@
+import 'dart:async';
 import 'dart:io';
-import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
 import '../models/download_task.dart';
 import '../models/download_progress.dart';
 import '../database/database_helper.dart';
 
+/// Thrown when a download is stopped mid-stream (user pause/cancel or
+/// service disposal). Replaces dio's DioExceptionType.cancel, which this
+/// service previously branched on; the status handling below is unchanged.
+class _DownloadCancelled implements Exception {
+  final String reason;
+  _DownloadCancelled(this.reason);
+
+  @override
+  String toString() => reason;
+}
+
 /// Service for handling resumable downloads with HTTP Range request support
 ///
-/// Features:
-/// - Resume interrupted downloads
-/// - ETag verification to detect file changes
+/// Uses package:http (the same stack as ia_http_client/archive_service) so
+/// the app ships a single HTTP implementation. Range resume, cancel, and
+/// receive-timeout behavior are preserved from the previous dio-based
+/// version:
+/// - Resume interrupted downloads (HTTP Range + ETag verification)
 /// - Progress persistence across app restarts
 /// - Automatic retry with exponential backoff
-/// - Bandwidth throttling support
+/// - Cancellation that surfaces user intent (pause vs cancel) correctly
 class ResumableDownloadService {
-  final Dio _dio;
+  static const _userAgent =
+      'InternetArchiveHelper/1.9.0 (+https://github.com/Gameaday/IA-Helper)';
+
+  final http.Client _client;
   final DatabaseHelper _db;
 
-  // Active download tracking
-  final Map<String, CancelToken> _cancelTokens = {};
+  // Active download tracking: a task is active iff it has an entry here.
+  // The value is the cancel request flag, checked between stream chunks.
+  final Map<String, bool> _cancelRequested = {};
   final Map<String, DownloadProgress> _progressMap = {};
 
   // User intent for cancel exceptions: a user pause/cancel surfaces as a
-  // DioExceptionType.cancel and must NOT be recorded as an error (it used
+  // _DownloadCancelled and must NOT be recorded as an error (it used
   // to burn a retry each time; five pauses permanently killed a task)
   final Set<String> _userPaused = {};
   final Set<String> _userCancelled = {};
@@ -32,22 +50,12 @@ class ResumableDownloadService {
   final void Function(String taskId, String error)? onError;
 
   ResumableDownloadService({
-    Dio? dio,
+    http.Client? client,
     DatabaseHelper? db,
     this.onProgress,
     this.onComplete,
     this.onError,
-  }) : _dio = dio ??
-            Dio(
-              BaseOptions(
-                // Archive.org asks clients to identify themselves; this
-                // client previously sent no User-Agent at all
-                headers: {
-                  'User-Agent':
-                      'InternetArchiveHelper/1.7.1 (+https://github.com/Gameaday/IA-Helper)',
-                },
-              ),
-            ),
+  }) : _client = client ?? http.Client(),
        _db = db ?? DatabaseHelper.instance;
 
   /// Start or resume a download task
@@ -62,10 +70,9 @@ class ResumableDownloadService {
       );
       await _db.updateDownloadTask(task);
 
-      // Create cancel token for this task; clear stale user-intent flags
-      // from any previous run
-      final cancelToken = CancelToken();
-      _cancelTokens[task.id] = cancelToken;
+      // Register as active; clear stale user-intent flags from any
+      // previous run
+      _cancelRequested[task.id] = false;
       _userPaused.remove(task.id);
       _userCancelled.remove(task.id);
 
@@ -94,34 +101,60 @@ class ResumableDownloadService {
         await file.parent.create(recursive: true);
       }
 
-      // Set up headers for range request
-      final headers = <String, dynamic>{};
+      final request = http.Request('GET', Uri.parse(task.url))
+        ..headers['User-Agent'] = _userAgent;
       if (startByte > 0) {
-        headers['Range'] = 'bytes=$startByte-';
+        request.headers['Range'] = 'bytes=$startByte-';
+      }
+
+      // No events for 5 minutes = stalled transfer; mirrors the old
+      // receiveTimeout. The initial send gets a shorter connect timeout.
+      final response = await _client
+          .send(request)
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode != 200 && response.statusCode != 206) {
+        throw Exception('Download failed with status: ${response.statusCode}');
+      }
+
+      // If we sent a Range request but the server ignored it (status 200),
+      // appending the full body to the partial file would corrupt it.
+      // Delete the partial file and rewrite from byte 0.
+      int effectiveStart = startByte;
+      if (startByte > 0 && response.statusCode == 200) {
+        await file.delete();
+        effectiveStart = 0;
+        task = task.copyWith(partialBytes: 0);
+        await _db.updateDownloadTask(task);
       }
 
       // Track download progress
-      int receivedBytes = startByte;
-      int lastPersistedBytes = startByte;
+      int receivedBytes = effectiveStart;
+      int lastPersistedBytes = effectiveStart;
       final startTime = DateTime.now();
 
-      // Download with progress tracking
-      final response = await _dio.download(
-        task.url,
-        task.savePath,
-        options: Options(
-          headers: headers,
-          receiveTimeout: const Duration(minutes: 5),
-        ),
-        onReceiveProgress: (received, total) {
-          receivedBytes = startByte + received;
+      final sink = file.openWrite(
+        mode: effectiveStart > 0 ? FileMode.append : FileMode.write,
+      );
 
-          // Calculate progress. When resuming (HTTP 206), dio's [total] is
-          // the REMAINING bytes, so the real size is startByte + total. Fall
-          // back to the known task size when the server reports no length.
+      // How much is left, for progress: Content-Range gives it for 206;
+      // fall back to the known task size when the server sends no length.
+      final contentLength = response.contentLength ?? -1;
+
+      try {
+        await for (final chunk
+            in response.stream.timeout(const Duration(minutes: 5))) {
+          if (_cancelRequested[task.id] == true) {
+            throw _DownloadCancelled('Download cancelled');
+          }
+          sink.add(chunk);
+          receivedBytes += chunk.length;
+
           final int totalBytes;
-          if (total > 0) {
-            totalBytes = startByte + total;
+          if (effectiveStart > 0 && contentLength > 0) {
+            totalBytes = effectiveStart + contentLength;
+          } else if (contentLength > 0) {
+            totalBytes = contentLength;
           } else if (task.totalBytes > 0) {
             totalBytes = task.totalBytes;
           } else {
@@ -148,76 +181,57 @@ class ResumableDownloadService {
             lastPersistedBytes = receivedBytes;
             _db.updateDownloadTask(task.copyWith(partialBytes: receivedBytes));
           }
-        },
-        deleteOnError: false, // Keep partial file on error
-        cancelToken: cancelToken,
-      );
-
-      // If we sent a Range request but the server ignored it (status 200),
-      // dio appended the full response body to our partial file, which
-      // corrupts it. Delete the partial file and restart from byte 0.
-      if (startByte > 0 && response.statusCode == 200) {
-        await file.delete();
-        _cancelTokens.remove(task.id);
-        _progressMap.remove(task.id);
-        return await downloadTask(task.copyWith(partialBytes: 0));
-      }
-
-      // Download complete
-      if (response.statusCode == 200 || response.statusCode == 206) {
-        // Get ETag from response for future resume
-        final responseETag = response.headers.value('etag');
-
-        // Verify file size if known
-        if (task.totalBytes > 0) {
-          final fileSize = await file.length();
-          if (fileSize != task.totalBytes) {
-            throw Exception(
-              'Downloaded file size ($fileSize) does not match expected size (${task.totalBytes})',
-            );
-          }
         }
-
-        // Update task as completed
-        task = task.copyWith(
-          status: DownloadStatus.completed,
-          completedAt: DateTime.now(),
-          partialBytes: receivedBytes,
-          etag: responseETag,
-        );
-        await _db.updateDownloadTask(task);
-
-        // Notify completion
-        onComplete?.call(task.id, task);
-
-        // Cleanup
-        _cancelTokens.remove(task.id);
-        _progressMap.remove(task.id);
-
-        return task;
-      } else {
-        throw Exception('Download failed with status: ${response.statusCode}');
+        await sink.flush();
+      } finally {
+        await sink.close();
       }
+
+      // Get ETag from response for future resume
+      final responseETag = response.headers['etag'];
+
+      // Verify file size if known
+      if (task.totalBytes > 0) {
+        final fileSize = await file.length();
+        if (fileSize != task.totalBytes) {
+          throw Exception(
+            'Downloaded file size ($fileSize) does not match expected size (${task.totalBytes})',
+          );
+        }
+      }
+
+      // Update task as completed
+      task = task.copyWith(
+        status: DownloadStatus.completed,
+        completedAt: DateTime.now(),
+        partialBytes: receivedBytes,
+        etag: responseETag,
+      );
+      await _db.updateDownloadTask(task);
+
+      // Notify completion
+      onComplete?.call(task.id, task);
+
+      // Cleanup
+      _cancelRequested.remove(task.id);
+      _progressMap.remove(task.id);
+
+      return task;
     } catch (e) {
       // Handle errors
       String errorMessage = e.toString();
 
-      if (e is DioException) {
-        if (e.type == DioExceptionType.cancel) {
-          errorMessage = 'Download cancelled';
-        } else if (e.type == DioExceptionType.connectionTimeout) {
-          errorMessage = 'Connection timeout';
-        } else if (e.type == DioExceptionType.receiveTimeout) {
-          errorMessage = 'Receive timeout';
-        } else {
-          errorMessage = e.message ?? 'Network error';
-        }
+      if (e is _DownloadCancelled) {
+        errorMessage = e.reason;
+      } else if (e is TimeoutException) {
+        errorMessage = 'Receive timeout';
+      } else if (e is http.ClientException) {
+        errorMessage = 'Network error';
       }
 
       // A user-initiated pause/cancel is not an error: persist the intent
       // status without burning a retry and without invoking onError
-      if (e is DioException &&
-          e.type == DioExceptionType.cancel &&
+      if (e is _DownloadCancelled &&
           (_userPaused.contains(task.id) ||
               _userCancelled.contains(task.id))) {
         final pausedIntent = _userPaused.remove(task.id);
@@ -235,7 +249,7 @@ class ResumableDownloadService {
         await _db.updateDownloadTask(task);
 
         // Cleanup
-        _cancelTokens.remove(task.id);
+        _cancelRequested.remove(task.id);
         _progressMap.remove(task.id);
 
         return task;
@@ -257,7 +271,7 @@ class ResumableDownloadService {
       onError?.call(task.id, errorMessage);
 
       // Cleanup
-      _cancelTokens.remove(task.id);
+      _cancelRequested.remove(task.id);
       _progressMap.remove(task.id);
 
       rethrow;
@@ -266,10 +280,9 @@ class ResumableDownloadService {
 
   /// Pause a download
   Future<void> pauseDownload(String taskId) async {
-    final cancelToken = _cancelTokens[taskId];
-    if (cancelToken != null && !cancelToken.isCancelled) {
+    if (_cancelRequested.containsKey(taskId)) {
       _userPaused.add(taskId);
-      cancelToken.cancel('Paused by user');
+      _cancelRequested[taskId] = true;
     }
 
     // Update task status in database
@@ -307,10 +320,9 @@ class ResumableDownloadService {
     String taskId, {
     bool deletePartialFile = false,
   }) async {
-    final cancelToken = _cancelTokens[taskId];
-    if (cancelToken != null && !cancelToken.isCancelled) {
+    if (_cancelRequested.containsKey(taskId)) {
       _userCancelled.add(taskId);
-      cancelToken.cancel('Cancelled by user');
+      _cancelRequested[taskId] = true;
     }
 
     final task = await _db.getDownloadTask(taskId);
@@ -329,7 +341,7 @@ class ResumableDownloadService {
       );
     }
 
-    _cancelTokens.remove(taskId);
+    _cancelRequested.remove(taskId);
     _progressMap.remove(taskId);
   }
 
@@ -341,12 +353,13 @@ class ResumableDownloadService {
   /// Verify if file has changed on server using ETag
   Future<String?> _verifyETag(String url, String expectedETag) async {
     try {
-      final response = await _dio.head(
-        url,
-        options: Options(receiveTimeout: const Duration(seconds: 30)),
-      );
+      final request = http.Request('HEAD', Uri.parse(url))
+        ..headers['User-Agent'] = _userAgent;
+      final response = await _client
+          .send(request)
+          .timeout(const Duration(seconds: 30));
 
-      return response.headers.value('etag');
+      return response.headers['etag'];
     } catch (e) {
       // If HEAD request fails, assume file hasn't changed
       return expectedETag;
@@ -373,13 +386,15 @@ class ResumableDownloadService {
 
   /// Clean up resources
   void dispose() {
-    // Cancel all active downloads
-    for (final token in _cancelTokens.values) {
-      if (!token.isCancelled) {
-        token.cancel('Service disposed');
-      }
+    // Request cancellation of all active downloads (no user-intent flags
+    // are set, so they surface as errors, same as the previous CancelToken
+    // behavior). The flags stay in the map - unlike dio's CancelToken the
+    // flag lives here, and each in-flight loop removes its own entry when
+    // it unwinds; clearing the map would cancel nothing.
+    for (final id in _cancelRequested.keys.toList()) {
+      _cancelRequested[id] = true;
     }
-    _cancelTokens.clear();
     _progressMap.clear();
+    _client.close();
   }
 }

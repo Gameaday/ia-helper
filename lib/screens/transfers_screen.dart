@@ -672,7 +672,6 @@ class _TransferCard extends StatelessWidget {
   final VoidCallback onRetry;
 
   const _TransferCard({
-    super.key,
     required this.task,
     this.progress,
     required this.onPause,

@@ -172,3 +172,60 @@ jobs:
             gh api --method POST repos/Gameaday/ia-helper/issues/81/comments -F body=@/tmp/comment.md
           fi
           if [ $VIOL -ne 0 ]; then exit 1; fi
+
+      # v2.0 (#98): size budget. Measures the built AAB and the equivalent
+      # universal APK (all ABIs/densities, worst-case install footprint)
+      # with bundletool, fails if either exceeds budget, and re-emits sizes
+      # as ::notice annotations (step logs are admin-only on this repo).
+      # Budgets start generous (first measurement run); ratchet down after
+      # the first numbers land.
+      - name: Enforce AAB size budget
+        env:
+          AAB_BUDGET_MB: '90'
+          UNIVERSAL_BUDGET_MB: '130'
+        run: |
+          set +e
+          AAB="build/app/outputs/bundle/productionRelease/app-production-release.aab"
+          VIOL=0
+          if [ ! -f "$AAB" ]; then
+            echo "::error::AAB not found at $AAB - size budget cannot run"
+            exit 1
+          fi
+          AAB_MB=$(du -m "$AAB" | cut -f1)
+          echo "--- AAB module breakdown (MB) ---"
+          unzip -l "$AAB" | awk '$1 ~ /^[0-9]+$/ {split($NF,p,"/"); mod=(p[2]!="") ? p[1]"/"p[2] : p[1]; size[mod]+=$1} END {for (m in size) printf "%8.1f  %s\n", size[m]/1048576, m}' | sort -rn | head -20
+          echo "---------------------------------------------"
+          curl -fsSL -o /tmp/bundletool.jar https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+          rc=$?
+          if [ $rc -ne 0 ]; then
+            echo "::error::Failed to download bundletool 1.18.3 (rc=$rc) - size budget cannot run"
+            exit 1
+          fi
+          keytool -genkeypair -keystore /tmp/debug.keystore -alias androiddebugkey -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000 >/dev/null 2>&1
+          java -jar /tmp/bundletool.jar build-apks --bundle="$AAB" --output=/tmp/app.apks --mode=universal --ks=/tmp/debug.keystore --ks-pass=pass:android --ks-key-alias=androiddebugkey >/tmp/bundletool.log 2>&1
+          rc=$?
+          if [ $rc -ne 0 ] || [ ! -f /tmp/app.apks ]; then
+            echo "::error::bundletool build-apks failed (rc=$rc) - size budget cannot run"
+            tail -20 /tmp/bundletool.log | while IFS= read -r l; do printf "::error::bundletool: %s\n" "$l"; done
+            exit 1
+          fi
+          unzip -p /tmp/app.apks universal.apk > /tmp/universal.apk
+          rc=$?
+          if [ $rc -ne 0 ] || [ ! -s /tmp/universal.apk ]; then
+            echo "::error::Could not extract universal.apk from the .apks archive (rc=$rc)"
+            exit 1
+          fi
+          UNI_MB=$(du -m /tmp/universal.apk | cut -f1)
+          echo "AAB: ${AAB_MB} MB (budget ${AAB_BUDGET_MB} MB)"
+          echo "Universal APK: ${UNI_MB} MB (budget ${UNIVERSAL_BUDGET_MB} MB)"
+          printf "::notice::AAB size: %s MB (budget %s MB)\n" "$AAB_MB" "$AAB_BUDGET_MB"
+          printf "::notice::Universal APK size: %s MB (budget %s MB)\n" "$UNI_MB" "$UNIVERSAL_BUDGET_MB"
+          if [ "$AAB_MB" -gt "$AAB_BUDGET_MB" ]; then
+            echo "::error::AAB size ${AAB_MB} MB exceeds budget ${AAB_BUDGET_MB} MB - check module breakdown above"
+            VIOL=1
+          fi
+          if [ "$UNI_MB" -gt "$UNIVERSAL_BUDGET_MB" ]; then
+            echo "::error::Universal APK size ${UNI_MB} MB exceeds budget ${UNIVERSAL_BUDGET_MB} MB"
+            VIOL=1
+          fi
+          if [ $VIOL -ne 0 ]; then exit 1; fi

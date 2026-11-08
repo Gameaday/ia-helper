@@ -21,7 +21,6 @@ dependencies:
   
   # Network and download
   http: ^1.6.0
-  dio: ^5.11.1
   connectivity_plus: ^7.3.2  # Network connectivity monitoring
   
   # Cryptography for checksum validation
