@@ -124,18 +124,20 @@ jobs:
       - name: Guard merged manifest permissions
         run: |
           set -e
-          MANIFEST=$(find android/app/build/intermediates/merged_manifests -name AndroidManifest.xml -path "*productionRelease*" | head -1)
-          if [ -z "$MANIFEST" ]; then
-            echo "::error::Merged production manifest not found - permission guard cannot run"
+          AAB="build/app/outputs/bundle/productionRelease/app-production-release.aab"
+          if [ ! -f "$AAB" ]; then
+            echo "::error::AAB not found at $AAB - permission guard cannot run"
+            find build/app/outputs -type f 2>/dev/null | head -5 | while IFS= read -r f; do printf "::error::output: %s\n" "$f"; done
             exit 1
           fi
-          echo "--- Merged production manifest permissions ---"
-          grep -o "android.permission\.[A-Z_]*" "$MANIFEST" | sort -u | tee /tmp/perms.txt
+          echo "--- permissions inside built AAB manifest ---"
+          unzip -p "$AAB" base/AndroidManifest.xml > /tmp/manifest.bin
+          strings /tmp/manifest.bin | grep -o "android.permission\.[A-Z_]*" | sort -u | tee /tmp/perms.txt
           echo "---------------------------------------------"
           if grep -qE "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt; then
-            echo "Play-policy-sensitive permissions found in merged production manifest:"
+            echo "Play-policy-sensitive permissions found in the built AAB:"
             grep -E "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt | while IFS= read -r line; do
-              echo "::error::$line in merged production manifest (Play policy risk)"
+              printf "::error::%s in AAB manifest (Play policy risk)\n" "$line"
             done
             exit 1
           fi
