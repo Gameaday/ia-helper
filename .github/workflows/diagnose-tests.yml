@@ -1,0 +1,56 @@
+name: Diagnose tests
+
+# Temporary (#91/#92): the flutter-ci run on 18d268a failed the test step
+# (292 passed, 3 failed) and job logs are sign-in-only. This workflow runs
+# the suite once and posts the failure output as an issue comment, then is
+# deleted after diagnosis.
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/diagnose-tests.yml']
+
+concurrency:
+  group: diagnose-tests
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Run tests and capture failures
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          flutter test 2>&1 | tee /tmp/test.log
+          rc=$?
+          set -e
+          {
+            echo "Full flutter test failure output (temporary diagnose run, exit code $rc):"
+            echo ""
+            echo '```'
+          } > /tmp/body.md
+          # Compact reporter marks failures with [E]; print from the first
+          # failure onward so every failing test keeps its full description.
+          awk '/\[E\]/{f=1} f' /tmp/test.log | tail -n 500 >> /tmp/body.md
+          {
+            echo '```'
+          } >> /tmp/body.md
+          gh api repos/Gameaday/ia-helper/issues/92/comments -F body=@/tmp/body.md
+          exit 0
