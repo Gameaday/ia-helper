@@ -50,6 +50,8 @@ Pre-launch audit (scope, tiers, polish, steps): [PRELAUNCH_AUDIT.md](./PRELAUNCH
 
 ## Month 2 (Dec 2026) — Build the Pro tier
 
+> **Verified scope (2026-11-08, #72/#91):** saved searches already ship (service + screen) — only the watchlist variant is new. Verified gaps, now building in the v2.0 wave (#91): **watchlist** (strictly local, check-on-open file-count deltas — no server, no alerts bill) and **metadata export** (JSON/CSV + citation-style records). Still December-only: collection-level download UX and the Pro unlock flow.
+
 - [ ] Metadata export: CSV/JSON + citation-style records (the researcher's #1 ask) — new build
 - [ ] Collection downloader: grab an entire collection with user-defined rules — new build (FileFilter exists; needs collection-level UX)
 - [ ] Watchlist: saved searches already ship; the Pro piece is new-item checking on app open (no server, no alerts bill)

@@ -5,6 +5,7 @@ import 'package:internet_archive_helper/models/favorite.dart';
 import 'package:internet_archive_helper/models/search_query.dart';
 import 'package:internet_archive_helper/screens/archive_detail_screen.dart';
 import 'package:internet_archive_helper/screens/search_results_screen.dart';
+import 'package:internet_archive_helper/screens/watchlist_screen.dart';
 import 'package:internet_archive_helper/services/archive_service.dart';
 import 'package:internet_archive_helper/services/archive_sync_service.dart';
 import 'package:internet_archive_helper/services/collections_service.dart';
@@ -14,6 +15,7 @@ import 'package:internet_archive_helper/utils/animation_constants.dart';
 import 'package:internet_archive_helper/core/utils/formatting_utils.dart';
 import 'package:internet_archive_helper/utils/snackbar_helper.dart';
 import 'package:internet_archive_helper/widgets/archive_sync_dialog.dart';
+import 'package:internet_archive_helper/widgets/metadata_export_sheet.dart';
 import 'package:internet_archive_helper/widgets/error_card.dart';
 import 'package:provider/provider.dart';
 
@@ -148,7 +150,13 @@ class _LibraryScreenState extends State<LibraryScreen>
               tooltip: 'Create collection',
             ),
           PopupMenuButton<String>(
-            onSelected: _handleMenuAction,
+            onSelected: _handleMenuAction,          IconButton(
+            icon: const Icon(Icons.visibility_outlined),
+            tooltip: 'Watchlist',
+            onPressed: () =>
+                Navigator.pushNamed(context, WatchlistScreen.routeName),
+          ),
+
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'refresh',
@@ -177,6 +185,16 @@ class _LibraryScreenState extends State<LibraryScreen>
                     Icon(Icons.sort),
                     SizedBox(width: 12),
                     Text('Sort'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.ios_share),
+                    SizedBox(width: 12),
+                    Text('Export metadata'),
                   ],
                 ),
               ),
@@ -993,6 +1011,13 @@ class _LibraryScreenState extends State<LibraryScreen>
         break;
       case 'sort':
         _showSortOptions();
+        break;
+      case 'export':
+        showModalBottomSheet<void>(
+          context: context,
+          sheetAnimationStyle: MD3Sheets.modalEntrance,
+          builder: (context) => const MetadataExportSheet(),
+        );
         break;
     }
   }

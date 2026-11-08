@@ -19,6 +19,7 @@ import 'screens/api_intensity_settings_screen.dart';
 import 'screens/ia_account_screen.dart';
 import 'screens/own_items_screen.dart';
 import 'screens/saved_searches_screen.dart';
+import 'screens/watchlist_screen.dart';
 import 'screens/search_results_screen.dart';
 import 'models/search_query.dart';
 import 'widgets/onboarding_widget.dart';
@@ -201,6 +202,11 @@ class IAGetMobileApp extends StatelessWidget {
               case SavedSearchesScreen.routeName:
                 return MD3PageTransitions.sharedAxis(
                   page: const SavedSearchesScreen(),
+                  settings: settings,
+                );
+              case WatchlistScreen.routeName:
+                return MD3PageTransitions.sharedAxis(
+                  page: const WatchlistScreen(),
                   settings: settings,
                 );
               case '/api-intensity-settings':

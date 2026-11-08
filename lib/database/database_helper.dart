@@ -13,7 +13,7 @@ import 'database_factory_stub.dart'
 /// Used for metadata caching and file preview caching with versioning and migrations
 class DatabaseHelper {
   static const String _databaseName = 'ia_helper.db';
-  static const int _databaseVersion = 7;
+  static const int _databaseVersion = 8;
 
   // Table names
   static const String tableCachedMetadata = 'cached_metadata';
@@ -25,6 +25,7 @@ class DatabaseHelper {
   static const String tableSavedSearches = 'saved_searches';
   static const String tableDownloadTasks = 'download_tasks';
   static const String tableDownloadQueue = 'download_queue'; // #84
+  static const String tableWatchlist = 'watchlist'; // #91
 
   // Singleton pattern
   DatabaseHelper._privateConstructor();
@@ -305,6 +306,9 @@ class DatabaseHelper {
     // Download queue table (#84): production queue persistence across
     // app/OS kills
     await _createDownloadQueueTable(db);
+    // Watchlist table (#91): local-only tracking of archive.org items for
+    // new uploads
+    await _createWatchlistTable(db);
 
     debugPrint('Database schema created successfully');
   }
@@ -553,6 +557,14 @@ class DatabaseHelper {
       await _createDownloadQueueTable(db);
       debugPrint('Migration to version 7 completed successfully');
     }
+
+    // Migration from version 7 to version 8: Add watchlist table (#91) -
+    // strictly local tracking of archive.org identifiers for new uploads.
+    if (oldVersion < 8) {
+      debugPrint('Migrating to version 8: Adding watchlist table');
+      await _createWatchlistTable(db);
+      debugPrint('Migration to version 8 completed successfully');
+    }
   }
 
   /// Download queue table DDL, shared by fresh installs (_onCreate) and the
@@ -583,6 +595,29 @@ class DatabaseHelper {
     await db.execute('''
       CREATE INDEX idx_download_queue_identifier 
       ON $tableDownloadQueue(identifier)
+    ''');
+  }
+  /// Watchlist table DDL, shared by fresh installs (_onCreate) and the
+  /// v7 -> v8 migration so the two paths cannot drift (#91).
+  Future<void> _createWatchlistTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE $tableWatchlist (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        identifier TEXT UNIQUE NOT NULL,
+        title TEXT,
+        mediatype TEXT,
+        added_at INTEGER NOT NULL,
+        known_file_count INTEGER NOT NULL DEFAULT -1,
+        new_file_count INTEGER NOT NULL DEFAULT 0,
+        last_checked_at INTEGER,
+        last_changed_at INTEGER,
+        metadata_json TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_watchlist_added_at 
+      ON $tableWatchlist(added_at DESC)
     ''');
   }
 
