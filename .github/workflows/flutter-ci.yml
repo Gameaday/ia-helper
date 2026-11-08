@@ -54,29 +54,46 @@ jobs:
           exit $rc
 
       # Test failures (compile errors, assertion failures) re-emitted as
-      # ::error annotations, same reason as above.
+      # ::error annotations, same reason as above. The expanded reporter is
+      # used because the default compact reporter colorizes its failure
+      # markers with ANSI escapes when piped, which defeats both the [E]
+      # greps and the 10-annotation cap hides failure names behind noise;
+      # expanded keeps failure lines plain and greppable. Step annotations
+      # cap at 10, so the full failure block is also posted to issue #98
+      # (step logs are admin-only on this repo).
       - name: Test
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set +e
-          flutter test > /tmp/test.log 2>&1
+          flutter test --reporter expanded > /tmp/test.log 2>&1
           rc=$?
           set -e
           cat /tmp/test.log
           if [ $rc -ne 0 ]; then
-            # Compact reporter marks failures with "[E]" followed by the
-            # assertion diff and stack; capture those first (test names),
-            # then the generic key lines.
-            grep -nA 10 '\[E\]' /tmp/test.log | head -80 > /tmp/keylines.txt
+            ESC=$(printf '\033')
+            sed "s/${ESC}\[[0-9;]*m//g" /tmp/test.log > /tmp/test.clean
+            # Failure blocks first ([E] + context = test names + diffs),
+            # then a few generic key lines and the tail.
+            grep -B1 -A12 '\[E\]' /tmp/test.clean | head -120 > /tmp/keylines.txt
             echo "--- generic key lines ---" >> /tmp/keylines.txt
-            grep -nE "Error:|Exception|FAILED|Compilation error|Expected:|Actual:|Some tests failed" /tmp/test.log | tail -20 >> /tmp/keylines.txt
+            grep -nE "Error:|Exception|FAILED|Compilation error|Some tests failed|tests passed" /tmp/test.clean | tail -20 >> /tmp/keylines.txt
             echo "--- last 15 lines ---" >> /tmp/keylines.txt
-            tail -15 /tmp/test.log >> /tmp/keylines.txt
+            tail -15 /tmp/test.clean >> /tmp/keylines.txt
             i=0
-            while IFS= read -r line && [ $i -lt 20 ]; do
+            while IFS= read -r line && [ $i -lt 10 ]; do
               [ -z "$line" ] && continue
               printf "::error::%.240s\n" "$line"
               i=$((i+1))
             done < /tmp/keylines.txt
+            {
+              echo "CI test failures (expanded reporter, ANSI stripped) on $(git rev-parse --short HEAD):"
+              echo ""
+              echo '```'
+              cat /tmp/keylines.txt
+              echo '```'
+            } > /tmp/body.md
+            gh api repos/Gameaday/ia-helper/issues/98/comments -F body=@/tmp/body.md || true
           fi
           exit $rc
 
