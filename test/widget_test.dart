@@ -56,7 +56,12 @@ void main() {
 
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationRail), findsNothing);
-    expect(find.byType(NavigationDestination), findsNWidgets(5));
+    // All five destinations are present with their labels (NavigationBar
+    // wraps destinations in internal widgets at runtime, so assert on the
+    // visible labels rather than the NavigationDestination type).
+    for (final label in ['Home', 'Library', 'Discover', 'Transfers', 'More']) {
+      expect(find.text(label), findsOneWidget);
+    }
     expect(find.byIcon(Icons.home_outlined), findsAtLeastNWidgets(1));
   });
 
@@ -85,10 +90,13 @@ void main() {
 
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
-    expect(find.byType(NavigationRailDestination), findsNWidgets(5));
 
     final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
     expect(rail.extended, isFalse);
+    // Label pills: all five destinations show their labels.
+    for (final label in ['Home', 'Library', 'Discover', 'Transfers', 'More']) {
+      expect(find.text(label), findsOneWidget);
+    }
     // Inline app title only shows on the extended rail.
     expect(find.text('Internet Archive Helper'), findsNothing);
   });
@@ -118,7 +126,9 @@ void main() {
     final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
     expect(rail.extended, isTrue);
     expect(find.text('Internet Archive Helper'), findsOneWidget);
-    expect(find.byType(NavigationRailDestination), findsNWidgets(5));
+    for (final label in ['Home', 'Library', 'Discover', 'Transfers', 'More']) {
+      expect(find.text(label), findsOneWidget);
+    }
   });
 
   testWidgets('tapping the current tab keeps the tab selected', (
