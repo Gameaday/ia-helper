@@ -160,21 +160,18 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
         }
       }
 
-      if (!mounted) return;
       await _refresh();
+      if (!mounted) return;
       SnackBarHelper.showSuccess(context, 'Watching $validId');
     } catch (e) {
-      if (!mounted) return;
       await _refresh();
+      if (!mounted) return;
       SnackBarHelper.showError(context, e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Watchlist'),

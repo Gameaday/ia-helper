@@ -149,14 +149,14 @@ class _LibraryScreenState extends State<LibraryScreen>
               onPressed: _createCollection,
               tooltip: 'Create collection',
             ),
-          PopupMenuButton<String>(
-            onSelected: _handleMenuAction,          IconButton(
+          IconButton(
             icon: const Icon(Icons.visibility_outlined),
             tooltip: 'Watchlist',
             onPressed: () =>
                 Navigator.pushNamed(context, WatchlistScreen.routeName),
           ),
-
+          PopupMenuButton<String>(
+            onSelected: _handleMenuAction,
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'refresh',
