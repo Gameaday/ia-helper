@@ -112,7 +112,7 @@ jobs:
           cat /tmp/build.log
           if [ $rc -ne 0 ]; then
             {
-              grep -nE "FAILURE|error:|ERROR|Exception|Caused by|Could not|Unsupported|incompatible|must not|Execution failed|A problem occurred|Build failed|already on the classpath" /tmp/build.log | tail -40
+              grep -nE "FAILURE|error:|ERROR|Exception|Caused by|Could not|Unsupported|incompatible|must not|Execution failed|A problem occurred|Build failed|already on the classpath|\.kt:[0-9]+|^\s*e: " /tmp/build.log | tail -40
               echo "--- last 15 lines ---"
               tail -15 /tmp/build.log
             } > /tmp/keylines.txt
