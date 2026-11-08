@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:internet_archive_helper/database/database_helper.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Versioned migration tests for the download_queue table (#84).
+/// Versioned migration tests for the app schema (#84).
 ///
 /// Every schema bump must keep these green: fresh install creates the
 /// current schema, and each upgrade chain preserves existing data.
@@ -89,6 +89,83 @@ void main() {
     final rows = await db.query('download_tasks');
     expect(rows.single['id'], 'task-1');
     expect(rows.single['status'], 'paused');
+  });
+
+  test('v7 -> v8 adds the watchlist table and keeps v7 data', () async {
+    // Fabricate a v7 database: download_tasks (v6 schema) plus one row.
+    // (oldVersion = 7 skips every earlier migration block, so this is
+    // exactly the surface the v7 -> v8 upgrade operates on.)
+    await db.execute('''
+      CREATE TABLE download_tasks (
+        id TEXT PRIMARY KEY,
+        identifier TEXT NOT NULL,
+        url TEXT NOT NULL,
+        save_path TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        partial_bytes INTEGER NOT NULL DEFAULT 0,
+        etag TEXT,
+        last_modified TEXT,
+        total_bytes INTEGER NOT NULL,
+        priority TEXT NOT NULL DEFAULT 'normal',
+        network_requirement TEXT NOT NULL DEFAULT 'any',
+        scheduled_time INTEGER,
+        status TEXT NOT NULL,
+        retry_count INTEGER NOT NULL DEFAULT 0,
+        error_message TEXT,
+        created_at TEXT NOT NULL,
+        started_at INTEGER,
+        completed_at INTEGER,
+        updated_at TEXT NOT NULL,
+        metadata TEXT,
+        selected_files TEXT
+      )
+    ''');
+    await db.insert('download_tasks', {
+      'id': 'task-1',
+      'identifier': 'archive-1',
+      'url': 'https://example.com/a.pdf',
+      'save_path': '/downloads',
+      'file_name': 'a.pdf',
+      'total_bytes': 100,
+      'status': 'paused',
+      'created_at': '2026-01-01T00:00:00.000',
+      'updated_at': '2026-01-01T00:00:00.000',
+    });
+
+    await DatabaseHelper.instance.debugUpgrade(db, 7, 8);
+
+    // The watchlist table exists (#91)
+    expect(await tableNames(), contains(DatabaseHelper.tableWatchlist));
+
+    // v7 data is untouched
+    final rows = await db.query('download_tasks');
+    expect(rows.single['id'], 'task-1');
+    expect(rows.single['status'], 'paused');
+
+    // The new table is usable in the exact shape WatchlistService writes:
+    // a first check stores the -1 baseline ("not yet known").
+    await db.insert(DatabaseHelper.tableWatchlist, {
+      'identifier': 'arch-1',
+      'title': 'Archive 1',
+      'added_at': 1,
+      'known_file_count': -1,
+      'new_file_count': 0,
+    });
+    final wl = await db.query(DatabaseHelper.tableWatchlist);
+    expect(wl.single['identifier'], 'arch-1');
+    expect(wl.single['known_file_count'], -1);
+
+    // Fresh-install and migration DDL share _createWatchlistTable; the
+    // index is the marker that the shared helper ran.
+    final indexes = await db.rawQuery(
+      "SELECT name FROM sqlite_master "
+      "WHERE type = 'index' AND tbl_name = ?",
+      [DatabaseHelper.tableWatchlist],
+    );
+    expect(
+      indexes.map((r) => r['name'] as String),
+      contains('idx_watchlist_added_at'),
+    );
   });
 
   test('v1 -> v7 full chain creates every table and preserves v1 data', () async {
