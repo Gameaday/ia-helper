@@ -605,6 +605,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void _showSortOptions() {
     showModalBottomSheet<void>(
       context: context,
+      style: MD3Sheets.modalEntrance,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {

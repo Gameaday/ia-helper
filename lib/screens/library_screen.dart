@@ -1034,6 +1034,7 @@ class _LibraryScreenState extends State<LibraryScreen>
   void _showSortOptions() {
     showModalBottomSheet(
       context: context,
+      style: MD3Sheets.modalEntrance,
       builder: (context) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
