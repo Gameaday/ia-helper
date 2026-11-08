@@ -351,7 +351,7 @@ class MainActivity: FlutterActivity() {
     private fun hasValidSafGrant(treeUri: String?): Boolean {
         if (treeUri == null) return false
         return contentResolver.persistedUriPermissions.any {
-            it.uri.toString() == treeUri && it.isWritePersistableUriPermission
+            it.uri.toString() == treeUri && it.isWritePersistableUriPermission()
         }
     }
 
