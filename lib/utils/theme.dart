@@ -216,7 +216,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         color: colorScheme.surfaceContainerLow,
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.large),
+        shape: const RoundedRectangleBorder(borderRadius: AppShapes.large),
         clipBehavior: Clip.hardEdge,
       ),
 
@@ -273,7 +273,7 @@ class AppTheme {
       // Icon buttons: soft rounded squares, expressive and thumb-friendly
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: AppShapes.small,
           ),
         ),
@@ -283,8 +283,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colorScheme.surfaceContainerHigh,
-        border: OutlineInputBorder(borderRadius: AppShapes.medium),
-        enabledBorder: OutlineInputBorder(
+        border: const OutlineInputBorder(borderRadius: AppShapes.medium),
+        enabledBorder: const OutlineInputBorder(
           borderRadius: AppShapes.medium,
           borderSide: BorderSide.none,
         ),
@@ -335,7 +335,7 @@ class AppTheme {
         focusElevation: 4,
         hoverElevation: 4,
         highlightElevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.large),
+        shape: const RoundedRectangleBorder(borderRadius: AppShapes.large),
       ),
 
       // Dividers
@@ -346,7 +346,7 @@ class AppTheme {
 
       // Lists
       listTileTheme: ListTileThemeData(
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.medium),
+        shape: const RoundedRectangleBorder(borderRadius: AppShapes.medium),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 8,
@@ -356,7 +356,7 @@ class AppTheme {
 
       // Material Expressive: Dialog theme
       dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.extraLarge),
+        shape: const RoundedRectangleBorder(borderRadius: AppShapes.extraLarge),
         backgroundColor: colorScheme.surfaceContainerHigh,
         elevation: 6,
         titleTextStyle: TextStyle(
@@ -375,7 +375,7 @@ class AppTheme {
       datePickerTheme: DatePickerThemeData(
         backgroundColor: colorScheme.surfaceContainerHigh,
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.extraLarge),
+        shape: const RoundedRectangleBorder(borderRadius: AppShapes.extraLarge),
       ),
 
       // Material Expressive: Time picker theme
@@ -437,7 +437,7 @@ class AppTheme {
       // Material Expressive: SnackBar theme
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.medium),
+        shape: const RoundedRectangleBorder(borderRadius: AppShapes.medium),
         backgroundColor: colorScheme.inverseSurface,
         contentTextStyle: TextStyle(color: colorScheme.onInverseSurface),
         actionTextColor: colorScheme.inversePrimary,
@@ -470,7 +470,7 @@ class AppTheme {
           return Colors.transparent;
         }),
         side: BorderSide(color: colorScheme.outline),
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.extraSmall),
+        shape: const RoundedRectangleBorder(borderRadius: AppShapes.extraSmall),
       ),
 
       // Material 3: Radio theme
@@ -570,7 +570,7 @@ class AppTheme {
         backgroundColor: colorScheme.surfaceContainerLow,
         indicatorColor: colorScheme.secondaryContainer,
         elevation: 1,
-        indicatorShape: RoundedRectangleBorder(
+        indicatorShape: const RoundedRectangleBorder(
           borderRadius: AppShapes.extraLarge,
         ),
       ),
@@ -585,7 +585,7 @@ class AppTheme {
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: AppShapes.large),
+            const RoundedRectangleBorder(borderRadius: AppShapes.large),
           ),
           backgroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
@@ -631,7 +631,7 @@ class AppTheme {
       // Material 3: PopupMenu theme
       popupMenuTheme: PopupMenuThemeData(
         color: colorScheme.surfaceContainerHigh,
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.medium),
+        shape: const RoundedRectangleBorder(borderRadius: AppShapes.medium),
         elevation: 2,
         labelTextStyle: WidgetStatePropertyAll(
           TextStyle(color: colorScheme.onSurfaceVariant),

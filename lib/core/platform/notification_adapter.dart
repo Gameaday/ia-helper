@@ -158,7 +158,7 @@ class _NativeNotificationAdapter implements NotificationAdapter {
       await _platform.invokeMethod('updateProgress', {
         'id': notificationId,
         'progress': progress,
-        if (text != null) 'text': text,
+        'text': ?text,
       });
     } catch (e) {
       if (kDebugMode) {

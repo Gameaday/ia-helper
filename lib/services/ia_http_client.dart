@@ -432,8 +432,8 @@ class IAHttpClient {
     final baseHeaders = _headersAdapter.getPlatformHeaders();
     return {
       ...baseHeaders,
-      if (ifNoneMatch != null) 'If-None-Match': ifNoneMatch,
-      if (headers != null) ...headers,
+      'If-None-Match': ?ifNoneMatch,
+      ...?headers,
     };
   }
 

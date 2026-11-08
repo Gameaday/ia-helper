@@ -97,8 +97,8 @@ class OwnItemsService {
     String? subject,
   }) async {
     final fields = <String, String>{
-      if (title != null) 'title': title,
-      if (description != null) 'description': description,
+      'title': ?title,
+      'description': ?description,
       if (subject != null && subject.isNotEmpty) 'subject': subject,
     };
     if (fields.isEmpty) {
