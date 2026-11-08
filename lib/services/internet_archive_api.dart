@@ -32,6 +32,149 @@ enum ResumeDecision {
 }
 
 
+/// Plain-data request for [_digestFile]: an isolate worker must not capture
+/// anything beyond what can be sent across the port.
+class _ChecksumRequest {
+  final String path;
+  final String hashType;
+  const _ChecksumRequest(this.path, this.hashType);
+}
+
+/// Isolate worker: streams [request.path] through the requested digest.
+///
+/// Heavy hashing runs off the UI isolate so multi-GB files never jank the
+/// app during checksum validation (#98). The stream binding (no full-file
+/// read) keeps memory flat (#83).
+Future<String> _digestFile(_ChecksumRequest request) async {
+  final file = File(request.path);
+  if (!await file.exists()) {
+    throw Exception('File not found: ${request.path}');
+  }
+  final source = file.openRead();
+  final Digest digest;
+  switch (request.hashType) {
+    case 'md5':
+      digest = await md5.bind(source).last;
+      break;
+    case 'sha1':
+      digest = await sha1.bind(source).last;
+      break;
+    case 'sha256':
+      digest = await sha256.bind(source).last;
+      break;
+    default:
+      throw Exception('Unsupported hash type: ${request.hashType}');
+  }
+  return digest.toString();
+}
+
+/// Plain-data request for [_decompressArchive].
+class _DecompressRequest {
+  final String archivePath;
+  final String outputDir;
+  const _DecompressRequest(this.archivePath, this.outputDir);
+}
+
+/// Isolate worker: decodes and extracts an archive off the UI isolate (#98).
+Future<List<String>> _decompressArchive(_DecompressRequest request) async {
+  final file = File(request.archivePath);
+
+  // Get just the filename without path
+  final fileName = path.basename(file.path).toLowerCase();
+  final bytes = await file.readAsBytes();
+
+  if (kDebugMode) {
+    debugPrint('Decompressing: ${request.archivePath}');
+    debugPrint('Output directory: ${request.outputDir}');
+    debugPrint('File size: ${bytes.length} bytes');
+  }
+
+  final extractedFiles = <String>[];
+
+  try {
+    if (fileName.endsWith('.zip')) {
+      // Handle ZIP archives
+      final archive = ZipDecoder().decodeBytes(bytes);
+      extractedFiles.addAll(
+        await _extractArchiveFiles(archive, request.outputDir),
+      );
+    } else if (fileName.endsWith('.tar.gz') || fileName.endsWith('.tgz')) {
+      // Handle TAR.GZ archives
+      final gzipBytes = const GZipDecoder().decodeBytes(bytes);
+      final archive = TarDecoder().decodeBytes(gzipBytes);
+      extractedFiles.addAll(
+        await _extractArchiveFiles(archive, request.outputDir),
+      );
+    } else if (fileName.endsWith('.tar')) {
+      // Handle TAR archives
+      final archive = TarDecoder().decodeBytes(bytes);
+      extractedFiles.addAll(
+        await _extractArchiveFiles(archive, request.outputDir),
+      );
+    } else if (fileName.endsWith('.gz')) {
+      // Handle single GZIP files
+      final decompressed = const GZipDecoder().decodeBytes(bytes);
+      // Extract just the filename without the .gz extension
+      String baseFileName = fileName.substring(0, fileName.length - 3);
+      final outputPath = path.join(request.outputDir, baseFileName);
+
+      final outputFile = File(outputPath);
+      await outputFile.writeAsBytes(decompressed);
+      extractedFiles.add(outputPath);
+    } else {
+      throw FormatException(
+        'Unsupported archive format. Supported: .zip, .tar, .tar.gz, .tgz, .gz',
+        fileName,
+      );
+    }
+
+    if (kDebugMode) {
+      debugPrint('Successfully extracted ${extractedFiles.length} file(s)');
+    }
+
+    return extractedFiles;
+  } catch (e) {
+    if (e is FormatException) {
+      rethrow;
+    }
+    throw FormatException(
+      'Failed to decompress archive: ${e.toString()}',
+      request.archivePath,
+    );
+  }
+}
+
+/// Extract files from an [Archive] to the output directory. Runs inside the
+/// decompression isolate ([_decompressArchive]).
+Future<List<String>> _extractArchiveFiles(
+  Archive archive,
+  String outputDir,
+) async {
+  final extractedFiles = <String>[];
+
+  for (final file in archive) {
+    if (file.isFile) {
+      final outputPath = path.join(outputDir, file.name);
+
+      // Create parent directories if needed
+      final outputFile = File(outputPath);
+      if (!await outputFile.parent.exists()) {
+        await outputFile.parent.create(recursive: true);
+      }
+
+      // Write file content
+      await outputFile.writeAsBytes(file.content as List<int>);
+      extractedFiles.add(outputPath);
+
+      if (kDebugMode) {
+        debugPrint('Extracted: ${file.name} (${file.size} bytes)');
+      }
+    }
+  }
+
+  return extractedFiles;
+}
+
 /// Pure Dart/Flutter implementation of Internet Archive API client
 ///
 /// This replaces the Rust FFI implementation with native Dart code for:
@@ -446,30 +589,27 @@ class InternetArchiveApi {
       throw Exception('File not found: $filePath');
     }
 
-    if (kDebugMode) {
-      debugPrint('Validating $hashType checksum for: $filePath');
-    }
-
-    // Stream the file instead of reading it fully into memory: multi-GB
-    // archive downloads must not OOM during checksum validation (#83).
-    final source = file.openRead();
-    final Digest digest;
-
-    switch (hashType.toLowerCase()) {
+    final normalizedType = hashType.toLowerCase();
+    switch (normalizedType) {
       case 'md5':
-        digest = await md5.bind(source).last;
-        break;
       case 'sha1':
-        digest = await sha1.bind(source).last;
-        break;
       case 'sha256':
-        digest = await sha256.bind(source).last;
-        break;
+        break; // supported
       default:
         throw Exception('Unsupported hash type: $hashType');
     }
 
-    final actualHash = digest.toString();
+    if (kDebugMode) {
+      debugPrint('Validating $hashType checksum for: $filePath');
+    }
+
+    // Heavy digesting runs off the UI isolate so multi-GB files never
+    // jank the app during checksum validation (#98). The worker still
+    // streams the file, so memory stays flat (#83).
+    final actualHash = await compute(
+      _digestFile,
+      _ChecksumRequest(filePath, normalizedType),
+    );
     final matches = actualHash.toLowerCase() == expectedHash.toLowerCase();
 
     if (kDebugMode) {
@@ -504,93 +644,17 @@ class InternetArchiveApi {
       await outDir.create(recursive: true);
     }
 
-    // Get just the filename without path
-    final fileName = path.basename(file.path).toLowerCase();
-    final bytes = await file.readAsBytes();
-
     if (kDebugMode) {
       debugPrint('Decompressing: $archivePath');
       debugPrint('Output directory: $outputDir');
-      debugPrint('File size: ${bytes.length} bytes');
     }
 
-    final extractedFiles = <String>[];
-
-    try {
-      if (fileName.endsWith('.zip')) {
-        // Handle ZIP archives
-        final archive = ZipDecoder().decodeBytes(bytes);
-        extractedFiles.addAll(await _extractArchive(archive, outputDir));
-      } else if (fileName.endsWith('.tar.gz') || fileName.endsWith('.tgz')) {
-        // Handle TAR.GZ archives
-        final gzipBytes = const GZipDecoder().decodeBytes(bytes);
-        final archive = TarDecoder().decodeBytes(gzipBytes);
-        extractedFiles.addAll(await _extractArchive(archive, outputDir));
-      } else if (fileName.endsWith('.tar')) {
-        // Handle TAR archives
-        final archive = TarDecoder().decodeBytes(bytes);
-        extractedFiles.addAll(await _extractArchive(archive, outputDir));
-      } else if (fileName.endsWith('.gz')) {
-        // Handle single GZIP files
-        final decompressed = const GZipDecoder().decodeBytes(bytes);
-        // Extract just the filename without the .gz extension
-        String baseFileName = fileName.substring(0, fileName.length - 3);
-        final outputPath = path.join(outputDir, baseFileName);
-
-        final outputFile = File(outputPath);
-        await outputFile.writeAsBytes(decompressed);
-        extractedFiles.add(outputPath);
-      } else {
-        throw FormatException(
-          'Unsupported archive format. Supported: .zip, .tar, .tar.gz, .tgz, .gz',
-          fileName,
-        );
-      }
-
-      if (kDebugMode) {
-        debugPrint('Successfully extracted ${extractedFiles.length} file(s)');
-      }
-
-      return extractedFiles;
-    } catch (e) {
-      if (e is FormatException) {
-        rethrow;
-      }
-      throw FormatException(
-        'Failed to decompress archive: ${e.toString()}',
-        archivePath,
-      );
-    }
-  }
-
-  /// Extract files from an Archive object to the output directory
-  Future<List<String>> _extractArchive(
-    Archive archive,
-    String outputDir,
-  ) async {
-    final extractedFiles = <String>[];
-
-    for (final file in archive) {
-      if (file.isFile) {
-        final outputPath = path.join(outputDir, file.name);
-
-        // Create parent directories if needed
-        final outputFile = File(outputPath);
-        if (!await outputFile.parent.exists()) {
-          await outputFile.parent.create(recursive: true);
-        }
-
-        // Write file content
-        await outputFile.writeAsBytes(file.content as List<int>);
-        extractedFiles.add(outputPath);
-
-        if (kDebugMode) {
-          debugPrint('Extracted: ${file.name} (${file.size} bytes)');
-        }
-      }
-    }
-
-    return extractedFiles;
+    // Archive decode + extract is CPU-heavy: it runs off the UI isolate
+    // so decompressing never janks the app (#98).
+    return compute(
+      _decompressArchive,
+      _DecompressRequest(archivePath, outputDir),
+    );
   }
 
   /// Suggest alternative identifiers when the original one is not found

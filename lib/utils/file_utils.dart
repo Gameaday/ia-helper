@@ -1,7 +1,38 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:path_provider/path_provider.dart';
+
+/// Plain-data request for [_hashFileOnIsolate]: an isolate worker must not
+/// capture anything beyond what can be sent across the port.
+class _HashRequest {
+  final String path;
+  final bool useSha1;
+  const _HashRequest(this.path, this.useSha1);
+}
+
+/// Top-level isolate worker: streams the file through the digest without
+/// loading it into memory (#83) and off the UI isolate (#98).
+Future<String?> _hashFileOnIsolate(_HashRequest request) async {
+  try {
+    final file = File(request.path);
+    if (!await file.exists()) {
+      return null;
+    }
+
+    // The crypto hashes act as stream transformers: bind the file's
+    // byte stream and await the single emitted digest.
+    final source = file.openRead();
+    final digest = request.useSha1
+        ? await sha1.bind(source).last
+        : await md5.bind(source).last;
+    return digest.toString();
+  } catch (e) {
+    // Return null on any error (file not found, permission denied, etc.)
+    return null;
+  }
+}
 
 /// Utility class for file operations and formatting
 class FileUtils {
@@ -228,6 +259,8 @@ class FileUtils {
   ///
   /// Streams the file instead of reading it fully into memory: multi-GB
   /// archive downloads must not OOM during checksum validation (#83).
+  /// The digest runs on a background isolate so hashing multi-GB files
+  /// never janks the UI either (#98).
   /// Returns null when the file does not exist or cannot be read.
   static Future<String?> calculateFileHash(
     String filePath, {
@@ -245,23 +278,12 @@ class FileUtils {
         );
     }
 
-    try {
-      final file = File(filePath);
-      if (!await file.exists()) {
-        return null;
-      }
-
-      // The crypto hashes act as stream transformers: bind the file's
-      // byte stream and await the single emitted digest.
-      final source = file.openRead();
-      final digest = algorithm == 'sha1'
-          ? await sha1.bind(source).last
-          : await md5.bind(source).last;
-      return digest.toString();
-    } catch (e) {
-      // Return null on any error (file not found, permission denied, etc.)
-      return null;
-    }
+    // Heavy digesting runs off the UI isolate (#98); the worker streams
+    // the file so memory stays flat (#83).
+    return compute(
+      _hashFileOnIsolate,
+      _HashRequest(filePath, algorithm == 'sha1'),
+    );
   }
 
   /// Verify a downloaded file against an expected hex checksum (#83).
