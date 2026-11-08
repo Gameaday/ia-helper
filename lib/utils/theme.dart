@@ -17,10 +17,13 @@ import 'package:flutter/material.dart';
 /// Light and dark themes are built from a single [_buildTheme] helper so both
 /// brightness modes stay perfectly symmetric. Component coverage includes
 /// AppBar, Card, all button variants (filled, elevated, text, outlined),
-/// InputDecorator, TabBar, Checkbox, Radio, Switch, Slider, Dialog,
-/// BottomSheet, Chip, SnackBar, NavigationBar, NavigationRail, NavigationDrawer,
-/// Badge, SegmentedButton, SearchBar, SearchView, PopupMenu, DropdownMenu,
-/// MenuButton, Tooltip, FAB, ListTile, Divider, and ProgressIndicator.
+/// IconButton, InputDecorator, TabBar, Checkbox, Radio, Switch, Slider,
+/// Dialog, DatePicker, TimePicker, Drawer, ExpansionTile, BottomSheet, Chip,
+/// SnackBar, NavigationBar, NavigationRail, NavigationDrawer, Badge,
+/// SegmentedButton, SearchBar, SearchView, PopupMenu, DropdownMenu, MenuButton,
+/// Tooltip, FAB, ListTile, Divider, and ProgressIndicator. Page transitions on
+/// Android use the predictive-back zoom so navigation motion feels native and
+/// expressive.
 class AppTheme {
   // Internet Archive brand colors
   static const Color internetArchiveBlue = Color(0xFF004B87);
@@ -176,6 +179,13 @@ class AppTheme {
       splashFactory: InkSparkle.splashFactory,
       textTheme: _expressiveTextTheme(colorScheme.brightness),
 
+      // Expressive navigation: predictive-back zoom on Android
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+        },
+      ),
+
       // App Bar with Material 3 Expressive styling
       appBarTheme: AppBarTheme(
         centerTitle: true,
@@ -250,6 +260,15 @@ class AppTheme {
         ),
       ),
 
+      // Icon buttons: soft rounded squares, expressive and thumb-friendly
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+
       // Input fields: soft filled wells that focus with a bold ink ring
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -271,6 +290,11 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
+        prefixIconColor: colorScheme.onSurfaceVariant,
+        floatingLabelStyle: TextStyle(
+          color: colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -281,6 +305,7 @@ class AppTheme {
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: colorScheme.primary,
         linearTrackColor: colorScheme.surfaceContainerHighest,
+        circularTrackColor: colorScheme.surfaceContainerHighest,
       ),
 
       // Bottom navigation (legacy widget support)
@@ -316,6 +341,7 @@ class AppTheme {
           horizontal: 16,
           vertical: 8,
         ),
+        iconColor: colorScheme.onSurfaceVariant,
       ),
 
       // Material Expressive: Dialog theme
@@ -333,6 +359,38 @@ class AppTheme {
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
+      ),
+
+      // Material Expressive: Date picker theme
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+
+      // Material Expressive: Time picker theme
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+      ),
+
+      // Material Expressive: Drawer theme
+      drawerTheme: DrawerThemeData(
+        backgroundColor: colorScheme.surfaceContainerLow,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(28)),
+        ),
+      ),
+
+      // Material Expressive: Expansion tiles
+      expansionTileTheme: ExpansionTileThemeData(
+        iconColor: colorScheme.primary,
+        collapsedIconColor: colorScheme.onSurfaceVariant,
+        textColor: colorScheme.onSurface,
+        collapsedTextColor: colorScheme.onSurface,
+        backgroundColor: Colors.transparent,
+        collapsedBackgroundColor: Colors.transparent,
+        shape: const Border(),
+        collapsedShape: const Border(),
       ),
 
       // Material Expressive: Bottom sheet theme
