@@ -62,7 +62,8 @@ void main() {
     for (final label in ['Home', 'Library', 'Discover', 'Transfers', 'More']) {
       expect(find.text(label), findsOneWidget);
     }
-    expect(find.byIcon(Icons.home_outlined), findsAtLeastNWidgets(1));
+    // The Home destination is selected, so M3 renders its selectedIcon.
+    expect(find.byIcon(Icons.home), findsAtLeastNWidgets(1));
   });
 
   testWidgets('compact window switches tabs through the bottom bar', (
