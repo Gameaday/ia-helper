@@ -174,7 +174,7 @@ class SafDownloadService {
     final treeUri = await currentTreeUri();
     if (treeUri == null) return SafExportOutcome.notConfigured;
 
-    final bool valid;
+    bool valid;
     try {
       final ok = await _channel.invokeMethod('hasValidGrant', {
         'treeUri': treeUri,

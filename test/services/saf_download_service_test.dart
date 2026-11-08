@@ -18,7 +18,7 @@ void main() {
   /// Behavior table for the mock handler: method -> result or exception.
   final behaviors = <String, Object?>{};
 
-  Object? handler(MethodCall call) {
+  Future<Object?> handler(MethodCall call) async {
     received.add(call);
     final behavior = behaviors[call.method];
     if (behavior is Exception) {
