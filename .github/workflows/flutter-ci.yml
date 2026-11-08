@@ -7,6 +7,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  issues: write
+
 concurrency:
   group: ci-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
@@ -122,9 +125,12 @@ jobs:
       # notification permissions from the app manifest; this step fails the
       # build if any of them ever reappear via the manifest merger.
       - name: Guard merged manifest permissions
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          set -e
+          set +e
           AAB="build/app/outputs/bundle/productionRelease/app-production-release.aab"
+          VIOL=0
           if [ ! -f "$AAB" ]; then
             echo "::error::AAB not found at $AAB - permission guard cannot run"
             find build/app/outputs -type f 2>/dev/null | head -5 | while IFS= read -r f; do printf "::error::output: %s\n" "$f"; done
@@ -134,10 +140,24 @@ jobs:
           unzip -p "$AAB" base/AndroidManifest.xml > /tmp/manifest.bin
           strings /tmp/manifest.bin | grep -o "android.permission\.[A-Z_]*" | sort -u | tee /tmp/perms.txt
           echo "---------------------------------------------"
+          cat /tmp/perms.txt | while IFS= read -r p; do printf "::notice::AAB permission: %s\n" "$p"; done
           if grep -qE "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt; then
-            echo "Play-policy-sensitive permissions found in the built AAB:"
-            grep -E "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt | while IFS= read -r line; do
-              printf "::error::%s in AAB manifest (Play policy risk)\n" "$line"
-            done
-            exit 1
+            VIOL=1
+            grep -E "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt | while IFS= read -r line; do printf "::error::%s in AAB manifest (Play policy risk)\n" "$line"; done
+            {
+              echo "Play-policy-sensitive permissions found in the production AAB manifest:"
+              echo ""
+              echo "```"
+              grep -E "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt
+              echo "```"
+              echo ""
+              echo "Injector hunt - build-tree manifests declaring READ_MEDIA:"
+              echo "```"
+              find build android/app/build -name AndroidManifest.xml 2>/dev/null | while IFS= read -r f; do
+                if strings "$f" 2>/dev/null | grep -q "READ_MEDIA"; then echo "$f"; fi
+              done
+              echo "```"
+            } > /tmp/comment.md
+            gh api --method POST repos/Gameaday/ia-helper/issues/81/comments -F body=@/tmp/comment.md
           fi
+          if [ $VIOL -ne 0 ]; then exit 1; fi
