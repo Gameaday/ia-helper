@@ -223,7 +223,16 @@ jobs:
           fi
           AAB_MB=$(du -m "$AAB" | cut -f1)
           echo "--- AAB module breakdown (MB) ---"
-          unzip -l "$AAB" | awk '$1 ~ /^[0-9]+$/ {split($NF,p,"/"); mod=(p[2]!="") ? p[1]"/"p[2] : p[1]; size[mod]+=$1} END {for (m in size) printf "%8.1f  %s\n", size[m]/1048576, m}' | sort -rn | head -20
+          unzip -l "$AAB" | awk '$1 ~ /^[0-9]+$/ {split($NF,p,"/"); mod=(p[2]!="") ? p[1]"/"p[2] : p[1]; size[mod]+=$1} END {for (m in size) printf "%8.1f  %s\n", size[m]/1048576, m}' | sort -rn | head -20 | tee /tmp/breakdown.txt
+          # Top entries re-emitted as ::notice so size trends are visible
+          # without admin log access (same reason as the size notices
+          # below). Kept at 6 to stay under the per-step annotation cap.
+          i=0
+          while IFS= read -r line && [ $i -lt 6 ]; do
+            [ -z "$line" ] && continue
+            printf "::notice::AAB module: %s\n" "$line"
+            i=$((i+1))
+          done < /tmp/breakdown.txt
           echo "---------------------------------------------"
           curl -fsSL -o /tmp/bundletool.jar https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
           rc=$?
