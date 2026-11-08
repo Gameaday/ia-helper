@@ -301,7 +301,10 @@ class _FileListWidgetState extends State<FileListWidget> {
               : ListView.builder(
                   itemCount: sortedFiles.length,
                   // Optimized cache extent for smooth scrolling with large lists
-                  scrollCacheExtent: 1000,
+                  // Dot shorthand: ScrollCacheExtent is not publicly
+                  // exported, but const .pixels(...) infers it from the
+                  // parameter type (see flutter/flutter#189347).
+                  scrollCacheExtent: const .pixels(1000),
                   // Virtual scrolling: only builds visible items + cache
                   itemBuilder: (context, index) {
                     return _buildFileItem(sortedFiles[index]);
