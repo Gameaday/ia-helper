@@ -8,7 +8,7 @@ class WhatsNewDialog extends StatelessWidget {
   const WhatsNewDialog({super.key});
 
   /// Version for which this What's New content is shown
-  static const String targetVersion = '1.9.0';
+  static const String targetVersion = '2.0.0';
 
   /// SharedPreferences key for tracking last shown version
   static const String _prefKey = 'whats_new_last_shown_version';
@@ -37,7 +37,7 @@ class WhatsNewDialog extends StatelessWidget {
             size: 28,
           ),
           const SizedBox(width: 12),
-          const Text("What's New in v1.9"),
+          const Text("What's New in v2.0"),
         ],
       ),
       content: SingleChildScrollView(
@@ -46,7 +46,7 @@ class WhatsNewDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "A big reliability and management update - here's what's new:",
+              "Your downloads, your rules - here's what's new:",
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -55,61 +55,51 @@ class WhatsNewDialog extends StatelessWidget {
 
             _buildFeatureItem(
               context,
-              icon: Icons.download_done_outlined,
+              icon: Icons.folder_outlined,
               iconColor: SemanticColors.success,
-              title: 'Resumable Downloads',
+              title: 'Choose Any Folder',
               description:
-                  'Downloads pick up where they left off and survive app restarts',
+                  'Pick exactly where downloads go with Android\'s file picker, including subfolders',
             ),
             const SizedBox(height: 16),
 
             _buildFeatureItem(
               context,
-              icon: Icons.wifi_off_outlined,
+              icon: Icons.bookmark_add_outlined,
               iconColor: SemanticColors.info,
-              title: 'Connection-Aware',
+              title: 'Saved Searches & Watchlist',
               description:
-                  'Transfers pause when you go offline and resume automatically',
+                  'Save searches for later and watch items to catch new files as they land',
             ),
             const SizedBox(height: 16),
 
             _buildFeatureItem(
               context,
-              icon: Icons.hub_outlined,
+              icon: Icons.ios_share_outlined,
               iconColor: SemanticColors.warning,
-              title: 'Torrent Handoff',
+              title: 'Export Your Data',
               description:
-                  'Share an item\'s official torrent to your torrent app for seeding',
+                  'Export saved searches and your watchlist to JSON for backups',
             ),
             const SizedBox(height: 16),
 
             _buildFeatureItem(
               context,
-              icon: Icons.sync_outlined,
+              icon: Icons.notifications_active_outlined,
               iconColor: SemanticColors.primary(context),
-              title: 'Library Sync',
+              title: 'Download Notifications',
               description:
-                  'Verify downloaded items against Archive.org and repair changes',
+                  'See progress at a glance with pause, resume, and cancel actions',
             ),
             const SizedBox(height: 16),
 
             _buildFeatureItem(
               context,
-              icon: Icons.manage_accounts_outlined,
+              icon: Icons.restart_alt_outlined,
               iconColor: SemanticColors.info,
-              title: 'Manage Your Items',
+              title: 'More Reliable Transfers',
               description:
-                  'Add your Archive.org S3 keys to browse and edit your own uploads',
-            ),
-            const SizedBox(height: 16),
-
-            _buildFeatureItem(
-              context,
-              icon: Icons.tablet_outlined,
-              iconColor: SemanticColors.success,
-              title: 'Tablet Layout',
-              description:
-                  'Adaptive navigation and grids that feel at home on big screens',
+                  'The download queue survives restarts and reacts to connection changes',
             ),
             const SizedBox(height: 20),
 
@@ -129,7 +119,7 @@ class WhatsNewDialog extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Check Settings for bandwidth limits, cache controls, and your account',
+                      'Watchlist lives in the Library tab - check it to stay on top of new uploads',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                       ),

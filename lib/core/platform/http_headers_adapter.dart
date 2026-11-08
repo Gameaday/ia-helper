@@ -14,7 +14,7 @@ class HttpHeadersAdapter {
   HttpHeadersAdapter._internal();
 
   // Flutter version constant (since Flutter doesn't expose this at runtime)
-  static const String _kFlutterVersion = '3.35.5';
+  static const String _kFlutterVersion = '3.47.9';
 
   /// Get platform-appropriate HTTP headers
   ///
@@ -33,7 +33,7 @@ class HttpHeadersAdapter {
 
   /// Build User-Agent string for native platforms
   ///
-  /// Format: "IA-Helper/1.0 (Android 13; API 33) Flutter/3.35.5 Dart/3.9.2"
+  /// Format: "IA-Helper/2.0.0 (Android 13; API 33) Flutter/3.47.9 Dart/3.9.2"
   ///
   /// Components:
   /// - App name and version
@@ -42,9 +42,9 @@ class HttpHeadersAdapter {
   /// - Dart version
   String _buildUserAgent() {
     final appName = 'IA-Helper';
-    // Using hardcoded version for now - matches pubspec.yaml version: 1.0.0+1
+    // Keep in sync with pubspec.yaml `version:` on every release bump.
     // Can be upgraded to package_info_plus later if dynamic version is needed
-    final appVersion = '1.0.0';
+    final appVersion = '2.0.0';
 
     final platformInfo = _getPlatformInfo();
     final flutterVersion = _getFlutterVersion();
@@ -87,7 +87,7 @@ class HttpHeadersAdapter {
 
   /// Get Flutter/Dart version string
   ///
-  /// Format: "Flutter/3.35.5 Dart/3.9.2"
+  /// Format: "Flutter/3.47.9 Dart/3.9.2"
   ///
   /// Note: Flutter version is hardcoded since Flutter doesn't expose
   /// it at runtime. Dart version comes from Platform.version.

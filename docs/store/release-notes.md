@@ -2,6 +2,21 @@
 
 > Google caps release notes at **500 characters** per language. Keep each entry under the cap — the drafts below already are.
 
+## v2.0.0 — Phase 3 completion (November 2026)
+
+```
+What's new in 2.0.0:
+
+• Pick any folder for downloads with Android's file picker - subfolders included
+• Save searches, watch items for new files, and export both as JSON
+• Download notifications with pause, resume, and cancel actions
+• Fixes: download queue now survives app restarts and reacts to connection changes
+
+Questions or ideas? Reach us via GitHub issues - links in Settings → About.
+```
+
+*(~420 characters — fits the 500 limit.)*
+
 ## v1.7.0 — Play debut (November 2026)
 
 ```

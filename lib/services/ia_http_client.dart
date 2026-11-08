@@ -11,7 +11,7 @@ import '../models/rate_limit_status.dart';
 /// NOTE: Flutter doesn't expose SDK version at runtime without external dependencies.
 /// This constant should be updated when upgrading Flutter SDK.
 /// Run `flutter --version` to get the current version.
-const String _kFlutterVersion = '3.35.5';
+const String _kFlutterVersion = '3.47.9';
 
 /// Metrics for tracking HTTP client operations
 class HttpClientMetrics {
@@ -109,7 +109,7 @@ class IAHttpClient {
        _rateLimiter = rateLimiter ?? archiveRateLimiter,
        userAgent =
            userAgent ??
-           'InternetArchiveHelper/1.9.0 ($contact) Flutter/${_getFlutterVersion()}',
+           'InternetArchiveHelper/2.0.0 ($contact) Flutter/${_getFlutterVersion()}',
        retryDelays =
            customRetryDelays ??
            [
@@ -483,8 +483,8 @@ class IAHttpClient {
   /// Flutter SDK version is defined as a constant since Flutter doesn't expose it at runtime.
   ///
   /// Format examples:
-  /// - Native: "Flutter/3.35.5 Dart/3.8.0"
-  /// - Web: "Flutter/3.35.5 (Web)"
+  /// - Native: "Flutter/3.47.9 Dart/3.8.0"
+  /// - Web: "Flutter/3.47.9 (Web)"
   static String _getFlutterVersion() {
     try {
       // Platform.version includes full Dart version info

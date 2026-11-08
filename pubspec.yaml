@@ -1,6 +1,6 @@
 name: internet_archive_helper
 description: Internet Archive Helper - Mobile app for downloading files from the Internet Archive
-version: 1.9.0
+version: 2.0.0
 
 environment:
   sdk: '>=3.12.0 <4.0.0'
@@ -79,4 +79,3 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
-
