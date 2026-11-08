@@ -62,7 +62,8 @@ jobs:
       # cap at 10, so the full failure block is also posted to issue #98
       # (step logs are admin-only on this repo).
       - name: Test
-        env:
+        en
+v:
           GH_TOKEN: ${{ github.token }}
         run: |
           set +e
@@ -114,7 +115,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: st
+able
           cache: true
 
       # Captures the full build log so that on failure the key Gradle error
@@ -123,7 +125,14 @@ jobs:
       - name: Build production AAB
         run: |
           set +e
-          flutter build appbundle --release --flavor production --no-tree-shake-icons > /tmp/build.log 2>&1
+          # #98: --target-platform is what actually excludes x86_64 from the AAB.
+          # The flavor ndk.abiFilters do NOT filter the libs the Flutter
+          # Gradle plugin injects (libapp.so/libflutter.so) — flutter build
+          # appbundle defaults to arm+arm64+x64 and the plugin adds all of
+          # them to jniLibs regardless of abiFilters, so the AAB kept
+          # shipping x86_64 (~25 MB of base/lib). ARM-only matches the
+          # production abiFilters; dev/staging keep x86_64 for emulators.
+          flutter build appbundle --release --flavor production --no-tree-shake-icons --target-platform android-arm,android-arm64 > /tmp/build.log 2>&1
           rc=$?
           set -e
           cat /tmp/build.log
@@ -158,6 +167,7 @@ jobs:
             echo "::error::AAB not found at $AAB - permission guard cannot run"
             find build/app/outputs -type f 2>/dev/null | head -5 | while IFS= read -r f; do printf "::error::output: %s\n" "$f"; done
             exit 1
+
           fi
           echo "--- permissions inside built AAB manifest ---"
           # In an AAB (unlike an APK) the merged manifest lives at base/manifest/AndroidManifest.xml
@@ -188,7 +198,8 @@ jobs:
               echo "Injector hunt - build-tree manifests declaring READ_MEDIA:"
               echo "```"
               find build android/app/build -name AndroidManifest.xml 2>/dev/null | while IFS= read -r f; do
-                if strings "$f" 2>/dev/null | grep -q "READ_MEDIA"; then echo "$f"; fi
+                if strings "$f" 2>/dev/null | grep -q "READ_MEDI
+A"; then echo "$f"; fi
               done
               echo "```"
             } > /tmp/comment.md
@@ -225,7 +236,8 @@ jobs:
           echo "--- AAB module breakdown (MB) ---"
           unzip -l "$AAB" | awk '$1 ~ /^[0-9]+$/ {split($NF,p,"/"); mod=(p[2]!="") ? p[1]"/"p[2] : p[1]; size[mod]+=$1} END {for (m in size) printf "%8.1f  %s\n", size[m]/1048576, m}' | sort -rn | head -20 | tee /tmp/breakdown.txt
           # Top entries re-emitted as ::notice so size trends are visible
-          # without admin log access (same reason as the size notices
+          # without admin log access (same reason as the siz
+e notices
           # below). Kept at 6 to stay under the per-step annotation cap.
           i=0
           while IFS= read -r line && [ $i -lt 6 ]; do
@@ -258,7 +270,8 @@ jobs:
           echo "AAB: ${AAB_MB} MB (budget ${AAB_BUDGET_MB} MB)"
           echo "Universal APK: ${UNI_MB} MB (budget ${UNIVERSAL_BUDGET_MB} MB)"
           printf "::notice::AAB size: %s MB (budget %s MB)\n" "$AAB_MB" "$AAB_BUDGET_MB"
-          printf "::notice::Universal APK size: %s MB (budget %s MB)\n" "$UNI_MB" "$UNIVERSAL_BUDGET_MB"
+          printf "
+::notice::Universal APK size: %s MB (budget %s MB)\n" "$UNI_MB" "$UNIVERSAL_BUDGET_MB"
           if [ "$AAB_MB" -gt "$AAB_BUDGET_MB" ]; then
             echo "::error::AAB size ${AAB_MB} MB exceeds budget ${AAB_BUDGET_MB} MB - check module breakdown above"
             VIOL=1
