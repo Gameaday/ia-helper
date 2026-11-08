@@ -215,8 +215,7 @@ class DownloadProvider extends ChangeNotifier {
   int _totalBytesDownloaded = 0;
 
   /// Constructor with optional bandwidth manager injection
-  DownloadProvider({BandwidthManagerProvider? bandwidthManager})
-    : _bandwidthManager = bandwidthManager;
+  DownloadProvider({this._bandwidthManager});
 
   /// Get all downloads
   Map<String, DownloadState> get downloads => Map.unmodifiable(_downloads);
@@ -439,7 +438,7 @@ class DownloadProvider extends ChangeNotifier {
           outputPath = FileUtils.safeJoin(downloadDir, file.name);
         } catch (e) {
           if (kDebugMode) {
-            debugPrint('Skipping file with unsafe name: ' + file.name);
+            debugPrint('Skipping file with unsafe name: ${file.name}');
           }
           continue;
         }

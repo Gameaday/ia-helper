@@ -205,11 +205,9 @@ class InternetArchiveApi {
 
   InternetArchiveApi({
     IAHttpClient? client,
-    MetadataCache? cache,
-    BandwidthThrottle? bandwidthThrottle,
-  }) : _client = client ?? IAHttpClient(rateLimiter: archiveRateLimiter),
-       _cache = cache,
-       _bandwidthThrottle = bandwidthThrottle;
+    this._cache,
+    this._bandwidthThrottle,
+  }) : _client = client ?? IAHttpClient(rateLimiter: archiveRateLimiter);
 
   /// Fetch metadata for an Internet Archive item
   ///

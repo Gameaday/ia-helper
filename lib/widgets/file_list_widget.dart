@@ -301,7 +301,7 @@ class _FileListWidgetState extends State<FileListWidget> {
               : ListView.builder(
                   itemCount: sortedFiles.length,
                   // Optimized cache extent for smooth scrolling with large lists
-                  cacheExtent: 1000,
+                  scrollCacheExtent: 1000,
                   // Virtual scrolling: only builds visible items + cache
                   itemBuilder: (context, index) {
                     return _buildFileItem(sortedFiles[index]);

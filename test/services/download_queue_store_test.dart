@@ -3,7 +3,6 @@ import 'package:internet_archive_helper/database/database_helper.dart';
 import 'package:internet_archive_helper/models/archive_metadata.dart';
 import 'package:internet_archive_helper/models/download_progress.dart';
 import 'package:internet_archive_helper/services/download_queue_store.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Round-trip and recovery-filter tests for the download queue store (#84).

@@ -58,8 +58,8 @@ class RateLimitException extends IAException {
 
 /// Exception thrown for network-related errors
 class NetworkException extends IAException {
-  const NetworkException(String message, {dynamic originalError})
-    : super('Network error: $message', originalError: originalError);
+  const NetworkException(String message, {super.originalError})
+    : super('Network error: $message');
 }
 
 /// Exception thrown for server errors
@@ -103,8 +103,8 @@ class DownloadException extends IAException {
   const DownloadException(
     this.filename,
     String message, {
-    dynamic originalError,
-  }) : super('Download failed: $message', originalError: originalError);
+    super.originalError,
+  }) : super('Download failed: $message');
 }
 
 /// Exception thrown for checksum validation failures
@@ -122,6 +122,6 @@ class ChecksumException extends IAException {
 
 /// Exception thrown for parsing errors
 class ParsingException extends IAException {
-  const ParsingException(String message, {dynamic originalError})
-    : super('Failed to parse response: $message', originalError: originalError);
+  const ParsingException(String message, {super.originalError})
+    : super('Failed to parse response: $message');
 }

@@ -440,7 +440,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
     return ReorderableListView.builder(
       padding: const EdgeInsets.only(bottom: 16),
       itemCount: _filteredTasks.length,
-      onReorder: _handleReorder,
+      onReorderItem: _handleReorder,
       itemBuilder: (context, index) {
         final task = _filteredTasks[index];
         final progress = _progressMap[task.id];
@@ -556,10 +556,8 @@ class _TransfersScreenState extends State<TransfersScreen> {
   }
 
   Future<void> _handleReorder(int oldIndex, int newIndex) async {
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
-    }
-
+    // onReorderItem hands us an already-adjusted newIndex (the framework
+    // subtracts the removed item at oldIndex), so no manual correction.
     setState(() {
       final task = _filteredTasks.removeAt(oldIndex);
       _filteredTasks.insert(newIndex, task);

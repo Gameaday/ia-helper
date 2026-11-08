@@ -168,9 +168,8 @@ class ArchiveSyncService {
 
   ArchiveSyncService({
     InternetArchiveApi? api,
-    Future<ArchiveMetadata> Function(String identifier)? metadataFetcher,
-  }) : _apiOverride = api,
-       _metadataFetcher = metadataFetcher;
+    this._metadataFetcher,
+  }) : _apiOverride = api;
 
   /// Conditional metadata refresh + local file audit for [archive].
   Future<ArchiveSyncReport> audit(DownloadedArchive archive) async {

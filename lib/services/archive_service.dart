@@ -33,14 +33,12 @@ class ArchiveService extends ChangeNotifier {
   final LocalArchiveStorage? _localArchiveStorage;
 
   ArchiveService({
-    HistoryService? historyService,
-    LocalArchiveStorage? localArchiveStorage,
+    this._historyService,
+    this._localArchiveStorage,
     IAHttpClient? httpClient,
     BandwidthThrottle? bandwidthThrottle,
     MetadataCache? cache,
-  }) : _cache = cache ?? MetadataCache(),
-       _historyService = historyService,
-       _localArchiveStorage = localArchiveStorage {
+  }) : _cache = cache ?? MetadataCache() {
     _api = InternetArchiveApi(
       client: httpClient,
       cache: _cache,

@@ -310,9 +310,9 @@ class FileUtils {
   static String safeJoin(String directory, String fileName) {
     final sanitized = sanitizeFilename(fileName);
     if (sanitized.isEmpty || sanitized == '.' || sanitized == '..') {
-      throw ArgumentError('Invalid file name: ' + fileName);
+      throw ArgumentError('Invalid file name: $fileName');
     }
-    return directory + '/' + sanitized;
+    return '$directory/$sanitized';
   }
 
   /// Default download directory: the app-scoped external storage directory
@@ -325,6 +325,6 @@ class FileUtils {
     if (dir == null) {
       throw Exception('External storage directory unavailable');
     }
-    return dir.path + '/ia-get';
+    return '${dir.path}/ia-get';
   }
 }

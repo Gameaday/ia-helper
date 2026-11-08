@@ -51,7 +51,7 @@ class FlutterSecureStore implements SecureKeyValueStore {
   final FlutterSecureStorage _storage;
 
   FlutterSecureStore([FlutterSecureStorage? storage])
-    : _storage = storage ?? FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage();
 
   @override
   Future<String?> read(String key) => _storage.read(key: key);
