@@ -53,7 +53,7 @@ class CollectionPicker extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      style: MD3Sheets.modalEntrance,
+      sheetAnimationStyle: MD3Sheets.modalEntrance,
       builder: (context) => CollectionPicker(
         identifier: identifier,
         title: title,

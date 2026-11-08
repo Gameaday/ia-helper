@@ -151,7 +151,7 @@ class _DownloadControlsWidgetState extends State<DownloadControlsWidget> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      style: MD3Sheets.modalEntrance,
+      sheetAnimationStyle: MD3Sheets.modalEntrance,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,

@@ -38,7 +38,7 @@ class SearchHistorySheet extends StatefulWidget {
       showDragHandle: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 1,
-      style: MD3Sheets.modalEntrance,
+      sheetAnimationStyle: MD3Sheets.modalEntrance,
       shape: const RoundedRectangleBorder(borderRadius: AppShapes.topExtraLarge),
       builder: (context) =>
           SearchHistorySheet(onSearchSelected: onSearchSelected),

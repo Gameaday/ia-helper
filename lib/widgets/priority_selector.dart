@@ -106,7 +106,7 @@ class PrioritySelector extends StatelessWidget {
   void _showPriorityPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      style: MD3Sheets.modalEntrance,
+      sheetAnimationStyle: MD3Sheets.modalEntrance,
       shape: const RoundedRectangleBorder(borderRadius: AppShapes.topLarge),
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 24),

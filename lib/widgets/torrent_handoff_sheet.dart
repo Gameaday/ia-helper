@@ -23,7 +23,7 @@ class TorrentHandoffSheet extends StatefulWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      style: MD3Sheets.modalEntrance,
+      sheetAnimationStyle: MD3Sheets.modalEntrance,
       builder: (_) =>
           TorrentHandoffSheet(identifier: identifier, title: title),
     );

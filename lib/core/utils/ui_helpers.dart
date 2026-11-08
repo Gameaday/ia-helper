@@ -221,7 +221,7 @@ class UIHelpers {
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       isScrollControlled: true,
-      style: MD3Sheets.modalEntrance,
+      sheetAnimationStyle: MD3Sheets.modalEntrance,
       builder: (context) => child,
     );
   }
