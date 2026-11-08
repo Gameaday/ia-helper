@@ -116,3 +116,26 @@ jobs:
             done < /tmp/keylines.txt
           fi
           exit $rc
+
+      # Play policy guard: the merged manifest (app + all plugins) is what
+      # Google Play scans. Phase 0 (#81/#82) removed all media/storage/
+      # notification permissions from the app manifest; this step fails the
+      # build if any of them ever reappear via the manifest merger.
+      - name: Guard merged manifest permissions
+        run: |
+          set -e
+          MANIFEST=$(find android/app/build/intermediates/merged_manifests -name AndroidManifest.xml -path "*productionRelease*" | head -1)
+          if [ -z "$MANIFEST" ]; then
+            echo "::error::Merged production manifest not found - permission guard cannot run"
+            exit 1
+          fi
+          echo "--- Merged production manifest permissions ---"
+          grep -o "android.permission\.[A-Z_]*" "$MANIFEST" | sort -u | tee /tmp/perms.txt
+          echo "---------------------------------------------"
+          if grep -qE "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt; then
+            echo "Play-policy-sensitive permissions found in merged production manifest:"
+            grep -E "READ_MEDIA|EXTERNAL_STORAGE|POST_NOTIFICATIONS" /tmp/perms.txt | while IFS= read -r line; do
+              echo "::error::$line in merged production manifest (Play policy risk)"
+            done
+            exit 1
+          fi
