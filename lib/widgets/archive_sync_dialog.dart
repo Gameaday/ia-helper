@@ -158,7 +158,7 @@ class _ArchiveSyncDialogState extends State<ArchiveSyncDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
-          outcome.allApplied ? Icons.task_alt : Icons.warning_amber_rounded,
+          outcome.allApplied ? Icons.task_alt : Icons.warning_amber_outlined,
           color: outcome.allApplied ? colorScheme.primary : colorScheme.error,
           size: 48,
         ),

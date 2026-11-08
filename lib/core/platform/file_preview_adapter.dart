@@ -408,7 +408,7 @@ class _WebFilePreviewAdapter implements FilePreviewAdapter {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.download_rounded,
+              Icons.download_outlined,
               size: 96,
               color: Theme.of(context).colorScheme.primary,
             ),

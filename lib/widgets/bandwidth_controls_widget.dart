@@ -42,7 +42,7 @@ class BandwidthControlsWidget extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.speed_rounded, color: Theme.of(context).colorScheme.primary),
+        Icon(Icons.speed_outlined, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 8),
         Text(
           'Bandwidth Limit',
@@ -175,7 +175,7 @@ class BandwidthControlsWidget extends StatelessWidget {
         children: [
           _buildStatRow(
             context,
-            icon: Icons.download_rounded,
+            icon: Icons.download_outlined,
             label: 'Active Downloads',
             value: '${usage.activeDownloads}',
           ),
@@ -205,7 +205,7 @@ class BandwidthControlsWidget extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  Icons.warning_amber_rounded,
+                  Icons.warning_amber_outlined,
                   size: 16,
                   color: Theme.of(context).colorScheme.tertiary,
                 ),

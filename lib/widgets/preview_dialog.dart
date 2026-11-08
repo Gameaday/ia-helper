@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../models/file_preview.dart';
 import '../services/file_preview_service.dart';
 import '../models/archive_metadata.dart';
@@ -323,10 +322,11 @@ class _PreviewDialogState extends State<PreviewDialog> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated loading indicator
-          SpinKitFadingCircle(
-            color: Theme.of(context).colorScheme.primary,
-            size: 60.0,
+          // Themed loading indicator (M3 Expressive)
+          const SizedBox(
+            width: 60,
+            height: 60,
+            child: CircularProgressIndicator(strokeWidth: 4),
           ),
           const SizedBox(height: 24),
 
@@ -704,7 +704,7 @@ class _PreviewDialogState extends State<PreviewDialog> {
           children: [
             // Warning icon
             Icon(
-              Icons.warning_amber_rounded,
+              Icons.warning_amber_outlined,
               size: 80,
               color: Theme.of(context).colorScheme.error,
             ),

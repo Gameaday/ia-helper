@@ -171,7 +171,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Row(
               children: [
                 Icon(
-                  Icons.download_rounded,
+                  Icons.download_outlined,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
@@ -186,14 +186,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               context,
               'Total Downloads',
               _totalDownloads.toString(),
-              Icons.download_done_rounded,
+              Icons.download_done_outlined,
             ),
             const Divider(height: 24),
             _buildStatRow(
               context,
               'Successful',
               _successfulDownloads.toString(),
-              Icons.check_circle_outline_rounded,
+              Icons.check_circle_outline,
               color: AppTheme.successColor,
             ),
             const Divider(height: 24),
@@ -201,7 +201,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               context,
               'Failed',
               _failedDownloads.toString(),
-              Icons.error_outline_rounded,
+              Icons.error_outline,
               color: Theme.of(context).colorScheme.error,
             ),
             const Divider(height: 24),
@@ -209,7 +209,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               context,
               'In Progress',
               _inProgressDownloads.toString(),
-              Icons.hourglass_empty_rounded,
+              Icons.hourglass_empty_outlined,
               color: Theme.of(context).colorScheme.secondary,
             ),
             const Divider(height: 24),
@@ -217,14 +217,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               context,
               'Success Rate',
               '$successRate%',
-              Icons.percent_rounded,
+              Icons.percent_outlined,
             ),
             const Divider(height: 24),
             _buildStatRow(
               context,
               'Total Data Downloaded',
               FileUtils.formatBytes(_totalBytes),
-              Icons.storage_rounded,
+              Icons.storage_outlined,
             ),
           ],
         ),
@@ -242,7 +242,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Row(
               children: [
                 Icon(
-                  Icons.search_rounded,
+                  Icons.search_outlined,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
@@ -257,7 +257,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               context,
               'Total Searches',
               _totalSearches.toString(),
-              Icons.search_rounded,
+              Icons.search_outlined,
             ),
             if (_topSearchTerms.isNotEmpty) ...[
               const Divider(height: 24),
@@ -273,7 +273,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     children: [
                       const SizedBox(width: 8),
                       Icon(
-                        Icons.trending_up_rounded,
+                        Icons.trending_up_outlined,
                         size: 16,
                         color: Theme.of(context).colorScheme.secondary,
                       ),
@@ -305,7 +305,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Row(
               children: [
                 Icon(
-                  Icons.library_books_rounded,
+                  Icons.library_books_outlined,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
@@ -317,21 +317,21 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               context,
               'Favorites',
               _totalFavorites.toString(),
-              Icons.favorite_rounded,
+              Icons.favorite_outlined,
             ),
             const Divider(height: 24),
             _buildStatRow(
               context,
               'Collections',
               _totalCollections.toString(),
-              Icons.collections_bookmark_rounded,
+              Icons.collections_bookmark_outlined,
             ),
             const Divider(height: 24),
             _buildStatRow(
               context,
               'Saved Searches',
               _savedSearches.toString(),
-              Icons.bookmark_rounded,
+              Icons.bookmark_outlined,
             ),
           ],
         ),
@@ -349,7 +349,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Row(
               children: [
                 Icon(
-                  Icons.storage_rounded,
+                  Icons.storage_outlined,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
@@ -361,14 +361,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               context,
               'Downloaded Archives',
               _downloadedArchives.toString(),
-              Icons.archive_rounded,
+              Icons.archive_outlined,
             ),
             const Divider(height: 24),
             _buildStatRow(
               context,
               'Storage Used',
               FileUtils.formatBytes(_downloadedBytes),
-              Icons.folder_rounded,
+              Icons.folder_outlined,
             ),
           ],
         ),

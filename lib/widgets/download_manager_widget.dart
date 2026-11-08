@@ -71,7 +71,7 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
       child: Row(
         children: [
           Icon(
-            Icons.download_rounded,
+            Icons.download_outlined,
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(width: 8),
@@ -113,7 +113,7 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
 
         // Minimize/Expand button
         IconButton(
-          icon: const Icon(Icons.minimize_rounded, size: 20),
+          icon: const Icon(Icons.minimize_outlined, size: 20),
           onPressed: () {
             // Minimize to just show notification summary
             NotificationService.showDownloadSummary(
@@ -131,8 +131,8 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
         IconButton(
           icon: Icon(
             _hasActiveDownloads(service)
-                ? Icons.pause_rounded
-                : Icons.play_arrow_rounded,
+                ? Icons.pause_outlined
+                : Icons.play_arrow_outlined,
             size: 20,
           ),
           onPressed: () => _toggleAllDownloads(service),
@@ -158,7 +158,7 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
         children: [
           _buildStatItem(
             context,
-            icon: Icons.speed_rounded,
+            icon: Icons.speed_outlined,
             label: 'Speed',
             value: stats.averageSpeed > 0
                 ? FileUtils.formatTransferSpeed(stats.averageSpeed)
@@ -166,13 +166,13 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
           ),
           _buildStatItem(
             context,
-            icon: Icons.cloud_download_rounded,
+            icon: Icons.cloud_download_outlined,
             label: 'Downloaded',
             value: FileUtils.formatBytes(stats.activeBytesDownloaded),
           ),
           _buildStatItem(
             context,
-            icon: Icons.schedule_rounded,
+            icon: Icons.schedule_outlined,
             label: 'Session',
             value: _formatSessionDuration(service.sessionDuration),
           ),
@@ -301,27 +301,27 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
 
     switch (download.status) {
       case DownloadStatus.downloading:
-        icon = Icons.download_rounded;
+        icon = Icons.download_outlined;
         color = Theme.of(context).colorScheme.primary;
         break;
       case DownloadStatus.paused:
-        icon = Icons.pause_rounded;
+        icon = Icons.pause_outlined;
         color = Theme.of(context).colorScheme.secondary;
         break;
       case DownloadStatus.completed:
-        icon = Icons.check_circle_rounded;
+        icon = Icons.check_circle_outlined;
         color = SemanticColors.success;
         break;
       case DownloadStatus.error:
-        icon = Icons.error_rounded;
+        icon = Icons.error_outlined;
         color = SemanticColors.error(context);
         break;
       case DownloadStatus.cancelled:
-        icon = Icons.cancel_rounded;
+        icon = Icons.cancel_outlined;
         color = SemanticColors.warning;
         break;
       default:
-        icon = Icons.schedule_rounded;
+        icon = Icons.schedule_outlined;
         color = Theme.of(context).colorScheme.outline;
     }
 
@@ -406,21 +406,21 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
         if (download.status == DownloadStatus.downloading)
           _buildActionButton(
             context,
-            icon: Icons.pause_rounded,
+            icon: Icons.pause_outlined,
             label: 'Pause',
             onPressed: () => service.pauseDownload(download.downloadId),
           )
         else if (download.status == DownloadStatus.paused)
           _buildActionButton(
             context,
-            icon: Icons.play_arrow_rounded,
+            icon: Icons.play_arrow_outlined,
             label: 'Resume',
             onPressed: () => service.resumeDownload(download.downloadId),
           )
         else if (download.status == DownloadStatus.error)
           _buildActionButton(
             context,
-            icon: Icons.refresh_rounded,
+            icon: Icons.refresh_outlined,
             label: 'Retry',
             onPressed: () => _retryDownload(service, download),
           ),
@@ -431,7 +431,7 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
         if (download.status != DownloadStatus.completed)
           _buildActionButton(
             context,
-            icon: Icons.close_rounded,
+            icon: Icons.close_outlined,
             label: 'Cancel',
             onPressed: () => _cancelDownload(context, service, download),
             color: SemanticColors.error(context),
@@ -442,7 +442,7 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
         // View details button
         _buildActionButton(
           context,
-          icon: Icons.info_outline_rounded,
+          icon: Icons.info_outline,
           label: 'Details',
           onPressed: () => _showDownloadDetails(context, download),
         ),

@@ -40,35 +40,35 @@ class _OnboardingWidgetState extends State<OnboardingWidget> {
     final colorScheme = Theme.of(context).colorScheme;
     final pages = <OnboardingPage>[
       OnboardingPage(
-        icon: Icons.library_books_rounded,
+        icon: Icons.library_books_outlined,
         title: 'Welcome to Internet Archive Helper',
         description:
             'Your comprehensive companion for accessing the vast digital collection of the Internet Archive.',
         iconColor: colorScheme.primary,
       ),
       OnboardingPage(
-        icon: Icons.search_rounded,
+        icon: Icons.search_outlined,
         title: 'Find What You Need',
         description:
             'Search and browse millions of books, movies, music, software, and historical documents.',
         iconColor: colorScheme.secondary,
       ),
       OnboardingPage(
-        icon: Icons.download_rounded,
+        icon: Icons.download_outlined,
         title: 'Download with Ease',
         description:
             'High-performance downloads with smart resume capability and progress tracking.',
         iconColor: colorScheme.tertiary,
       ),
       OnboardingPage(
-        icon: Icons.mobile_friendly_rounded,
+        icon: Icons.mobile_friendly_outlined,
         title: 'Optimized for Mobile',
         description:
             'Touch-friendly interface designed for seamless browsing and downloading on your phone.',
         iconColor: colorScheme.primary,
       ),
       OnboardingPage(
-        icon: Icons.security_rounded,
+        icon: Icons.security_outlined,
         title: 'Privacy & Security',
         description:
             'Your data stays private. We only access what you choose to download from the Internet Archive.',

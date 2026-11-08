@@ -141,7 +141,7 @@ class EnhancedProgressCard extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  Icons.warning_amber_rounded,
+                  Icons.warning_amber_outlined,
                   size: 16,
                   color: colorScheme.error,
                 ),

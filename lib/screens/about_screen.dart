@@ -118,7 +118,7 @@ class _AboutScreenState extends State<AboutScreen> {
             Row(
               children: [
                 Icon(
-                  Icons.info_outline_rounded,
+                  Icons.info_outline,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
@@ -153,7 +153,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
-                      Icons.check_circle_outline_rounded,
+                      Icons.check_circle_outline,
                       size: 16,
                       color: Theme.of(context).colorScheme.primary,
                     ),
@@ -184,7 +184,7 @@ class _AboutScreenState extends State<AboutScreen> {
             Row(
               children: [
                 Icon(
-                  Icons.people_outline_rounded,
+                  Icons.people_outline,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
@@ -219,12 +219,12 @@ class _AboutScreenState extends State<AboutScreen> {
         children: [
           ListTile(
             leading: Icon(
-              Icons.gavel_rounded,
+              Icons.gavel_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
             title: const Text('Open Source Licenses'),
             subtitle: const Text('View third-party licenses'),
-            trailing: const Icon(Icons.chevron_right_rounded),
+            trailing: const Icon(Icons.chevron_right_outlined),
             onTap: _showLicensePage,
           ),
           const Divider(height: 1),
@@ -235,7 +235,7 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
             title: const Text('Privacy Policy'),
             subtitle: const Text('How we handle your data'),
-            trailing: const Icon(Icons.chevron_right_rounded),
+            trailing: const Icon(Icons.chevron_right_outlined),
             onTap: () => _launchUrl(
               'https://github.com/gameaday/ia-helper/blob/main/PRIVACY_POLICY.md',
             ),
@@ -248,7 +248,7 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
             title: const Text('Terms of Service'),
             subtitle: const Text('Internet Archive terms'),
-            trailing: const Icon(Icons.chevron_right_rounded),
+            trailing: const Icon(Icons.chevron_right_outlined),
             onTap: () => _launchUrl('https://archive.org/about/terms.php'),
           ),
         ],
@@ -262,12 +262,12 @@ class _AboutScreenState extends State<AboutScreen> {
         children: [
           ListTile(
             leading: Icon(
-              Icons.code_rounded,
+              Icons.code_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
             title: const Text('Source Code'),
             subtitle: const Text('View on GitHub'),
-            trailing: const Icon(Icons.open_in_new_rounded),
+            trailing: const Icon(Icons.open_in_new_outlined),
             onTap: () => _launchUrl('https://github.com/gameaday/ia-helper'),
           ),
           const Divider(height: 1),
@@ -278,19 +278,19 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
             title: const Text('Report Issues'),
             subtitle: const Text('Bug reports & feature requests'),
-            trailing: const Icon(Icons.open_in_new_rounded),
+            trailing: const Icon(Icons.open_in_new_outlined),
             onTap: () =>
                 _launchUrl('https://github.com/gameaday/ia-helper/issues'),
           ),
           const Divider(height: 1),
           ListTile(
             leading: Icon(
-              Icons.chat_bubble_outline_rounded,
+              Icons.chat_bubble_outline,
               color: Theme.of(context).colorScheme.primary,
             ),
             title: const Text('Contact & Support'),
             subtitle: const Text('Get help with the app'),
-            trailing: const Icon(Icons.open_in_new_rounded),
+            trailing: const Icon(Icons.open_in_new_outlined),
             onTap: () =>
                 _launchUrl('https://github.com/gameaday/ia-helper/discussions'),
           ),
@@ -332,7 +332,7 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
             if (onTap != null)
               Icon(
-                Icons.open_in_new_rounded,
+                Icons.open_in_new_outlined,
                 size: 16,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
