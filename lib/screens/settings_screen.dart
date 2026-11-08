@@ -11,6 +11,7 @@ import '../utils/semantic_colors.dart';
 import '../utils/responsive_utils.dart';
 import '../utils/snackbar_helper.dart';
 import '../utils/file_utils.dart';
+import '../services/saf_download_service.dart';
 import '../widgets/cache_statistics_widget.dart';
 import '../widgets/cache_metrics_card.dart';
 import 'ia_account_screen.dart';
@@ -59,6 +60,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // Settings values (real default download path resolved in _loadSettings)
   String _downloadPath = '';
+  // Public download folder chosen via SAF (#90); null = app storage.
+  String? _safFolderName;
   int _concurrentDownloads = 3;
   bool _autoDecompress = false;
   bool _verifyChecksums = true;
@@ -98,9 +101,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // Resolve the real default download directory before first paint
     final defaultDownloadDir = await FileUtils.getDefaultDownloadDirectory();
 
+    // Public SAF folder (#90), if the user picked one earlier.
+    String? safFolderName;
+    try {
+      safFolderName = await SafDownloadService.instance.currentFolderName();
+    } catch (_) {
+      safFolderName = null;
+    }
+
     setState(() {
       _downloadPath =
           _prefs.getString(_keyDownloadPath) ?? defaultDownloadDir;
+      _safFolderName = safFolderName;
       _concurrentDownloads =
           _prefs.getInt(_keyConcurrentDownloads) ?? _concurrentDownloads;
       _autoDecompress = _prefs.getBool(_keyAutoDecompress) ?? _autoDecompress;
@@ -207,7 +219,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.folder),
                   title: const Text('Download Location'),
-                  subtitle: Text(_downloadPath),
+                  subtitle: Text(
+                    _safFolderName != null
+                        ? '$_safFolderName (public folder, copy of each download)'
+                        : _downloadPath,
+                  ),
                   trailing: const Icon(Icons.edit),
                   onTap: _showDownloadPathDialog,
                 ),
@@ -487,18 +503,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Download Location'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_safFolderName != null) ...[
+              Row(
+                children: [
+                  const Icon(Icons.folder_shared, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '$_safFolderName (public folder)',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                icon: const Icon(Icons.folder_off),
+                label: const Text('Use app storage (default)'),
+                onPressed: () async {
+                  await SafDownloadService.instance.clearFolder();
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  setState(() {
+                    _safFolderName = null;
+                  });
+                  SnackBarHelper.showInfo(
+                    context,
+                    'Downloads stay in app storage',
+                  );
+                },
+              ),
+            ],
+            OutlinedButton.icon(
+              icon: const Icon(Icons.drive_file_move_outline),
+              label: const Text('Choose a public folder…'),
+              onPressed: () async {
+                final name = await SafDownloadService.instance.pickFolder();
+                if (!context.mounted) return;
+                if (name != null) {
+                  Navigator.pop(context);
+                  setState(() {
+                    _safFolderName = name;
+                  });
+                  SnackBarHelper.showSuccess(
+                    context,
+                    'A copy of each finished download is saved to $name',
+                  );
+                } else {
+                  SnackBarHelper.showInfo(context, 'No folder chosen');
+                }
+              },
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: controller,
               decoration: const InputDecoration(
-                labelText: 'Path',
+                labelText: 'App storage subdirectory',
                 hintText: 'Default: app storage/ia-get',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Downloads will be saved to this directory',
+              'Downloads always go to app storage first (for previews and '
+              'archive sync); a chosen public folder receives an extra '
+              'copy. No storage permission is needed either way.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: SemanticColors.hint(context),
               ),
@@ -693,6 +766,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Capture context-dependent objects before async operations
               final navigator = Navigator.of(context);
 
+              // Release the SAF folder grant before its pref is cleared (#90)
+              await SafDownloadService.instance.clearFolder();
+
               // Clear all preferences
               await _prefs.clear();
 
@@ -701,6 +777,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await FileUtils.getDefaultDownloadDirectory();
               setState(() {
                 _downloadPath = defaultDownloadDir;
+                _safFolderName = null;
                 _concurrentDownloads = 3;
                 _autoDecompress = false;
                 _verifyChecksums = true;

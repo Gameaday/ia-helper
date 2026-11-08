@@ -10,6 +10,10 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.DocumentsContract
+import android.provider.OpenableColumns
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -26,13 +30,21 @@ class MainActivity: FlutterActivity() {
 
     private val methodChannelName = "com.gameaday.internet_archive_helper/platform"
     private val notificationChannelName = "com.internetarchive.helper/notifications"
+    private val safChannelName = "com.internetarchive.helper/saf"
     private lateinit var methodChannel: MethodChannel
 
     /** Pending result while the POST_NOTIFICATIONS system dialog is showing (#92). */
     private var pendingNotificationPermissionResult: MethodChannel.Result? = null
 
+    /** Pending result while the SAF folder picker is showing (#90). */
+    private var pendingSafResult: MethodChannel.Result? = null
+
+    /** Main-thread poster for results produced on worker threads. */
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     companion object {
         private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 4292
+        private const val SAF_PICK_REQUEST_CODE = 4293
         private const val DOWNLOAD_PROGRESS_CHANNEL_ID = "download_progress"
         private const val DOWNLOAD_COMPLETION_CHANNEL_ID = "download_completion"
     }
@@ -93,6 +105,18 @@ class MainActivity: FlutterActivity() {
         )
         notificationChannel.setMethodCallHandler { call, result ->
             handleNotificationCall(call.method, call.arguments, result)
+        }
+
+        // SAF download-location picker (#90). ACTION_OPEN_DOCUMENT_TREE
+        // with a persistable URI grant: downloads can be copied into a
+        // user-chosen public folder with NO storage permission and the
+        // grant survives restarts.
+        val safChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            safChannelName
+        )
+        safChannel.setMethodCallHandler { call, result ->
+            handleSafCall(call.method, call.arguments, result)
         }
     }
 
@@ -226,6 +250,183 @@ class MainActivity: FlutterActivity() {
             pendingNotificationPermissionResult?.success(granted)
             pendingNotificationPermissionResult = null
         }
+    }
+
+    /**
+     * Method calls for the SAF channel (#90).
+     *
+     * pickFolder -> ACTION_OPEN_DOCUMENT_TREE, takes a persistable
+     * grant and returns {treeUri, folderName} (null on cancel).
+     * hasValidGrant -> whether the stored grant is still held.
+     * releaseGrant -> drop the persistable grant.
+     * exportFile -> create the document in the tree and stream the
+     * local file into it (worker thread; result posted to main).
+     */
+    private fun handleSafCall(
+        method: String,
+        arguments: Any?,
+        result: MethodChannel.Result
+    ) {
+        val args = if (arguments is Map<*, *>) arguments else emptyMap<Any, Any>()
+        when (method) {
+            "pickFolder" -> launchSafPicker(result)
+            "hasValidGrant" -> {
+                val treeUri = args["treeUri"] as? String
+                result.success(hasValidSafGrant(treeUri))
+            }
+            "releaseGrant" -> {
+                releaseSafGrant(args["treeUri"] as? String)
+                result.success(true)
+            }
+            "exportFile" -> exportToSafFolder(args, result)
+            else -> result.notImplemented()
+        }
+    }
+
+    /** Launch the system folder picker; single-flight like #92. */
+    private fun launchSafPicker(result: MethodChannel.Result) {
+        if (pendingSafResult != null) {
+            // A picker is already showing; never stack pickers.
+            result.success(null)
+            return
+        }
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+            )
+        }
+        pendingSafResult = result
+        startActivityForResult(intent, SAF_PICK_REQUEST_CODE)
+    }
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != SAF_PICK_REQUEST_CODE) return
+
+        val pending = pendingSafResult
+        pendingSafResult = null
+        if (resultCode != RESULT_OK || data?.data == null) {
+            pending?.success(null)
+            return
+        }
+        val uri = data.data!!
+        // Persist across restarts - this is the whole point of the SAF
+        // flow (no storage permission, grant survives reboots).
+        try {
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } catch (e: SecurityException) {
+            // Some providers do not offer persistable grants; the
+            // session-scoped grant still works until restart.
+        }
+        pending?.success(
+            mapOf("treeUri" to uri.toString(), "folderName" to prettySafFolderName(uri))
+        )
+    }
+
+    /**
+     * Human-readable name for a tree URI: the document id looks like
+     * "primary:Download", so keep the part after the volume colon.
+     */
+    private fun prettySafFolderName(uri: Uri): String {
+        val docId = try {
+            DocumentsContract.getTreeDocumentId(uri)
+        } catch (e: IllegalArgumentException) {
+            uri.lastPathSegment ?: uri.toString()
+        }
+        val colon = docId.indexOf(':')
+        return if (colon >= 0 && colon + 1 < docId.length) docId.substring(colon + 1) else docId
+    }
+
+    /** Whether the persistable write grant for the tree is still held. */
+    private fun hasValidSafGrant(treeUri: String?): Boolean {
+        if (treeUri == null) return false
+        return contentResolver.persistedUriPermissions.any {
+            it.uri.toString() == treeUri && it.isWritePersistableUriPermission
+        }
+    }
+
+    /** Release the persistable grant (folder reset back to app storage). */
+    private fun releaseSafGrant(treeUri: String?) {
+        if (treeUri == null) return
+        try {
+            contentResolver.releasePersistableUriPermission(
+                Uri.parse(treeUri),
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } catch (e: Exception) {
+            // Already gone: releasing is best-effort.
+        }
+    }
+
+    /**
+     * Copy a finished local download into the chosen folder. Runs on a
+     * worker thread (files can be multi-GB); the MethodChannel result
+     * is posted back on the main thread.
+     */
+    private fun exportToSafFolder(args: Map<*, *>, result: MethodChannel.Result) {
+        val treeUri = args["treeUri"] as? String
+        val filePath = args["filePath"] as? String
+        val fileName = args["fileName"] as? String
+        val mimeType = (args["mimeType"] as? String) ?: "application/octet-stream"
+        if (treeUri == null || filePath == null || fileName == null) {
+            result.error("INVALID_ARGUMENTS", "treeUri, filePath and fileName are required", null)
+            return
+        }
+        Thread {
+            try {
+                val tree = Uri.parse(treeUri)
+                val rootDocUri = DocumentsContract.buildDocumentUriUsingTree(
+                    tree,
+                    DocumentsContract.getTreeDocumentId(tree)
+                )
+                val created = DocumentsContract.createDocument(
+                    contentResolver, rootDocUri, mimeType, fileName
+                ) ?: throw java.io.IOException("SAF provider rejected the document")
+
+                java.io.FileInputStream(java.io.File(filePath)).use { source ->
+                    contentResolver.openOutputStream(created)?.use { sink ->
+                        val buffer = ByteArray(64 * 1024)
+                        while (true) {
+                            val read = source.read(buffer)
+                            if (read < 0) break
+                            sink.write(buffer, 0, read)
+                        }
+                        sink.flush()
+                    } ?: throw java.io.IOException("Could not open the destination stream")
+                }
+
+                // The provider may have renamed on collision; report the
+                // real document name.
+                var documentName = fileName
+                try {
+                    contentResolver.query(created, null, null, null, null)?.use { cursor ->
+                        if (cursor.moveToFirst()) {
+                            val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                            if (idx >= 0) cursor.getString(idx)?.let { documentName = it }
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Display name is cosmetic; the export succeeded.
+                }
+
+                mainHandler.post { result.success(mapOf("documentName" to documentName)) }
+            } catch (e: Exception) {
+                mainHandler.post {
+                    result.error("EXPORT_ERROR", e.message ?: "export failed", null)
+                }
+            }
+        }.start()
     }
 
     /** Content intent that reopens the app when the notification is tapped. */

@@ -86,7 +86,30 @@ App launch prompts for **zero permissions**. The only runtime prompt in the app 
 
 ## Future Considerations
 
-- **Download-location picker (#90)**: SAF `ACTION_OPEN_DOCUMENT_TREE`; no new permissions.
+- ~~**Download-location picker (#90)**: SAF `ACTION_OPEN_DOCUMENT_TREE`; no new permissions.~~ **Shipped (Nov 2026, #90)** — see the "SAF Download-Location Picker" section below.
+
+## SAF Download-Location Picker (#90)
+
+Users may optionally pick a public folder (e.g. Downloads) as a delivery
+destination. This uses the Storage Access Framework, not permissions:
+
+- `ACTION_OPEN_DOCUMENT_TREE` (native channel `com.internetarchive.helper/saf`)
+  returns a content tree URI with a **persistable** read/write grant
+  (`takePersistableUriPermission`), which survives restarts and reboots.
+- **No manifest permission is required or declared** — the grant is
+  user-scoped to the chosen folder. The production manifest still declares
+  exactly INTERNET + ACCESS_NETWORK_STATE + POST_NOTIFICATIONS.
+- Default remains app-scoped storage; the picker is opt-in from
+  Settings → Download Location.
+- Downloads always land in app storage first (resume + checksum +
+  archive-sync all operate there); each finished, verified file is then
+  copied into the chosen folder. The app copy stays canonical for
+  previews and sync.
+- **Revoke handling**: if the folder is deleted or the grant is revoked,
+  the stored grant is cleared, one notification
+  ("Download folder unavailable") informs the user, and downloads
+  continue into app storage — the download itself never fails.
+- Reset (Settings → Reset to Defaults) releases the grant.
 
 ## Developer Contact
 

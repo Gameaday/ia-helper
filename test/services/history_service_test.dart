@@ -319,8 +319,9 @@ void main() {
 
       service.addToHistory(entry);
 
-      // Wait for debounced save (2 seconds) plus buffer
-      await Future.delayed(const Duration(milliseconds: 2100));
+      // Flush the debounced save instead of waiting real time
+      // (the fixed 2.1s wait was flaky on loaded CI runners).
+      await service.debugFlushSave();
 
       // Create new service and load
       final newService = HistoryService();
@@ -348,8 +349,9 @@ void main() {
         );
       }
 
-      // Wait for debounced save (2 seconds) plus buffer
-      await Future.delayed(const Duration(milliseconds: 2100));
+      // Flush the debounced save instead of waiting real time
+      // (the fixed 2.1s wait was flaky on loaded CI runners).
+      await service.debugFlushSave();
 
       // Create new service and load
       final newService = HistoryService();
@@ -413,8 +415,9 @@ void main() {
 
       service.removeFromHistory('archive-1');
 
-      // Wait for debounced save (2 seconds) plus buffer
-      await Future.delayed(const Duration(milliseconds: 2100));
+      // Flush the debounced save instead of waiting real time
+      // (the fixed 2.1s wait was flaky on loaded CI runners).
+      await service.debugFlushSave();
 
       // Create new service and load
       final newService = HistoryService();
@@ -440,8 +443,9 @@ void main() {
 
       service.clearHistory();
 
-      // Wait for debounced save (2 seconds) plus buffer
-      await Future.delayed(const Duration(milliseconds: 2100));
+      // Flush the debounced save instead of waiting real time
+      // (the fixed 2.1s wait was flaky on loaded CI runners).
+      await service.debugFlushSave();
 
       // Create new service and load
       final newService = HistoryService();

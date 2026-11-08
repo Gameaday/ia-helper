@@ -529,6 +529,21 @@ class HistoryService extends ChangeNotifier {
     });
   }
 
+  /// Test seam: cancel the pending debounce and save immediately.
+  ///
+  /// Production code relies on the 2-second debounce; tests must use
+  /// this instead of waiting real time - fixed waits for timers are
+  /// flaky on loaded CI runners (the timer can fire after the wait).
+  @visibleForTesting
+  Future<void> debugFlushSave() async {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    if (_needsSave) {
+      await _saveHistory();
+      _needsSave = false;
+    }
+  }
+
   /// Dispose resources and save pending changes
   @override
   void dispose() {

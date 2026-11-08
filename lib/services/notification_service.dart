@@ -181,6 +181,30 @@ class NotificationService {
     }
   }
 
+  /// Show a generic non-error notice on the completion channel
+  /// (e.g. the SAF folder-unavailable fallback, #90).
+  static Future<void> showNotice({
+    required String title,
+    required String message,
+  }) async {
+    if (!_isInitialized) await initialize();
+
+    try {
+      await _platform.invokeMethod('showNotification', {
+        'notificationId': title.hashCode,
+        'channelId': _completionChannelId,
+        'title': title,
+        'description': message,
+        'autoCancel': true,
+        'priority': 'default',
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[NotificationService] Show notice handled: $e');
+      }
+    }
+  }
+
   /// Show download error notification
   static Future<void> showDownloadError({
     required String downloadId,
@@ -188,7 +212,6 @@ class NotificationService {
     required String errorMessage,
   }) async {
     if (!_isInitialized) await initialize();
-
     try {
       await _platform.invokeMethod('showNotification', {
         'notificationId': downloadId.hashCode,

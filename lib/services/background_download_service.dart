@@ -13,6 +13,7 @@ import 'local_archive_storage.dart';
 import 'archive_url_service.dart';
 import 'download_queue_store.dart';
 import 'download_retry_policy.dart';
+import 'saf_download_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/file_utils.dart';
 import '../utils/permission_utils.dart';
@@ -64,6 +65,10 @@ class BackgroundDownloadService extends ChangeNotifier {
   final Map<String, Set<String>> _completedFileNames = {};
   final Map<String, int> _lastProgressNotificationMs = {};
   int _lastProgressUiNotifyMs = 0;
+  // Public-folder delivery (#90): a copy of each finished, verified
+  // download is exported to the user's chosen SAF folder (opt-in).
+  final SafDownloadService _safService = SafDownloadService.instance;
+  bool _safRevokedNoticeShown = false;
   final Set<String> _pausedDownloads = {};
   Timer? _retryTimer;
   bool _isInitialized = false;
@@ -537,6 +542,25 @@ class BackgroundDownloadService extends ChangeNotifier {
           // Persist the completed-file set so a mid-archive kill resumes
           // with exactly these files skipped (#84)
           _persistDownload(downloadId);
+          // Deliver a copy to the user's chosen public folder (#90).
+          // Best-effort: a missing or revoked folder never fails the
+          // download - the app-scoped copy is always the canonical file.
+          final safOutcome = await _safService.exportFile(filePath);
+          if (safOutcome == SafExportOutcome.grantRevoked) {
+            if (!_safRevokedNoticeShown) {
+              _safRevokedNoticeShown = true;
+              unawaited(
+                NotificationService.showNotice(
+                  title: 'Download folder unavailable',
+                  message:
+                      'The folder chosen in Settings is no longer '
+                      'accessible. New downloads stay in app storage.',
+                ),
+              );
+            }
+            // One notice per service run; the folder was already
+            // cleared by the SAF service.
+          }
           // Track bytes for honest statistics
           totalDownloadedBytes += currentFileBytes;
 
