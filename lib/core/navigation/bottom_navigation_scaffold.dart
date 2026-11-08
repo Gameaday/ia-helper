@@ -27,7 +27,23 @@ import 'navigation_state.dart';
 /// 3. Transfers - Download/upload management
 /// 4. More - Settings and additional options
 class BottomNavigationScaffold extends StatefulWidget {
-  const BottomNavigationScaffold({super.key});
+  const BottomNavigationScaffold({
+    super.key,
+    this.rootScreens = _defaultRootScreens,
+  });
+
+  /// Root screen shown in each tab. Injectable so widget tests can pump the
+  /// shell with lightweight placeholders instead of the full screen/service
+  /// stack; production always uses the five default screens below.
+  final List<Widget> rootScreens;
+
+  static const List<Widget> _defaultRootScreens = [
+    HomeScreen(),
+    LibraryScreen(),
+    DiscoverScreen(),
+    TransfersScreen(),
+    MoreScreen(),
+  ];
 
   @override
   State<BottomNavigationScaffold> createState() =>
@@ -83,29 +99,15 @@ class _BottomNavigationScaffoldState extends State<BottomNavigationScaffold> {
 
   Widget _buildBody(NavigationState navigationState) {
     // Use IndexedStack to keep all tab states alive
+    final screens = widget.rootScreens;
     return IndexedStack(
       index: navigationState.currentTabIndex,
       children: [
-        _TabNavigator(
-          navigatorKey: navigationState.getNavigatorKey(0),
-          rootScreen: const HomeScreen(),
-        ),
-        _TabNavigator(
-          navigatorKey: navigationState.getNavigatorKey(1),
-          rootScreen: const LibraryScreen(),
-        ),
-        _TabNavigator(
-          navigatorKey: navigationState.getNavigatorKey(2),
-          rootScreen: const DiscoverScreen(),
-        ),
-        _TabNavigator(
-          navigatorKey: navigationState.getNavigatorKey(3),
-          rootScreen: const TransfersScreen(),
-        ),
-        _TabNavigator(
-          navigatorKey: navigationState.getNavigatorKey(4),
-          rootScreen: const MoreScreen(),
-        ),
+        for (var i = 0; i < screens.length; i++)
+          _TabNavigator(
+            navigatorKey: navigationState.getNavigatorKey(i),
+            rootScreen: screens[i],
+          ),
       ],
     );
   }
