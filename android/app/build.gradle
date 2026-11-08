@@ -107,6 +107,10 @@ android {
                 appIcon: "@mipmap/ic_launcher",
                 networkSecurityConfig: "@xml/network_security_config_dev"
             ]
+            // Dev builds keep x86_64 for fast Android-emulator images.
+            ndk {
+                abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+            }
         }
         
         staging {
@@ -121,6 +125,9 @@ android {
                 appIcon: "@mipmap/ic_launcher",
                 networkSecurityConfig: "@xml/network_security_config_staging"
             ]
+            ndk {
+                abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+            }
         }
         
         production {
@@ -133,6 +140,13 @@ android {
                 appIcon: "@mipmap/ic_launcher",
                 networkSecurityConfig: "@xml/network_security_config"
             ]
+            // Size optimization (#98): ship ARM-only in production. x86_64
+            // exists for emulators/Chromebooks; it adds ~25 MB of native
+            // libs to the AAB/universal APK. Play's 64-bit requirement is
+            // satisfied by arm64-v8a. Dev/staging flavors keep x86_64.
+            ndk {
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
+            }
         }
     }
 
@@ -142,11 +156,6 @@ android {
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        
-        // Native library architecture (removed x86 for Play Store compliance)
-        ndk {
-            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
-        }
         
         // Test instrumentation runner
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
