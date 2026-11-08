@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'app_shapes.dart';
+import 'semantic_colors.dart';
+
 /// Internet Archive Helper Material 3 Expressive Theme
 ///
 /// This theme implements Material 3 Expressive design principles with a
@@ -23,7 +26,9 @@ import 'package:flutter/material.dart';
 /// SegmentedButton, SearchBar, SearchView, PopupMenu, DropdownMenu, MenuButton,
 /// Tooltip, FAB, ListTile, Divider, and ProgressIndicator. Page transitions on
 /// Android use the predictive-back zoom so navigation motion feels native and
-/// expressive.
+/// expressive. Semantic state colors (success / warning / info) are
+/// registered as the [AppSemanticColors] theme extension so they theme and
+/// lerp like any other token.
 class AppTheme {
   // Internet Archive brand colors
   static const Color internetArchiveBlue = Color(0xFF004B87);
@@ -178,6 +183,11 @@ class AppTheme {
       colorScheme: colorScheme,
       splashFactory: InkSparkle.splashFactory,
       textTheme: _expressiveTextTheme(colorScheme.brightness),
+      extensions: <ThemeExtension<dynamic>>[
+        colorScheme.brightness == Brightness.light
+            ? AppSemanticColors.light
+            : AppSemanticColors.dark,
+      ],
 
       // Expressive navigation: predictive-back zoom on Android
       pageTransitionsTheme: const PageTransitionsTheme(
@@ -206,7 +216,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         color: colorScheme.surfaceContainerLow,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: AppShapes.large),
         clipBehavior: Clip.hardEdge,
       ),
 
@@ -264,7 +274,7 @@ class AppTheme {
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppShapes.small,
           ),
         ),
       ),
@@ -273,21 +283,21 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colorScheme.surfaceContainerHigh,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        border: OutlineInputBorder(borderRadius: AppShapes.medium),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppShapes.medium,
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppShapes.medium,
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppShapes.medium,
           borderSide: BorderSide(color: colorScheme.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppShapes.medium,
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         prefixIconColor: colorScheme.onSurfaceVariant,
@@ -325,7 +335,7 @@ class AppTheme {
         focusElevation: 4,
         hoverElevation: 4,
         highlightElevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: AppShapes.large),
       ),
 
       // Dividers
@@ -336,7 +346,7 @@ class AppTheme {
 
       // Lists
       listTileTheme: ListTileThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: AppShapes.medium),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 8,
@@ -346,7 +356,7 @@ class AppTheme {
 
       // Material Expressive: Dialog theme
       dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        shape: RoundedRectangleBorder(borderRadius: AppShapes.extraLarge),
         backgroundColor: colorScheme.surfaceContainerHigh,
         elevation: 6,
         titleTextStyle: TextStyle(
@@ -365,7 +375,7 @@ class AppTheme {
       datePickerTheme: DatePickerThemeData(
         backgroundColor: colorScheme.surfaceContainerHigh,
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        shape: RoundedRectangleBorder(borderRadius: AppShapes.extraLarge),
       ),
 
       // Material Expressive: Time picker theme
@@ -377,7 +387,7 @@ class AppTheme {
       drawerTheme: DrawerThemeData(
         backgroundColor: colorScheme.surfaceContainerLow,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.horizontal(right: Radius.circular(28)),
+          borderRadius: AppShapes.rightExtraLarge,
         ),
       ),
 
@@ -396,7 +406,7 @@ class AppTheme {
       // Material Expressive: Bottom sheet theme
       bottomSheetTheme: BottomSheetThemeData(
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: AppShapes.topExtraLarge,
         ),
         backgroundColor: colorScheme.surfaceContainerLow,
         surfaceTintColor: colorScheme.surfaceTint,
@@ -427,7 +437,7 @@ class AppTheme {
       // Material Expressive: SnackBar theme
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: AppShapes.medium),
         backgroundColor: colorScheme.inverseSurface,
         contentTextStyle: TextStyle(color: colorScheme.onInverseSurface),
         actionTextColor: colorScheme.inversePrimary,
@@ -460,7 +470,7 @@ class AppTheme {
           return Colors.transparent;
         }),
         side: BorderSide(color: colorScheme.outline),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        shape: RoundedRectangleBorder(borderRadius: AppShapes.extraSmall),
       ),
 
       // Material 3: Radio theme
@@ -561,7 +571,7 @@ class AppTheme {
         indicatorColor: colorScheme.secondaryContainer,
         elevation: 1,
         indicatorShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: AppShapes.extraLarge,
         ),
       ),
 
@@ -575,7 +585,7 @@ class AppTheme {
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            RoundedRectangleBorder(borderRadius: AppShapes.large),
           ),
           backgroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
@@ -598,7 +608,7 @@ class AppTheme {
         elevation: const WidgetStatePropertyAll(0),
         shape: const WidgetStatePropertyAll(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(28)),
+            borderRadius: AppShapes.extraLarge,
           ),
         ),
         hintStyle: WidgetStatePropertyAll(
@@ -613,7 +623,7 @@ class AppTheme {
       searchViewTheme: SearchViewThemeData(
         backgroundColor: colorScheme.surfaceContainerLow,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(28)),
+          borderRadius: AppShapes.extraLarge,
         ),
         dividerColor: colorScheme.outlineVariant,
       ),
@@ -621,7 +631,7 @@ class AppTheme {
       // Material 3: PopupMenu theme
       popupMenuTheme: PopupMenuThemeData(
         color: colorScheme.surfaceContainerHigh,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: AppShapes.medium),
         elevation: 2,
         labelTextStyle: WidgetStatePropertyAll(
           TextStyle(color: colorScheme.onSurfaceVariant),
@@ -635,7 +645,7 @@ class AppTheme {
           elevation: const WidgetStatePropertyAll(2),
           shape: const WidgetStatePropertyAll(
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(16)),
+              borderRadius: AppShapes.medium,
             ),
           ),
         ),

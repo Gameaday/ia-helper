@@ -1,0 +1,49 @@
+name: Regen pubspec.lock (one-shot)
+
+# Runs once when this file is added (the paths filter self-limits it to
+# changes of this workflow file), regenerates the stale lockfile (old
+# majors, removed deps like dio/flutter_spinkit/cupertino_icons), and
+# commits the result. The lockfile commit then goes through CI like any
+# other push to main.
+on:
+  push:
+    paths:
+      - '.github/workflows/regen-pubspec-lock.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: regen-lock
+  cancel-in-progress: true
+
+jobs:
+  regen:
+    name: Regenerate lockfile
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Regenerate lockfile
+        run: |
+          rm pubspec.lock
+          flutter pub get
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pubspec.lock
+          if git diff --cached --quiet; then
+            echo "Lockfile already current - nothing to commit"
+          else
+            git commit -m "chore: regenerate pubspec.lock (stale majors, removed deps)"
+            git push
+          fi

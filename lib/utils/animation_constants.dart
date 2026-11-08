@@ -63,6 +63,28 @@ class MD3Durations {
   static const Duration extraLong = Duration(milliseconds: 500);
 }
 
+/// Material Design 3 modal sheet motion
+///
+/// Standard entrance/exit styling for modal bottom sheets. Pass as the
+/// `style` argument of `showModalBottomSheet` so every sheet in the app
+/// enters and exits with the same expressive motion instead of the
+/// framework default.
+class MD3Sheets {
+  MD3Sheets._();
+
+  /// Sheet entrance: decelerate into place over 300ms.
+  /// Sheet exit: accelerate away over 200ms.
+  ///
+  /// Mirrors the M3 sheet motion spec: entering elements decelerate into
+  /// place, exiting elements accelerate away without lingering.
+  static const AnimationStyle modalEntrance = AnimationStyle(
+    duration: Duration(milliseconds: 300),
+    reverseDuration: Duration(milliseconds: 200),
+    curve: MD3Curves.decelerate,
+    reverseCurve: MD3Curves.accelerate,
+  );
+}
+
 /// Material Design 3 Page Transitions
 ///
 /// Pre-built page route builders for consistent navigation.
@@ -209,6 +231,7 @@ class StaggeredListAnimation extends StatelessWidget {
 
   final int index;
   final Widget child;
+
   final Duration duration;
   final Duration delay;
 
@@ -244,6 +267,7 @@ class SmoothStateChange extends StatelessWidget {
   });
 
   final Widget child;
+
   final Duration duration;
   final Curve curve;
 

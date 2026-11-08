@@ -146,6 +146,18 @@ class AppShapes {
     bottomRight: circularExtraLarge,
   );
 
+  // ========== Side-only BorderRadius ==========
+
+  /// Extra Large Right Corners (28dp)
+  ///
+  /// Use for sheets and drawers that slide in from the start edge, so the
+  /// trailing corners stay rounded — matches the M3 drawer shape
+  /// (`BorderRadius.horizontal(right: ...)`).
+  static const BorderRadius rightExtraLarge = BorderRadius.only(
+    topRight: circularExtraLarge,
+    bottomRight: circularExtraLarge,
+  );
+
   // ========== Shape Theme Helpers ==========
 
   /// Get RoundedRectangleBorder for buttons, cards, etc.
