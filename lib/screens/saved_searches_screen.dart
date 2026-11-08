@@ -427,9 +427,11 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView(
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        children: _allTags.map((tag) {
+        itemCount: _allTags.length,
+        itemBuilder: (context, index) {
+          final tag = _allTags.elementAt(index);
           final isSelected = _selectedTags.contains(tag);
           return Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -448,7 +450,7 @@ class _SavedSearchesScreenState extends State<SavedSearchesScreen> {
               },
             ),
           );
-        }).toList(),
+        },
       ),
     );
   }

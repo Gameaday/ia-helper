@@ -228,7 +228,11 @@ class _DownloadManagerWidgetState extends State<DownloadManagerWidget> {
       separatorBuilder: (context, index) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final download = downloads[index];
-        return _buildDownloadItem(context, service, download);
+        // Isolate per-item repaints: one progressing row must not repaint
+        // every other row in the manager.
+        return RepaintBoundary(
+          child: _buildDownloadItem(context, service, download),
+        );
       },
     );
   }

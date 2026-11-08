@@ -438,28 +438,30 @@ class _HomeScreenState extends State<HomeScreen> {
         // Search suggestions
         if (service.suggestions.isNotEmpty)
           Expanded(
-            child: ListView(
+            child: ListView.builder(
               padding: const EdgeInsets.only(top: 8, bottom: 8),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Text(
-                    'Suggestions:',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                ...service.suggestions.map((suggestion) {
-                  return SearchSuggestionCard(
-                    suggestion: suggestion,
-                    onTap: () {
-                      // Clear error and suggestions before fetching
-                      service.clearMetadata();
-                      // Fetch metadata for the suggested archive
-                      service.fetchMetadata(suggestion.identifier);
-                    },
+              itemCount: service.suggestions.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Text(
+                      'Suggestions:',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   );
-                }),
-              ],
+                }
+                final suggestion = service.suggestions[index - 1];
+                return SearchSuggestionCard(
+                  suggestion: suggestion,
+                  onTap: () {
+                    // Clear error and suggestions before fetching
+                    service.clearMetadata();
+                    // Fetch metadata for the suggested archive
+                    service.fetchMetadata(suggestion.identifier);
+                  },
+                );
+              },
             ),
           ),
 

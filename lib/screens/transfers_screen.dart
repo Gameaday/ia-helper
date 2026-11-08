@@ -445,14 +445,16 @@ class _TransfersScreenState extends State<TransfersScreen> {
         final task = _filteredTasks[index];
         final progress = _progressMap[task.id];
 
-        return _TransferCard(
+        return RepaintBoundary(
           key: ValueKey(task.id),
-          task: task,
-          progress: progress,
-          onPause: () => _pauseDownload(task),
-          onResume: () => _resumeDownload(task),
-          onCancel: () => _cancelDownload(task),
-          onRetry: () => _retryDownload(task),
+          child: _TransferCard(
+            task: task,
+            progress: progress,
+            onPause: () => _pauseDownload(task),
+            onResume: () => _resumeDownload(task),
+            onCancel: () => _cancelDownload(task),
+            onRetry: () => _retryDownload(task),
+          ),
         );
       },
     );
@@ -473,14 +475,16 @@ class _TransfersScreenState extends State<TransfersScreen> {
         final task = _filteredTasks[index];
         final progress = _progressMap[task.id];
 
-        return _TransferCard(
+        return RepaintBoundary(
           key: ValueKey(task.id),
-          task: task,
-          progress: progress,
-          onPause: () => _pauseDownload(task),
-          onResume: () => _resumeDownload(task),
-          onCancel: () => _cancelDownload(task),
-          onRetry: () => _retryDownload(task),
+          child: _TransferCard(
+            task: task,
+            progress: progress,
+            onPause: () => _pauseDownload(task),
+            onResume: () => _resumeDownload(task),
+            onCancel: () => _cancelDownload(task),
+            onRetry: () => _retryDownload(task),
+          ),
         );
       },
     );

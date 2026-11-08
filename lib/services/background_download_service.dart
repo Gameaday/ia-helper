@@ -62,6 +62,7 @@ class BackgroundDownloadService extends ChangeNotifier {
   final Map<String, String> _downloadPaths = {};
   final Map<String, Set<String>> _completedFileNames = {};
   final Map<String, int> _lastProgressNotificationMs = {};
+  int _lastProgressUiNotifyMs = 0;
   final Set<String> _pausedDownloads = {};
   Timer? _retryTimer;
   bool _isInitialized = false;
@@ -488,10 +489,15 @@ class BackgroundDownloadService extends ChangeNotifier {
                   etaSeconds: eta,
                   status: DownloadStatus.downloading,
                 );
-                notifyListeners();
+                // Coalesce UI notifications to ~4 Hz: rebuilding on every
+                // progress callback starves the UI thread on fast links.
+                final nowMs = now.millisecondsSinceEpoch;
+                if (nowMs - _lastProgressUiNotifyMs >= 250) {
+                  _lastProgressUiNotifyMs = nowMs;
+                  notifyListeners();
+                }
 
                 // Throttled progress notification (at most one per second)
-                final nowMs = now.millisecondsSinceEpoch;
                 if (nowMs - _lastProgressNotificationMs[downloadId]! >=
                     1000) {
                   _lastProgressNotificationMs[downloadId] = nowMs;

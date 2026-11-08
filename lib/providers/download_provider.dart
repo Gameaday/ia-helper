@@ -198,6 +198,7 @@ class DownloadProvider extends ChangeNotifier {
   // Enhanced: Concurrent download configuration
   int maxConcurrentDownloads = 3;
   int _activeDownloads = 0;
+  int _lastProgressNotifyMs = 0;
 
   // Download queue for managing concurrent downloads
   final List<_QueuedDownload> _downloadQueue = [];
@@ -477,7 +478,13 @@ class DownloadProvider extends ChangeNotifier {
             _downloads[identifier] = _downloads[identifier]!.copyWith(
               fileProgress: updatedProgress,
             );
-            notifyListeners();
+            // Coalesce UI notifications to ~4 Hz: rebuilding on every
+            // progress callback starves the UI thread on fast links.
+            final nowMs = DateTime.now().millisecondsSinceEpoch;
+            if (nowMs - _lastProgressNotifyMs >= 250) {
+              _lastProgressNotifyMs = nowMs;
+              notifyListeners();
+            }
           },
         );
 

@@ -9,6 +9,50 @@ import '../models/archive_metadata.dart';
 import '../database/database_helper.dart';
 import 'archive_url_service.dart';
 
+/// Plain-data request for [_resizeAndEncodePreview]: an isolate worker must
+/// not capture anything beyond what can be sent across the port.
+class _ImagePreviewRequest {
+  final Uint8List bytes;
+  final String fileName;
+  const _ImagePreviewRequest(this.bytes, this.fileName);
+}
+
+/// Top-level isolate worker: decodes the image, downsamples to at most
+/// 800x800 (aspect ratio kept) and JPEG-encodes at quality 85 (#98).
+/// Runs off the UI isolate so opening image previews never janks the app.
+/// No debugPrint in workers: background isolates have no print handler.
+Uint8List _resizeAndEncodePreview(_ImagePreviewRequest request) {
+  img.Image? image = img.decodeImage(request.bytes);
+  if (image == null) {
+    throw Exception('Failed to decode image: ${request.fileName}');
+  }
+
+  const maxDimension = 800;
+  if (image.width > maxDimension || image.height > maxDimension) {
+    // Calculate new dimensions maintaining aspect ratio
+    int newWidth;
+    int newHeight;
+
+    if (image.width > image.height) {
+      newWidth = maxDimension;
+      newHeight = (image.height * maxDimension / image.width).round();
+    } else {
+      newHeight = maxDimension;
+      newWidth = (image.width * maxDimension / image.height).round();
+    }
+
+    image = img.copyResize(
+      image,
+      width: newWidth,
+      height: newHeight,
+      interpolation: img.Interpolation.linear,
+    );
+  }
+
+  // Compress to JPEG with quality 85
+  return Uint8List.fromList(img.encodeJpg(image, quality: 85));
+}
+
 /// Service for managing file previews with caching
 ///
 /// Supports generating and caching previews for various file types:
@@ -466,42 +510,12 @@ class FilePreviewService {
         );
       }
 
-      // Decode image
-      img.Image? image = img.decodeImage(response.bodyBytes);
-      if (image == null) {
-        throw Exception('Failed to decode image: ${file.name}');
-      }
-
-      debugPrint('Original image size: ${image.width}x${image.height}');
-
-      // Resize if larger than 800x800
-      const maxDimension = 800;
-      if (image.width > maxDimension || image.height > maxDimension) {
-        // Calculate new dimensions maintaining aspect ratio
-        int newWidth;
-        int newHeight;
-
-        if (image.width > image.height) {
-          newWidth = maxDimension;
-          newHeight = (image.height * maxDimension / image.width).round();
-        } else {
-          newHeight = maxDimension;
-          newWidth = (image.width * maxDimension / image.height).round();
-        }
-
-        // Resize image
-        image = img.copyResize(
-          image,
-          width: newWidth,
-          height: newHeight,
-          interpolation: img.Interpolation.linear,
-        );
-
-        debugPrint('Resized image to: ${image.width}x${image.height}');
-      }
-
-      // Compress to JPEG with quality 85
-      final jpegBytes = Uint8List.fromList(img.encodeJpg(image, quality: 85));
+      // Decode + resize + JPEG-encode is CPU-heavy: it runs off the UI
+      // isolate so opening image previews never janks the app (#98).
+      final jpegBytes = await compute(
+        _resizeAndEncodePreview,
+        _ImagePreviewRequest(response.bodyBytes, file.name),
+      );
 
       debugPrint('Compressed image size: ${_formatBytes(jpegBytes.length)}');
 
