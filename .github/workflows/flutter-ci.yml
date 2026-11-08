@@ -63,11 +63,16 @@ jobs:
           set -e
           cat /tmp/test.log
           if [ $rc -ne 0 ]; then
-            grep -nE "Error:|Exception|FAILED|Compilation error|Expected:|Actual:|Some tests failed" /tmp/test.log | tail -30 > /tmp/keylines.txt
+            # Compact reporter marks failures with "[E]" followed by the
+            # assertion diff and stack; capture those first (test names),
+            # then the generic key lines.
+            grep -nA 10 '\[E\]' /tmp/test.log | head -80 > /tmp/keylines.txt
+            echo "--- generic key lines ---" >> /tmp/keylines.txt
+            grep -nE "Error:|Exception|FAILED|Compilation error|Expected:|Actual:|Some tests failed" /tmp/test.log | tail -20 >> /tmp/keylines.txt
             echo "--- last 15 lines ---" >> /tmp/keylines.txt
             tail -15 /tmp/test.log >> /tmp/keylines.txt
             i=0
-            while IFS= read -r line && [ $i -lt 10 ]; do
+            while IFS= read -r line && [ $i -lt 20 ]; do
               [ -z "$line" ] && continue
               printf "::error::%.240s\n" "$line"
               i=$((i+1))
