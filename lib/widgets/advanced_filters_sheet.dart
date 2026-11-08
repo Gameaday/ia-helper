@@ -13,6 +13,8 @@ library;
 import 'package:flutter/material.dart';
 import '../models/date_range.dart';
 import '../models/sort_option.dart';
+import '../utils/animation_constants.dart';
+import '../utils/app_shapes.dart';
 
 /// Modal bottom sheet showing advanced search filters
 class AdvancedFiltersSheet extends StatefulWidget {
@@ -51,9 +53,8 @@ class AdvancedFiltersSheet extends StatefulWidget {
       showDragHandle: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 1,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      style: MD3Sheets.modalEntrance,
+      shape: const RoundedRectangleBorder(borderRadius: AppShapes.topExtraLarge),
       builder: (context) => AdvancedFiltersSheet(
         initialMediatypes: initialMediatypes,
         initialDateRange: initialDateRange,

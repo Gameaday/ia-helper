@@ -13,6 +13,8 @@ library;
 import 'package:flutter/material.dart';
 import '../models/search_history_entry.dart';
 import '../services/search_history_service.dart';
+import '../utils/animation_constants.dart';
+import '../utils/app_shapes.dart';
 
 /// Modal bottom sheet showing search history
 class SearchHistorySheet extends StatefulWidget {
@@ -36,9 +38,8 @@ class SearchHistorySheet extends StatefulWidget {
       showDragHandle: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 1,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      style: MD3Sheets.modalEntrance,
+      shape: const RoundedRectangleBorder(borderRadius: AppShapes.topExtraLarge),
       builder: (context) =>
           SearchHistorySheet(onSearchSelected: onSearchSelected),
     );

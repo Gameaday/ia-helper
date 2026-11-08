@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/download_priority.dart';
+import '../utils/animation_constants.dart';
 import '../utils/app_shapes.dart';
 
 /// Compact priority selector for mobile UI
@@ -105,6 +106,7 @@ class PrioritySelector extends StatelessWidget {
   void _showPriorityPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      style: MD3Sheets.modalEntrance,
       shape: const RoundedRectangleBorder(borderRadius: AppShapes.topLarge),
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 24),

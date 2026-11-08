@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:internet_archive_helper/models/collection.dart';
 import 'package:internet_archive_helper/services/collections_service.dart';
+import 'package:internet_archive_helper/utils/animation_constants.dart';
+import 'package:internet_archive_helper/utils/app_shapes.dart';
 
 /// Material Design 3 compliant collection picker widget
 ///
@@ -51,6 +53,7 @@ class CollectionPicker extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      style: MD3Sheets.modalEntrance,
       builder: (context) => CollectionPicker(
         identifier: identifier,
         title: title,
@@ -179,7 +182,7 @@ class _CollectionPickerState extends State<CollectionPicker> {
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: AppShapes.topExtraLarge,
           ),
           child: Column(
             children: [

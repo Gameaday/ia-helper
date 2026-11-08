@@ -4,6 +4,7 @@ import '../services/archive_service.dart';
 import '../services/background_download_service.dart';
 import '../core/navigation/navigation_state.dart';
 import '../screens/settings_screen.dart';
+import '../utils/animation_constants.dart';
 import '../utils/file_utils.dart';
 import '../utils/permission_utils.dart';
 
@@ -150,6 +151,7 @@ class _DownloadControlsWidgetState extends State<DownloadControlsWidget> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      style: MD3Sheets.modalEntrance,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,

@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../utils/animation_constants.dart';
 import '../../utils/theme.dart';
 
 /// Utility class for common UI operations
@@ -220,6 +221,7 @@ class UIHelpers {
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       isScrollControlled: true,
+      style: MD3Sheets.modalEntrance,
       builder: (context) => child,
     );
   }

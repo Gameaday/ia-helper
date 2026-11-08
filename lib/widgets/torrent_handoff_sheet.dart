@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/torrent_handoff_service.dart';
+import '../utils/animation_constants.dart';
 
 /// "Seed externally" bottom sheet (#93).
 ///
@@ -22,6 +23,7 @@ class TorrentHandoffSheet extends StatefulWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      style: MD3Sheets.modalEntrance,
       builder: (_) =>
           TorrentHandoffSheet(identifier: identifier, title: title),
     );
