@@ -93,7 +93,7 @@ jobs:
               cat /tmp/keylines.txt
               echo '```'
             } > /tmp/body.md
-            gh api repos/Gameaday/ia-helper/issues/98/comments -F body=@/tmp/body.md || true
+            gh api repos/Gameaday/ia-helper/issues/98/comments -F body=@/tmp/body.md > /tmp/gh.out 2>&1 || printf "::warning::failure-dump comment could not be posted: %s\n" "$(head -c 200 /tmp/gh.out)"
           fi
           exit $rc
 

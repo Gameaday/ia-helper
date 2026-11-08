@@ -28,8 +28,8 @@ void main() {
     final client = MockClient(
       (request) async => http.Response(
         '{"metadata": {"identifier": "item-1", "title": "Item One", '
-            '"mediatype": "texts"}, "files": '
-            '${List.generate(remoteFileCount, (i) => '{"name": "file-$i"}').join(',')}}',
+            '"mediatype": "texts"}, "files": ['
+            '${List.generate(remoteFileCount, (i) => '{"name": "file-$i"}').join(',')}]}',
         200,
       ),
     );
